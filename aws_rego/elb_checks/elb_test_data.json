@@ -1,0 +1,38 @@
+
+{
+    "elbs": [
+        {
+            "Type": "Classic",
+            "Name": "test-classic-lb",
+            "RequestCount": 0,
+            "ErrorRate": 0,
+            "CreatedTime": "2024-11-19T14:46:29Z",
+            "AvailabilityZones": [
+                "us-east-1a"
+            ],
+            "Instances": [],
+            "SecurityGroups": [
+                "sg-0aaa0bea969e50cf9"
+            ],
+            "Scheme": "internet-facing",
+            "DNSName": "test-classic-lb.us-east-1.elb.amazonaws.com",
+            "InstanceHealth": []
+        },
+        {
+            "Type": "application",
+            "Name": "test-alb",
+            "RequestCount": 42,
+            "ErrorRate": 427,
+            "CreatedTime": "2024-11-19T14:46:29Z",
+            "AvailabilityZones": [
+                "us-east-1a"
+            ],
+            "SecurityGroups": [],
+            "Scheme": "internet-facing",
+            "DNSName": "test-alb-1.us-east-1.elb.amazonaws.com",
+            "State": "unhealthy",
+            "VpcId": "vpc-bc6fa69f",
+            "InstanceHealth": []
+        }
+    ]
+}

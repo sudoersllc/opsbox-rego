@@ -1,0 +1,32 @@
+{
+    "objects": [
+        {
+            "Key": "test-object-1",
+            "LastModified": 1732029738.0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "test-object-2",
+            "LastModified": 1732029738.0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "test-object-3",
+            "LastModified": 1732029738.0,
+            "StorageClass": "GLACIER"
+        }
+    ],
+    "buckets": [
+        {
+            "name": "test-bucket-1",
+            "storage_class": "STANDARD",
+            "last_modified": 1699442538.0
+        },
+        {
+            "name": "test-bucket-2",
+            "storage_class": "GLACIER",
+            "last_modified": 1732029738.0
+        }
+    ],
+    "current_time": 1732029738
+}

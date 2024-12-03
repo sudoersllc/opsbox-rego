@@ -1,0 +1,26 @@
+{
+    "rds_instances": [
+        {
+            "InstanceIdentifier": "test-instance",
+            "InstanceType": "db.t2.micro",
+            "Region": "us-west-1a",
+            "AllocatedStorage": 20,
+            "Engine": "mysql",
+            "CPUUtilization": 0,
+            "Connections": 0,
+            "StorageUtilization": 30
+        }
+    ],
+    "rds_snapshots": [
+        [
+            {
+                "SnapshotIdentifier": "test-snapshot",
+                "InstanceIdentifier": "test-instance",
+                "SnapshotCreateTime": "2020-11-19T15:26:17.532000+00:00",
+                "AllocatedStorage": 20,
+                "StorageType": "gp2"
+            }
+        ]
+    ],
+    "date": "2024-11-19T10:26:17.640128Z"
+}

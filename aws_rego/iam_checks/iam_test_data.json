@@ -1,0 +1,55 @@
+{
+    "iam_users": [
+        {
+            "user_name": "test-user",
+            "user_id": "qx6rj080spire59ic8xn",
+            "arn": "arn:aws:iam::123456789012:user/test-user",
+            "create_date": "2024-11-19T15:24:25.188000+00:00",
+            "attached_policies": []
+        }
+    ],
+    "iam_roles": [
+        {
+            "role_name": "test-role",
+            "role_id": "AROARZPUZDIKMRDMHHF5U",
+            "arn": "arn:aws:iam::123456789012:role/test-role",
+            "create_date": "2024-11-19T15:24:25.190000+00:00",
+            "attached_policies": []
+        }
+    ],
+    "iam_policies": [
+        {
+            "policy_name": "test-policy",
+            "policy_id": "AFHZWWLTT6L602RAYA9PX",
+            "arn": "arn:aws:iam::123456789012:policy/test-policy",
+            "attachment_count": 0,
+            "create_date": "2024-11-19T15:24:25.199000+00:00"
+        }
+    ],
+    "credential_report": [
+        {
+            "user": "test-user",
+            "arn": "arn:aws:iam::123456789012:user/test-user",
+            "user_creation_time": "2024-11-19T15:24:25+00:00",
+            "password_enabled": "true",
+            "password_last_used": "not_supported",
+            "password_last_changed": "2024-11-19T15:24:25+00:00",
+            "password_next_rotation": "not_supported",
+            "mfa_active": "false",
+            "access_key_1_active": "true",
+            "access_key_1_last_rotated": "2024-08-19T15:24:25+00:00",
+            "access_key_1_last_used_date": "N/A",
+            "access_key_1_last_used_region": "not_supported",
+            "access_key_1_last_used_service": "not_supported",
+            "access_key_2_active": "false",
+            "access_key_2_last_rotated": "N/A",
+            "access_key_2_last_used_date": "N/A",
+            "access_key_2_last_used_region": "not_supported",
+            "access_key_2_last_used_service": "not_supported",
+            "cert_1_active": "false",
+            "cert_1_last_rotated": "N/A",
+            "cert_2_active": "false",
+            "cert_2_last_rotated": "N/A"
+        }
+    ]
+}
