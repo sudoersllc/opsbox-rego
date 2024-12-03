@@ -1,0 +1,11 @@
+[info]
+name = "scaling_down"
+module = "scaling_down"
+class_name = "ScalingDown"
+type = "rego"
+uses=["rego", "rds"]
+
+[rego]
+description = "Check for instances that can be scaled down."
+rego_file = "scaling_down.rego"
+gather_from = "rds"

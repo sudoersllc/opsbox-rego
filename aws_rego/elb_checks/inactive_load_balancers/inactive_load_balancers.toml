@@ -1,0 +1,10 @@
+[info]
+name = "inactive_load_balancers"
+module = "inactive_load_balancers"
+class_name = "InactiveLoadBalancers"
+type="rego"
+uses = ["elb", "rego"]
+
+[rego]
+description = "Check for inactive load balancers."
+rego_file =  "inactive_load_balancers.rego"

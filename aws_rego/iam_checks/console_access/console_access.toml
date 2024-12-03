@@ -1,0 +1,10 @@
+[info]
+name = "console_access"
+module = "console_access"
+class_name = "ConsoleAccessIAM"
+type = "rego"
+uses = ["rego", "iam"]
+
+[rego]
+description = "Check for empty iam policies."
+rego_file = "console_access.rego"

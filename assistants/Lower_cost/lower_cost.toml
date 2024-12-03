@@ -1,0 +1,6 @@
+[info]
+name="lower_cost"
+module = "lower_cost"
+class_name= "LowerCost"
+type = "assistant"
+uses = ["general"]

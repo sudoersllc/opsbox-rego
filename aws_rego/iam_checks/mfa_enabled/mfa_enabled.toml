@@ -1,0 +1,10 @@
+[info]
+name = "mfa_enabled"
+module = "mfa_enabled"
+class_name = "IAMMFADisabled"
+type = "rego"
+uses = ["rego", "iam"]
+
+[rego]
+description = "Check for empty iam policies."
+rego_file = "mfa_enabled.rego"

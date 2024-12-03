@@ -1,0 +1,6 @@
+[info]
+name="ec2"
+module = "ec2_provider"
+class_name= "EC2Provider"
+type = "provider"
+uses = ["general"]

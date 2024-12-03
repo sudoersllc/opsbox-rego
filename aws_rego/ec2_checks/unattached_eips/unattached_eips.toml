@@ -1,0 +1,10 @@
+[info]
+name = "unattached_eips"
+module = "unattached_eips"
+class_name = "UnattachedEips"
+type = "rego"
+uses = ["rego", "ec2"]
+
+[rego]
+description= "Check for Unattached EIPs."
+rego_file= "unattached_eips.rego"

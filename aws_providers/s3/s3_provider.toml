@@ -1,0 +1,6 @@
+[info]
+name="s3"
+module = "s3_provider"
+class_name = "S3Provider"
+type = "provider"
+uses = ["general"]

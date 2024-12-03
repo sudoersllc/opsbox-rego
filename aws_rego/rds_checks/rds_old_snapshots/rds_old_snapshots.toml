@@ -1,0 +1,11 @@
+[info]
+name = "rds_old_snapshots"
+module = "rds_old_snapshots"
+class_name = "RDSIdle"
+type = "rego"
+uses = ["rds", "rego"]
+
+[rego]
+description = "Check for old snapshots."
+rego_file = "rds_old_snapshots.rego"
+gather_from = "rds"

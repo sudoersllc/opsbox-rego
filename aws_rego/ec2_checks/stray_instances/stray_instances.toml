@@ -1,0 +1,10 @@
+[info]
+name = "stray_instances"
+module = "stray_instances"
+class_name = "StrayInstances"
+type = "rego"
+uses = ["rego","ec2"]
+
+[rego]
+description= "Check for Stray EC2 instances."
+rego_file= "stray_instances.rego"

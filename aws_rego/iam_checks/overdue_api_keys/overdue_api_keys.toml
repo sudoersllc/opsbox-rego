@@ -1,0 +1,10 @@
+[info]
+name = "overdue_api_keys"
+module = "overdue_api_keys"
+class_name = "OverdueAPIKeysIAM"
+type = "rego"
+uses = ["rego", "iam"]
+
+[rego]
+description = "Check for empty iam policies."
+rego_file = "overdue_api_keys.rego"

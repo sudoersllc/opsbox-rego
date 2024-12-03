@@ -1,0 +1,7 @@
+[info]
+name = "email_out"
+module = "smtp"
+class_name = "EmailOutput"
+type = "output"
+uses = ["general"]
+

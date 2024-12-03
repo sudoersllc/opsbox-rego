@@ -1,0 +1,8 @@
+[info]
+name = "general"
+module = "general_handler"
+class_name = "GeneralHandler"
+type = "handler"
+
+[handler]
+handles = ["input", "output", "assistant"]

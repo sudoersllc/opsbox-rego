@@ -1,0 +1,6 @@
+[info]
+name = "azure_out"
+module = "azure"
+class_name = "AzureOutput"
+type="output"
+uses = ["general"]

@@ -1,0 +1,10 @@
+[info]
+name = "empty_storage"
+module = "empty_storage"
+class_name = "EmptyStorage"
+type = "rego"
+uses = ["rego", "rds"]
+
+[rego]
+description = "Check for empty RDS storages."
+rego_file = "empty_storage.rego"

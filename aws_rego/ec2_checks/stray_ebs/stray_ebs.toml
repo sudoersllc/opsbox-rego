@@ -1,0 +1,10 @@
+[info]
+name = "stray_ebs"
+module = "stray_ebs"
+class_name = "StrayEbs"
+type = "rego"
+uses = ["rego", "ec2"]
+
+[rego]
+description= "Check for stray EBS volumes."
+rego_file= "stray_ebs.rego"

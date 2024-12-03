@@ -1,0 +1,5 @@
+[info]
+name="cw_metrics"
+module = "cw_metrics"
+class_name = "CWAvailableMetrics"
+type = "provider"

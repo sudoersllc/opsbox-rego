@@ -1,0 +1,6 @@
+[info]
+name="rds"
+module = "rds_provider"
+class_name = "RDSProvider"
+type = "provider"
+uses = ["general"]

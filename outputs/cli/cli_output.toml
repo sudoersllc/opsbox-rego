@@ -1,0 +1,6 @@
+[info]
+name="cli_out"
+module = "cli"
+class_name = "CLIOutput"
+type="output"
+uses = ["general"]

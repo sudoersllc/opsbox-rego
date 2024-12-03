@@ -1,0 +1,11 @@
+[info]
+name = "ec2_old_snapshots"
+module = "ec2_old_snapshots"
+class_name = "EC2OLD"
+type = "rego"
+uses = ["ec2", "rego"]
+
+[rego]
+description = "Check for old snapshots."
+rego_file = "ec2_old_snapshots.rego"
+gather_from = "ec2"

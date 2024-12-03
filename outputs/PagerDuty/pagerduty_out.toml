@@ -1,0 +1,7 @@
+[info]
+name = "pagerduty_out"
+module = "pagerDuty"
+class_name = "PagerDutyOutput"
+type = "output"
+uses = ["general"]
+

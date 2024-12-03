@@ -1,0 +1,6 @@
+[info]
+name="github_out"
+module = "github"
+class_name = "GithubOutput"
+type="output"
+uses = ["general"]

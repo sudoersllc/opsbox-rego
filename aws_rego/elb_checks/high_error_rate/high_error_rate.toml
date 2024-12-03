@@ -1,0 +1,10 @@
+[info]
+name = "high_error_rate"
+module = "high_error_rate"
+class_name = "HighErrorRate"
+type = "rego"
+uses = ["rego", "elb"]
+
+[rego]
+description = "Check for high AWS ELB error rates"
+rego_file = "high_error_rate.rego"

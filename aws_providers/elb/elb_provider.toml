@@ -1,0 +1,6 @@
+[info]
+name="elb"
+module = "elb_provider"
+class_name = "elbProvider"
+type = "provider"
+uses = ["general"]

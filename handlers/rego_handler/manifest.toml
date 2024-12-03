@@ -1,0 +1,8 @@
+[info]
+name = "rego"
+module = "rego_handler"
+class_name = "RegoHandler"
+type = "handler"
+
+[handler]
+handles = ["rego"]

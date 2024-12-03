@@ -1,0 +1,10 @@
+[info]
+name = "rds_idle"
+module = "rds_idle"
+class_name = "RDSIdle"
+type = "rego"
+uses = ["rego", "rds"]
+
+[rego]
+description = "Check for inactive objects."
+rego_file = "rds_idle.rego"

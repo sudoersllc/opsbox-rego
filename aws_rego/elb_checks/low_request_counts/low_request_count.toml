@@ -1,0 +1,10 @@
+[info]
+name = "low_request_count"
+module = "low_request_count"
+class_name = "LowRequestCount"
+type="rego"
+uses = ["elb","rego"]
+
+[rego]
+description = "Check for ELBs with low request counts."
+rego_file = "low_request_count.rego"

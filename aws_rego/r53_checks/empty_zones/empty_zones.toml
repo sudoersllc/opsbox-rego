@@ -1,0 +1,10 @@
+[info]
+name = "empty_zones"
+module = "empty_zones"
+class_name = "EmptyZones"
+type = "rego"
+uses = ["rego", "r53"]
+
+[rego]
+description = "Check for empty r53 zones."
+rego_file = "empty_zones.rego"

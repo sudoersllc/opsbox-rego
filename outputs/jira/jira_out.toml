@@ -1,0 +1,7 @@
+[info]
+name = "jira_out"
+module = "jira"
+class_name = "JiraOutput"
+type="output"
+uses = ["general"]
+

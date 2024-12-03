@@ -1,0 +1,10 @@
+[info]
+name = "object_last_modified"
+module = "object_last_modified"
+class_name = "ObjectLastModified"
+type = "rego"
+uses = ["rego", "s3"]
+
+[rego]
+description = "Check for inactive S3 objects."
+rego_file = "object_last_modified.rego"

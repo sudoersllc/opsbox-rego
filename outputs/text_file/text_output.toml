@@ -1,0 +1,6 @@
+[info]
+name="text_out"
+module = "text_file"
+class_name = "TextFileOutput"
+type="output"
+uses = ["general"]

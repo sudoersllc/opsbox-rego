@@ -1,0 +1,6 @@
+[info]
+name="r53"
+module = "r53_provider"
+class_name = "Route53Provider"
+type = "provider"
+uses = ["general"]

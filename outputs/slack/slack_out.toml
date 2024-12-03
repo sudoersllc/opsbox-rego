@@ -1,0 +1,7 @@
+[info]
+name = "slack_out"
+module = "slack"
+class_name = "SlackOutput"
+type = "output"
+uses = ["general"]
+

@@ -1,0 +1,12 @@
+[info]
+name = "storage_class_usage"
+module = "storage_class_usage"
+class_name = "StorageClassUsage"
+type = "rego"
+uses = ["rego", "s3"]
+
+
+[rego]
+description = "Check for storage class percentile."
+rego_file = "storage_class_usage.rego"
+gather_from = "s3"

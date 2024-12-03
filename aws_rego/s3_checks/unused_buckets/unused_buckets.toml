@@ -1,0 +1,10 @@
+[info]
+name = "unused_buckets"
+module = "unused_buckets"
+class_name = "UnusedBuckets"
+type = "rego"
+uses = ["rego", "s3"]
+
+[rego]
+description = "Check for unused buckets"
+rego_file = "unused_buckets.rego"

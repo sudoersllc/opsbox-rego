@@ -1,0 +1,6 @@
+[info]
+name="cost_savings"
+module = "cost_savings"
+class_name= "CostSavings"
+type = "assistant"
+uses = ["general"]

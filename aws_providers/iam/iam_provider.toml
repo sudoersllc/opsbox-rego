@@ -1,0 +1,6 @@
+[info]
+name="iam"
+module = "iam_provider"
+class_name = "IAMProvider"
+type = "provider"
+uses = ["general"]
