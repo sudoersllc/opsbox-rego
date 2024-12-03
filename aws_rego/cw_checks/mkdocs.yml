@@ -1,0 +1,3 @@
+site_name: Cloudwatch
+nav:
+- "Cloudwatch Insights": "cw_insights.md"

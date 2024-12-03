@@ -1,0 +1,6 @@
+site_name: S3 Checks
+
+nav:
+  - Unused Buckets: unused_buckets.md
+  - Storage Class usage: storage_class_usage.md
+  - Object Last Modified: object_last_modified.md

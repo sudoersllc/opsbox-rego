@@ -1,0 +1,4 @@
+site_name: Assistants
+nav:
+- "Cost Savings": "cost_savings.md"
+- "Lower Cost": "lower_cost.md"
