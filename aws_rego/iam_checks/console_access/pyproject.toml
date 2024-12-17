@@ -1,0 +1,23 @@
+[project]
+name = "opsbox-aws-iam-console-access"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = [
+    "loguru>=0.7.2",
+    "pluggy>=1.5.0",
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_aws_iam_console_access = "console_access.console_access:ConsoleAccessIAM"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"console_access" = ["*.rego", "manifest.toml"]
