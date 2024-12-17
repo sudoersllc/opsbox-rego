@@ -14,3 +14,6 @@ dev-dependencies = [
     "moto>=5.0.22",
     "pytest>=8.3.4",
 ]
+
+[tool.uv.workspace]
+members = ["ec2_checks/ec2_old_snapshots"]
