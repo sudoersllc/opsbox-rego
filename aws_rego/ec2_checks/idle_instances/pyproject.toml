@@ -1,0 +1,23 @@
+[project]
+name = "opsbox-ec2-idle-instances"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = [
+    "loguru>=0.7.2",
+    "pluggy>=1.5.0",
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_ec2_idle_instances = "idle_instances.idle_instances:IdleInstances"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"idle_instances" = ["*.rego", "manifest.toml"]
