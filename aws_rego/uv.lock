@@ -4,7 +4,8 @@ requires-python = "==3.11.*"
 [manifest]
 members = [
     "aws-rego",
-    "low-request-counts",
+    "console-access",
+    "mfa-enabled",
     "opsbox-ec2-idle-instances",
     "opsbox-ec2-old-snapshots",
     "opsbox-ec2-stray-ebs",
@@ -12,6 +13,9 @@ members = [
     "opsbox-ec2-unattached-eips",
     "opsbox-elb-high-error-rate",
     "opsbox-elb-inactive-load-balancers",
+    "opsbox-elb-low-request-counts",
+    "overdue-api-keys",
+    "unused-policies",
 ]
 
 [[package]]
@@ -135,6 +139,21 @@ wheels = [
 ]
 
 [[package]]
+name = "console-access"
+version = "0.1.0"
+source = { virtual = "iam_checks/console_access" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pluggy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.2" },
+    { name = "pluggy", specifier = ">=1.5.0" },
+]
+
+[[package]]
 name = "cryptography"
 version = "44.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -218,21 +237,6 @@ wheels = [
 ]
 
 [[package]]
-name = "low-request-counts"
-version = "0.1.0"
-source = { virtual = "elb_checks/low_request_counts" }
-dependencies = [
-    { name = "loguru" },
-    { name = "pluggy" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "loguru", specifier = ">=0.7.2" },
-    { name = "pluggy", specifier = ">=1.5.0" },
-]
-
-[[package]]
 name = "markupsafe"
 version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -248,6 +252,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/69/84/83439e16197337b8b14b6a5b9c2105fff81d42c2a7c5b58ac7b62ee2c3b1/MarkupSafe-3.0.2-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:0bff5e0ae4ef2e1ae4fdf2dfd5b76c75e5c2fa4132d05fc1b0dabcd20c7e28c4", size = 23306 },
     { url = "https://files.pythonhosted.org/packages/9a/34/a15aa69f01e2181ed8d2b685c0d2f6655d5cca2c4db0ddea775e631918cd/MarkupSafe-3.0.2-cp311-cp311-win32.whl", hash = "sha256:6c89876f41da747c8d3677a2b540fb32ef5715f97b66eeb0c6b66f5e3ef6f59d", size = 15094 },
     { url = "https://files.pythonhosted.org/packages/da/b8/3a3bd761922d416f3dc5d00bfbed11f66b1ab89a0c2b6e887240a30b0f6b/MarkupSafe-3.0.2-cp311-cp311-win_amd64.whl", hash = "sha256:70a87b411535ccad5ef2f1df5136506a10775d267e197e4cf531ced10537bd6b", size = 15521 },
+]
+
+[[package]]
+name = "mfa-enabled"
+version = "0.1.0"
+source = { virtual = "iam_checks/mfa_enabled" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pluggy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.2" },
+    { name = "pluggy", specifier = ">=1.5.0" },
 ]
 
 [[package]]
@@ -364,6 +383,36 @@ requires-dist = [
 name = "opsbox-elb-inactive-load-balancers"
 version = "0.1.0"
 source = { editable = "elb_checks/inactive_load_balancers" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pluggy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.2" },
+    { name = "pluggy", specifier = ">=1.5.0" },
+]
+
+[[package]]
+name = "opsbox-elb-low-request-counts"
+version = "0.1.0"
+source = { editable = "elb_checks/low_request_counts" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pluggy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.2" },
+    { name = "pluggy", specifier = ">=1.5.0" },
+]
+
+[[package]]
+name = "overdue-api-keys"
+version = "0.1.0"
+source = { virtual = "iam_checks/overdue_api_keys" }
 dependencies = [
     { name = "loguru" },
     { name = "pluggy" },
@@ -494,6 +543,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926", size = 34041 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/5a/e7c31adbe875f2abbb91bd84cf2dc52d792b5a01506781dbcf25c91daf11/six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254", size = 11053 },
+]
+
+[[package]]
+name = "unused-policies"
+version = "0.1.0"
+source = { virtual = "iam_checks/unused_policies" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pluggy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.2" },
+    { name = "pluggy", specifier = ">=1.5.0" },
 ]
 
 [[package]]

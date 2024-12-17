@@ -16,4 +16,4 @@ dev-dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["ec2_checks/ec2_old_snapshots", "ec2_checks/idle_instances", "ec2_checks/stray_ebs", "ec2_checks/stray_instances", "ec2_checks/unattached_eips", "elb_checks/high_error_rate", "elb_checks/inactive_load_balancers", "elb_checks/low_request_counts"]
+members = ["ec2_checks/ec2_old_snapshots", "ec2_checks/idle_instances", "ec2_checks/stray_ebs", "ec2_checks/stray_instances", "ec2_checks/unattached_eips", "elb_checks/high_error_rate", "elb_checks/inactive_load_balancers", "elb_checks/low_request_counts", "iam_checks/console_access", "iam_checks/mfa_enabled", "iam_checks/overdue_api_keys", "iam_checks/unused_policies"]
