@@ -55,3 +55,11 @@ class EC2OLD:
                 details=data.details,
                 formatted="No old EC2 snapshots found.",
             )
+
+    @hookimpl
+    def rego_location(self):
+        return "ec2_old_snapshots.rego"
+    
+    @hookimpl
+    def this_uses(self):
+        return "opsbox_ec2_provider"
