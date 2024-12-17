@@ -178,7 +178,6 @@ class RegoHandler:
         # Log Results
         logger.debug(f"OPA URL: {opa_url}")
         logger.debug(f"OPA response status code: {response.status_code}")
-        logger.trace(f"OPA response data: {response_data}")
         if response.status_code != 200:
             logger.error(f"OPA response: {response_data}")
 

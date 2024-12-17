@@ -1,16 +1,23 @@
 [project]
-name = "aws-providers"
+name = "opsbox_rego_handler"
 version = "0.1.0"
-description = "Add your description here"
+description = "Handles rego plugins for opsbox"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
-    "boto3>=1.35.71",
     "loguru>=0.7.2",
+    "pluggy>=1.5.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
-    "moto>=5.0.22",
-    "pytest>=8.3.4",
-]
+[project.entry-points.'opsbox.plugins']
+rego_handler = "rego_handler.rego_handler:RegoHandler"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"rego_handler" = ["manifest.toml"]
