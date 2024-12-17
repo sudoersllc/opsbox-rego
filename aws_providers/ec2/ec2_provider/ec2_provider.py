@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import boto3
 from loguru import logger
 import threading
-from helpers.string_to_dict import tag_string_to_dict
+from .string_to_dict import tag_string_to_dict
 from typing import Annotated
 from core.plugins import Result
 
