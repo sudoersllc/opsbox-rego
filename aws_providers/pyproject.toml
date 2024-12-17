@@ -1,7 +1,7 @@
 [project]
-name = "aws-providers"
+name = "opsbox-aws-providers"
 version = "0.1.0"
-description = "Add your description here"
+description = "Collection of AWS providers for opsbox."
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
@@ -14,3 +14,6 @@ dev-dependencies = [
     "moto>=5.0.22",
     "pytest>=8.3.4",
 ]
+
+[tool.uv.workspace]
+members = ["elb", "ec2", "iam", "r53", "rds", "s3"]
