@@ -1,8 +1,11 @@
 from pluggy import HookimplMarker, HookspecMarker, PluginManager
-from core.plugins import PluginInfo, Result, Registry
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.plugins import PluginInfo, Result, Registry
+    from typing import Any
 from loguru import logger
 
-from typing import Any
 
 
 # Define a hookimpl (implementation of the contract)
@@ -14,7 +17,7 @@ class ProviderSpec:
     Providers are plugins that gather data from a source, like AWS, Azure, etc."""
 
     @hookspec
-    def gather_data(self) -> Result:
+    def gather_data(self) -> "Result":
         """Gather data for the plugin."""
 
 
@@ -61,13 +64,14 @@ class GeneralHandler:
         manager.add_hookspecs(OutputSpec)
         manager.add_hookspecs(ProviderSpec)
         manager.add_hookspecs(InputSpec)
+        return AssistantSpec, OutputSpec, ProviderSpec, InputSpec
 
     @hookimpl
-    def process_plugin(self, plugin: PluginInfo, prior_results: list[Result], registry: Registry) -> Any:
+    def process_plugin(self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry") -> Any:
         """Process the plugin."""
         logger.debug(f"GeneralHandler processing plugin {plugin.name}")
         if plugin.type == "input":
-            providers: list[PluginInfo] = [
+            providers: list["PluginInfo"] = [
                 x
                 for x in registry.produce_pipeline().dependencies
                 if (x.type == "provider") and (x.name in plugin.uses)
