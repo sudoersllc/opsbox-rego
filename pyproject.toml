@@ -19,7 +19,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["aws_providers/aws_providers"]
+members = ["aws_providers/aws_providers", "handlers/*", "outputs/*"]
 
 [tool.pytest.ini_options]
 addopts = [
