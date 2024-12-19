@@ -1,0 +1,25 @@
+[project]
+name = "opsbox_pagerduty_out"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = [
+    "llama-index>=0.12.6",
+    "loguru>=0.7.2",
+    "pydantic>=2.10.2",
+    "requests>=2.32.3",
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_pagerduty_out = "pagerduty.pagerDuty:pagerDutyOutput"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"pagerduty_out" = ["manifest.toml"]
