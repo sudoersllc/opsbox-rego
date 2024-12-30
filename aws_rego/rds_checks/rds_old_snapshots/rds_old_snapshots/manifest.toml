@@ -1,7 +1,7 @@
 [info]
 name = "rds_old_snapshots"
 module = "rds_old_snapshots"
-class_name = "RDSIdle"
+class_name = "RDSOldSnapshots"
 type = "rego"
 uses = ["rds", "rego"]
 

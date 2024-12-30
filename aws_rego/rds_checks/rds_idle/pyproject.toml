@@ -1,0 +1,24 @@
+[project]
+name = "opsbox-rds-idle"
+version = "0.1.2"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = [
+    "boto3>=1.35.86",
+    "loguru>=0.7.3",
+    "pluggy>=1.5.0",
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_rds_idle = "rds_idle.rds_idle:RDSIdle"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"rds_idle" = ["*.rego", "manifest.toml"]

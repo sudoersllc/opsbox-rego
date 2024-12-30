@@ -7,8 +7,8 @@ from core.plugins import Result
 hookimpl = HookimplMarker("opsbox")
 
 
-class RDSIdle:
-    """Plugin for identifying idle RDS instances."""
+class RDSOldSnapshots:
+    """Plugin for identifying old RDS instances."""
 
     @hookimpl
     def report_findings(self, data: "Result"):
