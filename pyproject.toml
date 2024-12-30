@@ -6,18 +6,11 @@ readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
+    "mkdocs-monorepo-plugin>=1.1.0",
+    "mkdocs>=1.6.1",
     "pydantic>=2.10.2",
     "pymdown-extensions>=10.12",
 ]
-
-[tool.uv]
-dev-dependencies = [
-    "moto>=5.0.22",
-    "pytest>=8.3.4",
-]
-
-[tool.uv.workspace]
-members = ["assistants/cost_savings"]
 
 
 [tool.pytest.ini_options]
