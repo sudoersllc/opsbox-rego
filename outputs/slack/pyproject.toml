@@ -1,7 +1,7 @@
 [project]
 name = "opsbox_slack_output"
 version = "0.1.2"
-description = "Add your description here"
+description = "Slack channel output for opsbox"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [

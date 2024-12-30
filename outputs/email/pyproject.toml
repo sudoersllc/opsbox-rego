@@ -1,7 +1,7 @@
 [project]
 name = "opsbox-email-output"
 version = "0.1.2"
-description = "Add your description here"
+description = "Email output for Opsbox"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
