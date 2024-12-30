@@ -1,0 +1,20 @@
+[project]
+name = "opsbox-s3-unused-buckets"
+version = "0.1.2"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = []
+
+[project.entry-points.'opsbox.plugins']
+opsbox_s3_unused_buckets = "unused_buckets.unused_buckets:UnusedBuckets"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"unused_buckets" = ["*.rego", "manifest.toml"]
