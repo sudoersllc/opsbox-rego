@@ -1,6 +1,6 @@
 [project]
-name = "opsbox_general_handler"
-version = "0.1.0"
+name = "opsbox-general-handler"
+version = "0.1.2"
 description = "General Handler for opsbox."
 readme = "README.md"
 requires-python = "==3.11.*"

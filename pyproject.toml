@@ -1,13 +1,11 @@
 [project]
 name = "opsbox-modules"
-version = "0.1.0"
+version = "0.1.2"
 description = "Plugins for Opsbox"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
-    "mkdocs-monorepo-plugin>=1.1.0",
-    "mkdocs>=1.6.1",
     "pydantic>=2.10.2",
     "pymdown-extensions>=10.12",
 ]
@@ -19,7 +17,8 @@ dev-dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["aws_providers/aws_providers", "handlers/*", "outputs/*"]
+members = ["assistants/cost_savings"]
+
 
 [tool.pytest.ini_options]
 addopts = [
