@@ -1,7 +1,7 @@
 [project]
 name = "opsbox-r53-checks"
 version = "0.1.2"
-description = "Add your description here"
+description = ""Collection of Route 53 checks for opsbox"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
