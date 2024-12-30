@@ -1,40 +1,33 @@
 # Opsbox Plugins
-
 Welcome to the Opsbox plugins directory. This repository contains a collection of plugins designed to extend the functionality of Opsbox. Each plugin is defined in its own `pyproject.toml` file, which specifies the dependencies required for that plugin.
 
 ## Installing Plugins
+### Through PyPI
 
-To install the dependencies for any of the plugins, you can use [uv](https://docs.astral.sh/uv/)(https://docs.astral.sh/uv/). Below is an example of how to install the dependencies for a plugin in the Opsbox environment:
+Most of the packages in this directory are already distributed! Simply download them from PyPI, using the package name desired.
 
-```sh
-# Navigate to the directory containing the pyproject.toml file
-cd path/to/plugin_directory
+To install in UV, simply do the following:
 
-# Install the dependencies using uv
-uv sync
-```
+`uv add opsbox-<package-name>`
 
-For example, to install the dependencies for the `general-handler` plugin:
+### Local Build
 
-```sh
-cd aws_providers
-uv sync
-```
+1. *Sync UV environment*
+2. *Run build.py*
+3. *Enjoy dists!*
 
-### Installing in an Existing Environment
+#### Sync UV environment
+To begin, we first need to have a good testing/build environment.
 
-If you want to install the dependencies in an existing environment, you can use the following command:
+In the root of the git directory, run `uv sync`. This will install everything needed.
 
-```sh
-# Activate your existing environment
-source path/to/your/env/bin/activate  # On Windows, use `path\to\your\env\Scripts\activate`
+#### Run build.py
+Next, run the bulk build script using `uv run build.py`
 
-# Navigate to the directory containing the pyproject.toml file
-cd path/to/plugin_directory
+#### Enjoy!
+The build script will copy all the distributions to the root /dist folder.
 
-# Install the dependencies using Poetry
-uv sync
-```
+Enjoy your distributions!
 
 ## Plugin Types
 
@@ -47,7 +40,11 @@ This repository contains various types of plugins, each serving a different purp
 
 ## Using Plugins with Opsbox
 
-Once you have installed the necessary dependencies for the plugins, you can point the main Opsbox program to this directory using the `--plugin_dir` option. Ensure you have installed the prerequisites for Opsbox before proceeding.
+### Packages
+Packages are autodetected by opsbox if they are in the same environment.
+
+### Individual Modules
+Once you have installed the necessary dependencies for the plugins in OpsBox's , you can point the main Opsbox program to this directory using the `--plugin_dir` option. Ensure you have installed the prerequisites for Opsbox before proceeding.
 
 ```sh
 main.py ... --plugin_dir path/to/this/repository
