@@ -12,6 +12,12 @@ dependencies = [
 [tool.setuptools.packages.find]
 include = ["*"]
 
+[tool.uv]
+dev-dependencies = [
+    "mkdocs>=1.6.1",
+    "pytest>=8.3.4",
+]
+
 [project.entry-points.'opsbox.plugins']
 opsbox_elb_low_request_counts = "low_request_counts.low_request_counts.low_request_count:LowRequestCount"
 opsbox_elb_inactive_load_balancers = "inactive_load_balancers.inactive_load_balancers.inactive_load_balancers:InactiveLoadBalancers"
