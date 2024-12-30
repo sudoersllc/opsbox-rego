@@ -1,7 +1,7 @@
 [project]
 name = "opsbox-ec2-checks"
 version = "0.1.2"
-description = "Add your description here"
+description = "Collection of EC2 checks for opsbox."
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
@@ -11,6 +11,12 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["*"]
+
+[tool.uv]
+dev-dependencies = [
+    "mkdocs>=1.6.1",
+    "pytest>=8.3.4",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
