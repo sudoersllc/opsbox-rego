@@ -3,6 +3,7 @@ name = "opsbox_slack_output"
 version = "0.1.2"
 description = "Slack channel output for opsbox"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "pluggy>=1.5.0",

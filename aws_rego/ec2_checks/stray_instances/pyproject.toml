@@ -3,6 +3,7 @@ name = "opsbox-ec2-stray-instances"
 version = "0.1.2"
 description = "Add your description here"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",

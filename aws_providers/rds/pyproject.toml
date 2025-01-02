@@ -3,6 +3,7 @@ name = "opsbox-rds-provider"
 version = "0.1.2"
 description = "Opsbox provider for RDS checks"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "boto3>=1.35.71",

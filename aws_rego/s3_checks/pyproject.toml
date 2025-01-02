@@ -3,6 +3,7 @@ name = "opsbox-s3-checks"
 version = "0.1.2"
 description = ""Collection of S3 checks for opsbox"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "opsbox-s3-provider>=0.1.2",

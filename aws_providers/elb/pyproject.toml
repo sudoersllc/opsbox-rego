@@ -3,6 +3,7 @@ name = "opsbox-elb-provider"
 version = "0.1.2"
 description = "Opsbox provider for ELB checks"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "boto3>=1.35.71",

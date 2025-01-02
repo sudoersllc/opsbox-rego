@@ -3,6 +3,7 @@ name = "opsbox-cost-savings-assistant"
 version = "0.1.2"
 description = "Cost savings assistant for opsbox"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [    
     "loguru>=0.7.3",

@@ -3,6 +3,7 @@ name = "opsbox-ec2-checks"
 version = "0.1.2"
 description = "Collection of EC2 checks for opsbox."
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "opsbox-ec2-provider>=0.1.2",
