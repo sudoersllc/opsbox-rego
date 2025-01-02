@@ -16,7 +16,6 @@ class StrayInstances:
         """
 
         volumes = []
-        print(data.details)
         formatted = ""
         if volumes:
             for volume in data.details:
