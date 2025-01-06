@@ -1,5 +1,5 @@
 [project]
-name = "opsbox_github_output"
+name = "opsbox-github-output"
 version = "0.1.2"
 description = "Github issues output for opsbox"
 readme = "README.md"

@@ -1,5 +1,5 @@
 [project]
-name = "opsbox_pagerduty_output"
+name = "opsbox-pagerduty-output"
 version = "0.1.2"
 description = "PagerDuty output for opsbox"
 readme = "README.md"
