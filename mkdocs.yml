@@ -2,10 +2,12 @@ site_name: Opsbox Plugins
 
 nav:
   - Intro: 'index.md'
-  - AWS:
-    - Checks: '*include ./aws_rego/*checks/mkdocs.yml'
-  - Outputs: '!include ./outputs/mkdocs.yml'
-  - Assistants: '!include ./assistants/mkdocs.yml'
+  - Making Plugins:
+      - Basics: plugins/development_basics.md
+      - Making Handlers: plugins/making_handlers.md
+      - Making Providers: plugins/making_providers.md
+      - Making Outputs: plugins/making_outputs.md
+      - Making Checks: plugins/making_checks.md
 
 
 plugins:
