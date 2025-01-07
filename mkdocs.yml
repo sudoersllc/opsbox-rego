@@ -2,12 +2,7 @@ site_name: Opsbox Plugins
 
 nav:
   - Intro: 'index.md'
-  - Making Plugins:
-      - Basics: plugins/development_basics.md
-      - Making Handlers: plugins/making_handlers.md
-      - Making Providers: plugins/making_providers.md
-      - Making Outputs: plugins/making_outputs.md
-      - Making Checks: plugins/making_checks.md
+  - Available Plugins: plugins/available_plugins.md
 
 
 plugins:
