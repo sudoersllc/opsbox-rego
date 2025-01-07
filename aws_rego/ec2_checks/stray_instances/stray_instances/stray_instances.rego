@@ -32,4 +32,4 @@ out_of_hours_instances[instance] {
 # Entry point for OPA to evaluate
 default allow = false
 
-details := [instance | instance := out_of_hours_instances]
+details := [instance | instance := out_of_hours_instances[_]]
