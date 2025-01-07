@@ -4,15 +4,27 @@ from datetime import datetime, timedelta
 import boto3
 from loguru import logger
 import threading
-from .string_to_dict import tag_string_to_dict
 from typing import Annotated
 from core.plugins import Result
+import json
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+def tag_string_to_dict(tag_string):
+    """Converts a string of key-value pairs to a dictionary."""
+    if isinstance(tag_string, str):
+        try:
+            # Attempt to parse the string as JSON
+            tag_string = json.loads(tag_string)
+            return tag_string
+        except json.JSONDecodeError:
+            # Handle the error or raise an exception
+            raise ValueError("Tags provided are not in a valid JSON format.")
+
 
 class EC2Provider:
+
     """Plugin for gathering data related to AWS EC2 instances, volumes, and Elastic IPs.
 
     Attributes:
