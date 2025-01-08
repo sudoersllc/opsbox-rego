@@ -41,19 +41,16 @@ The data is presented in the following format:
 
 {instances}"""
 
-        if instances:
-            return Result(
-                relates_to="ec2",
-                result_name="idle_instances",
-                result_description="Idle EC2 Instances",
-                details=data.details,
-                formatted=template.format(instances=instance_yaml),
-            )
+        if findings:
+            formatted = template.format(instances=instance_yaml)
         else:
-            return Result(
-                relates_to="ec2",
-                result_name="idle_instances",
-                result_description="Idle EC2 Instances",
-                details=data.details,
-                formatted="No idle EC2 instances found.",
-            )
+            formatted = "No idle EC2 instances found."
+
+        item = Result(
+            relates_to="ec2",
+            result_name="idle_instances",
+            result_description="Idle EC2 Instances",
+            details=data.details,
+            formatted=formatted,
+        )
+        return item

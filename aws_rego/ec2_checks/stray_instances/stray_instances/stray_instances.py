@@ -16,8 +16,7 @@ class StrayInstances:
         """
 
         volumes = []
-        print(data.details)
-        formatted = ""
+        findings = data.details
         if volumes:
             for volume in data.details:
                 logger.success(volume)
@@ -45,9 +44,10 @@ class StrayInstances:
 
                 {volumes}"""
 
-            formatted = template.format(volumes=volume_yaml)
-        else:
-            formatted = "No Stray EC2 Instances."
+            if findings:
+                formatted = template.format(volumes=volume_yaml)
+            else:
+                formatted = "No stray EBS volumes found."
 
         item = Result(
             relates_to="ec2",
