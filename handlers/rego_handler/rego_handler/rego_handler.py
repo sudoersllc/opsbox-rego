@@ -86,6 +86,7 @@ class RegoHandler:
         Returns:
             list[Result]: The results of the plugin."""
         # grab rego info from plugin
+        base_url = self.config.opa_url
         rego_info: RegoInfo = plugin.extra["rego"]
         rego_file_path = Path(plugin.toml_path).parent / rego_info["rego_file"]
 
@@ -103,12 +104,12 @@ class RegoHandler:
         else:
             data = providers[0].plugin_obj.gather_data()
         # apply check
-        with self.temp_policy(plugin, rego_file_path, self.config.opa_upload_url) as _:
-            result = self.apply_check(data, plugin, rego_file_path)
+        with self.temp_policy(plugin, rego_file_path, base_url) as _:
+            result = self.apply_check(data, plugin, rego_file_path, base_url)
             result = plugin.plugin_obj.report_findings(result)
         return result
     
-    def extract_package_name(file_path):
+    def extract_package_name(self, file_path):
         """
         Extracts the package name from a Rego file.
 
@@ -128,6 +129,7 @@ class RegoHandler:
             for line in file:
                 match = package_pattern.match(line.strip())
                 if match:
+                    print(match.group(1))
                     return match.group(1)
         raise ValueError(f"Package name not found in {file_path}")
 
@@ -144,11 +146,11 @@ class RegoHandler:
         info: RegoInfo = plugin.extra["rego"]
 
         package_name = self.extract_package_name(rego_path)
+        package_name_path = package_name.replace(".", "/")
+        package_url = f"{base_url}/v1/policies/{package_name_path}"
         logger.debug(f"Uploading policy {info['rego_file']} with package name {package_name} to OPA server {base_url}")
         with open(rego_path, "r") as rego_file:
             policy_data = rego_file.read()
-            package_name_path = package_name.replace(".", "/")
-            package_url = f"{base_url}/v1/policies/{package_name_path}"
             resp = requests.put(
                 package_url,
                 data=policy_data,
@@ -167,7 +169,7 @@ class RegoHandler:
 
         logger.debug(f"Removing policy {info['rego_file']}  on OPA server {base_url}")
         resp = requests.delete(
-            f"{base_url}/{info['rego_file'].replace('.rego', '')}",
+            package_url,
             headers={"Content-Type": "text/plain"},
             timeout=default_timeout,
         )
@@ -179,13 +181,14 @@ class RegoHandler:
         else:
             logger.success(f"Policy {info['rego_file']} removed successfully.")
 
-    def apply_check(self, data: "Result", plugin: PluginInfo, rego_file_path: str) -> list["Result"]:
+    def apply_check(self, data: "Result", plugin: PluginInfo, rego_file_path: str, base_url: str) -> list["Result"]:
         """Applies a set of registered checks to the given data using Open Policy Agent (OPA).
 
         Args:
             data (Result): The data to apply the checks to.
             plugin (PluginInfo): The plugin to apply the checks from.
             rego_file_path (str): The path to the Rego file.
+            base_url (str): The base URL of the OPA server
         Returns:
             list[Result]: The results of the checks.
         """
@@ -194,10 +197,9 @@ class RegoHandler:
 
         # grab upload, apply urls
         data = data.details
-        apply_base_url = self.config.opa_apply_url
         package_name = self.extract_package_name(rego_file_path)
         package_name_path = package_name.replace(".", "/")
-        opa_url = f"{apply_base_url}/v1/data/{package_name_path}"
+        opa_url = f"{base_url}/v1/data/{package_name_path}"
 
         # Query OPA
         response = requests.post(opa_url, json=data, timeout=default_timeout)
