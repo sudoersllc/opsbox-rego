@@ -143,10 +143,10 @@ class RegoHandler:
         """
         info: RegoInfo = plugin.extra["rego"]
 
-        logger.debug(f"Uploading policy {info['rego_file']} to OPA server {base_url}")
+        package_name = self.extract_package_name(rego_path)
+        logger.debug(f"Uploading policy {info['rego_file']} with package name {package_name} to OPA server {base_url}")
         with open(rego_path, "r") as rego_file:
             policy_data = rego_file.read()
-            package_name = self.extract_package_name(rego_path)
             package_name_path = package_name.replace(".", "/")
             package_url = f"{base_url}/v1/policies/{package_name_path}"
             resp = requests.put(
