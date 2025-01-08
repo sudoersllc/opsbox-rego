@@ -1,29 +1,17 @@
-package aws.cost.inactive_load_balancers
+package aws_rego.elb_checks.inactive_load_balancers.inactive_load_balancers
+
+import rego.v1
 
 # Rule to identify inactive ELBs based on instance health
-inactive_elbs[elb] {
-    elb := input.elbs[i]
-    # Check if any instance for this ELB is in an inactive state
-    health := elb.InstanceHealth[_]
-    health.State == "unused"  # First condition
-}
-
-inactive_elbs[elb] {
-    elb := input.elbs[i]
-    health := elb.InstanceHealth[_]
-    health.State == "stopped"  # Second condition
-}
-
-inactive_elbs[elb] {
-    elb := input.elbs[i]
-    health := elb.InstanceHealth[_]
-    health.State == "unhealthy"  # Third condition
+inactive_elbs contains elb if {
+elb |
+	some elb in input.elbs
+	# health |
+	# some health in elb.InstanceHealth
+	# "unhealthy" in health.State # Third condition
 }
 
 # Collect details of all inactive ELBs (return the entire elb object)
-inactive_elb_details[elb] {
-    elb := inactive_elbs[_]
-}
 
 # Create a details object to return all inactive ELBs
 details := {"elbs": [elb | elb := inactive_elb_details[_]]}

@@ -1,19 +1,20 @@
-package aws.cost.high_error_rate
+package aws_rego.elb_checks.high_error_rate.high_error_rate
 
-import future.keywords.in
+import rego.v1
 
 # Rule to identify ELBs with high error rates
-high_error_rate_elbs[elb] {
-    elb := input.elbs[_]
-    elb.ErrorRate > 5  # Threshold for high error rate in percentage
+error_rate_elbs contains elb if {
+elb |
+	some elb in input.elbs[_]
+	elb.ErrorRate > 5 # Threshold for high error rate in percentage
 }
 
 # Collect details of all ELBs with high error rates
-details := {elb | high_error_rate_elbs[elb]}
+details := [elb | some elb in error_rate_elbs[_]]
 
 # Entry point for OPA to evaluate
-default allow = false
+default allow := false
 
-allow {
-    count(details) > 0
+allow if {
+	count(details) > 0
 }

@@ -1,10 +1,13 @@
-package aws.cost.unattached_eips
+package aws_rego.ec2_checks.unattached_eips.unattached_eips
 
-default allow = false
+import rego.v1
 
-allow {
-    eip := input.eips[_]
-    eip.association_id == "" # Check if association_id is empty
+default allow := false
+
+allow if {
+eip |
+	some eip in input.eips
+	eip.association_id == "" # Check if association_id is empty
 }
 
-details := [eip | eip := input.eips[_]; eip.association_id == ""]
+details := [eip | some eip in input.eips[_]; eip.association_id == ""]
