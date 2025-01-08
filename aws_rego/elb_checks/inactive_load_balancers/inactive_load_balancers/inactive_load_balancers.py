@@ -1,5 +1,6 @@
 from pluggy import HookimplMarker
 import yaml
+from loguru import logger
 from core.plugins import Result
 
 # Define a hookimpl (implementation of the contract)
@@ -13,13 +14,13 @@ class InactiveLoadBalancers:
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
         findings = data.details
+        logger.debug(f"Findings: {findings}")
 
         inactive_load_balancers = []
 
         # Check for findings and collect inactive load balancers
-        if findings:
-            load_balancers = findings.get("elbs", [])
-            inactive_load_balancers.extend(load_balancers)
+        if findings and isinstance(findings, list):  # Ensure findings is a list
+            inactive_load_balancers.extend(findings)
 
             # Template for displaying inactive load balancers
             template = """

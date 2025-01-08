@@ -14,6 +14,7 @@ class IdleInstances:
             str: The formatted string containing the findings.
         """
         findings = data.details
+        logger.debug(f"Findings: {findings}")
         instances = []
         for instance in findings:
             instance_obj = {

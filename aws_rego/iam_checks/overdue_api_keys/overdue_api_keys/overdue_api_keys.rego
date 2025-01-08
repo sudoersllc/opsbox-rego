@@ -5,21 +5,23 @@ import rego.v1
 # Threshold for API key rotation (90 days)
 rotation_threshold_days := 90
 
-# Find overdue API keys
+# Get the current time in nanoseconds
+current_time_ns := time.now_ns()
 
-api_keys contains user if {
-user |
-	some user in input.credential_report[_]
-	"true" in user.access_key_2_active
-	days_since_rotation(user.access_key_2_last_rotated) > rotation_threshold_days
-}
+# Calculate the threshold date in nanoseconds
+rotation_threshold_ns := current_time_ns - (rotation_threshold_days * 86400 * 1000000000)
 
-# Calculate days since a given date
-days_since_rotation(date) := diff if {
-	now := time.now_ns() / 1000000000 # Current time in seconds
-	rotated := time.parse_rfc3339_ns(date) / 1000000000 # Last rotated time in seconds
-	diff := (now - rotated) / 86400 # Convert difference to days
-}
+# Filter overdue API keys
+api_keys := [
+    user |
+    some user in input.credential_report
+    user.access_key_2_active == "true"
+    key_last_rotated_ns := time.parse_rfc3339_ns(user.access_key_2_last_rotated)
+    key_last_rotated_ns < rotation_threshold_ns
+]
 
-# Output only overdue API keys
-details := {"overdue_api_keys": [user | user := api_keys[_]]}
+# Allow if there are overdue API keys
+allow if count(api_keys) > 0
+
+# Combine results into a single report
+details := {"overdue_api_keys": api_keys}

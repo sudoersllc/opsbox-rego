@@ -2,8 +2,6 @@ package aws_rego.ec2_checks.ec2_old_snapshots.ec2_old_snapshots
 
 import rego.v1
 
-# Default allow decision is false
-default allow := false
 
 # Get the current time in nanoseconds
 current_time_ns := time.now_ns()
@@ -18,6 +16,9 @@ snapshot |
 	snapshot_start_ns := time.parse_rfc3339_ns(snapshot.start_time)
 	snapshot_start_ns < one_year_ago_ns
 ]
+
+
+allow if count(old_snapshots) > 0
 
 # Combine results into a single report
 details := {"ec2_old_snapshots": old_snapshots}
