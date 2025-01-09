@@ -1,7 +1,7 @@
 [project]
 name = "opsbox-s3-checks"
-version = "0.1.2"
-description = ""Collection of S3 checks for opsbox"
+version = "0.1.3"
+description = "Collection of S3 checks for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = "==3.11.*"
