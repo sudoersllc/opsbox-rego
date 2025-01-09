@@ -8,55 +8,90 @@ hookimpl = HookimplMarker("opsbox")
 
 
 class StorageClassUsage:
-    """Plugin for identifying S3 buckets using GLACIER or STANDARD storage classes."""
+    """Plugin for analyzing S3 bucket storage classes, stale buckets, and mixed storage."""
 
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
+
         Attributes:
             data (Result): The result of the checks.
+
         Returns:
-            str: The formatted string containing the findings.
+            Result: The result object with formatted findings.
         """
         findings = data.details
 
+        # Initialize variables for storing different categories of buckets
         glacier_or_standard_ia_buckets = []
-        if findings:
-            buckets = findings.get("glacier_or_standard_ia_buckets", [])
-            for bucket in buckets:
-                if isinstance(bucket, dict) and "name" in bucket and "storage_class" in bucket:
-                    bucket_obj = {bucket["name"]: {"storage_class": bucket["storage_class"]}}
-                    glacier_or_standard_ia_buckets.append(bucket_obj)
-                else:
-                    logger.error(f"Unexpected format for bucket: {bucket}")
-        try:
-            buckets_yaml = yaml.dump(glacier_or_standard_ia_buckets, default_flow_style=False)
-            # add the percentage of glacier or standard ia buckets to the output
-        except Exception as e:
-            logger.error(f"Error formatting bucket details: {e}")
-            buckets_yaml = ""
-
-        percentage_glacier_or_standard = findings.get("percentage_glacier_or_standard", 0)
-        template = """The following S3 buckets are using GLACIER or STANDARD storage classes:
-        \n
-        {buckets}
-        \n Percentage of buckets using GLACIER or STANDARD storage classes: {percentage_glacier_or_standard}% """
+        stale_buckets = []
+        mixed_storage_buckets = []
 
         if findings:
+            # Parse buckets for each category
+            glacier_or_standard_ia_buckets = findings.get("glacier_or_standard_ia_buckets", [])
+            stale_buckets = findings.get("stale_buckets", [])
+            mixed_storage_buckets = findings.get("mixed_storage_buckets", [])
+
+        # Format buckets into YAML
+            def format_buckets(bucket_list, description):
+                try:
+                    return f"{description}:\n{yaml.dump(bucket_list, default_flow_style=False)}"
+                except Exception as e:
+                    logger.error(f"Error formatting {description}: {e}")
+                    return f"{description}:\nError formatting details.\n"
+
+            glacier_or_standard_ia_output = format_buckets(glacier_or_standard_ia_buckets, "GLACIER or STANDARD_IA Buckets")
+            stale_buckets_output = format_buckets(stale_buckets, "Stale Buckets")
+            mixed_storage_output = format_buckets(mixed_storage_buckets, "MIXED Storage Buckets")
+
+            # Collect percentages
+            percentage_glacier_or_standard_ia = findings.get("percentage_glacier_or_standard_ia", 0)
+            percentage_stale = findings.get("percentage_stale", 0)
+            percentage_mixed = findings.get("percentage_mixed", 0)
+
+
+            # Template for formatted result
+            template = """The following S3 bucket analysis was performed:
+    {glacier_or_standard_ia}
+    {stale_buckets}
+    {mixed_storage}
+
+    Summary:
+    - Percentage of GLACIER or STANDARD_IA buckets: {percentage_glacier_or_standard_ia}%
+    - Percentage of stale buckets: {percentage_stale}%
+    - Percentage of MIXED storage buckets: {percentage_mixed}%
+    """
+
+            # Generate the formatted result
+            formatted_output = template.format(
+                glacier_or_standard_ia=glacier_or_standard_ia_output,
+                stale_buckets=stale_buckets_output,
+                mixed_storage=mixed_storage_output,
+                percentage_glacier_or_standard_ia=percentage_glacier_or_standard_ia,
+                percentage_stale=percentage_stale,
+                percentage_mixed=percentage_mixed,
+            )
+
+            # Determine result description based on findings
+            result_description = (
+                "S3 Bucket Analysis including GLACIER/IA usage, stale buckets, and mixed storage."
+            )
+            
+
+            # Return the result
             return Result(
                 relates_to="s3",
-                result_name="storage_class_usage",
-                result_description="S3 Buckets using GLACIER or STANDARD Storage Classes",
+                result_name="bucket_analysis",
+                result_description=result_description,
                 details=data.details,
-                formatted=template.format(
-                    buckets=buckets_yaml, percentage_glacier_or_standard=percentage_glacier_or_standard
-                ),
+                formatted=formatted_output,
             )
         else:
             return Result(
                 relates_to="s3",
-                result_name="storage_class_usage",
-                result_description="S3 Buckets using GLACIER or STANDARD Storage Classes",
+                result_name="bucket_analysis",
+                result_description="S3 Bucket Analysis",
                 details=data.details,
-                formatted="No S3 buckets using GLACIER or STANDARD storage classes found.",
+                formatted="No S3 bucket analysis performed.",
             )
