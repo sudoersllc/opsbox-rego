@@ -9,7 +9,7 @@ def test_overdue_api_keys(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "overdue_api_keys.rego")
-    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
+    rego_input = os.path.join(current_dir.parent.parent, "iam_test_data.json")
 
     result = rego_process(rego_policy, rego_input, "data.aws.cost.overdue_api_keys", ["overdue_api_keys"])
     needed_keys = [
