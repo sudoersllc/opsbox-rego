@@ -55,7 +55,7 @@ def _extract_package_name(rego_policy_path: str) -> str:
     raise ValueError(f"Package name not found in {rego_policy_path}")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def rego_process():
     """
     This fixture:
