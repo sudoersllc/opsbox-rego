@@ -16,27 +16,27 @@ class NoHealthyTargets:
         findings = data
         logger.debug(f"Findings: {findings}")
 
-        inactive_load_balancers = []
+        no_healthy_targets = []
 
         # Check for findings and collect inactive load balancers
         if findings and isinstance(findings, list):  # Ensure findings is a list
-            inactive_load_balancers.extend(findings)
+            no_healthy_targets.extend(findings)
 
             # Template for displaying inactive load balancers
             template = """
-            The following ELBs are inactive:
+            The following ELBs have no healthy targets: 
 
             {load_balancers}
             """
 
             # Format the output using the yaml dump for better display
-            formatted_load_balancers = yaml.dump(inactive_load_balancers, default_flow_style=False)
+            formatted_load_balancers = yaml.dump(no_healthy_targets, default_flow_style=False)
 
             # Create the result item with the formatted data
             item = Result(
                 relates_to="elb",
-                result_name="inactive_load_balancers",
-                result_description="Inactive Load Balancers",
+                result_name="no_healthy_targets",
+                result_description="No Healthy Targets",
                 details=data.details,
                 formatted=template.format(load_balancers=formatted_load_balancers)
             )
@@ -45,8 +45,8 @@ class NoHealthyTargets:
         else:
             return Result(
                 relates_to="elb",
-                result_name="inactive_load_balancers",
-                result_description="Inactive Load Balancers",
+                result_name="no_healthy_targets",
+                result_description="No Healthy Targets",
                 details=data.details,
-                formatted="No inactive ELBs found."
+                formatted="No ELBs found with no healthy targets."
             )
