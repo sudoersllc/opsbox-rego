@@ -9,15 +9,15 @@ rotation_threshold_days := 90
 current_time_ns := time.now_ns()
 
 # Calculate the threshold date in nanoseconds
-rotation_threshold_ns := current_time_ns - (rotation_threshold_days * 86400 * 1000000000)
+rotation_threshold_ns := current_time_ns - ((rotation_threshold_days * 86400) * 1000000000)
 
 # Filter overdue API keys
 api_keys := [
-    user |
-    some user in input.credential_report
-    user.access_key_2_active == "true"
-    key_last_rotated_ns := time.parse_rfc3339_ns(user.access_key_2_last_rotated)
-    key_last_rotated_ns < rotation_threshold_ns
+user |
+	some user in input.credential_report
+	user.access_key_2_active == "true"
+	key_last_rotated_ns := time.parse_rfc3339_ns(user.access_key_2_last_rotated)
+	key_last_rotated_ns < rotation_threshold_ns
 ]
 
 # Allow if there are overdue API keys

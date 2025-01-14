@@ -6,8 +6,9 @@ import rego.v1
 # Output only the unused policies
 
 allow if {
-	policy |
-		some policy in input.policies
-		policy.attachment_count == 0
+policy |
+	some policy in input.policies
+	policy.attachment_count == 0
 }
+
 details := [policy | some policy in input.policies; policy.attachment_count == 0]

@@ -5,9 +5,10 @@ import rego.v1
 # Find users with console access enabled
 
 allow if {
-	user |
-		some user in input.credential_report
-		user.password_enabled == "true"
+user |
+	some user in input.credential_report
+	user.password_enabled == "true"
 }
+
 # Output only users with console access
 details := [user | some user in input.credential_report; user.password_enabled = "true"]

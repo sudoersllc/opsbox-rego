@@ -8,9 +8,9 @@ import rego.v1
 # }
 
 allow if {
-	instance |
-		some instance in input.rds_instances
-		instance.CPUUtilization < 5
+instance |
+	some instance in input.rds_instances
+	instance.CPUUtilization < 5
 }
 
 details := [instance | some instance in input.rds_instances; instance.CPUUtilization < 5]

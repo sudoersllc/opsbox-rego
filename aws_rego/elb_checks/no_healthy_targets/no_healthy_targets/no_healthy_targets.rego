@@ -18,7 +18,7 @@ elb |
 # Create a details object to return all inactive ELBs
 details contains elb if {
 	some elb in input.elbs
-	every instance in elb.InstanceHealth{
+	every instance in elb.InstanceHealth {
 		instance.State == "unhealthy"
-        }
+	}
 }
