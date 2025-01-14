@@ -1,0 +1,6 @@
+[info]
+name="json_out"
+module = "json_file"
+class_name = "JSONFileOutput"
+type="output"
+uses = ["general"]
