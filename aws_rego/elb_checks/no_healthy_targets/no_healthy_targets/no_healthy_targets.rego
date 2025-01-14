@@ -1,4 +1,4 @@
-package aws.cost.no_healthy_targets
+package aws_rego.elb_checks.no_healthy_targets.no_healthy_targets
 
 import rego.v1
 

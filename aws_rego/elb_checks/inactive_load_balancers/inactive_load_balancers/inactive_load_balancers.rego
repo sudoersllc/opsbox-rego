@@ -1,4 +1,4 @@
-package aws_rego.elb_checks.inactive_load_balancers
+package aws_rego.elb_checks.inactive_load_balancers.inactive_load_balancers
 import rego.v1
 
 default allow := false
