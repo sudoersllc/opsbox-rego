@@ -1,6 +1,6 @@
 [project]
-name = "opsbox-ec2-stray-instances"
-version = "0.1.2"
+name = "opsbox-json-file-output"
+version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -8,10 +8,8 @@ requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
     "pluggy>=1.5.0",
+    "opsbox-general-handler>=0.1.2"
 ]
-
-[project.entry-points.'opsbox.plugins']
-opsbox_ec2_stray_instances = "stray_instances.stray_instances:StrayInstances"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -21,4 +19,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-data]
-"stray_instances" = ["*.rego", "manifest.toml"]
+"text_file_output" = ["manifest.toml"]
+
+[project.entry-points.'opsbox.plugins']
+text_file_output = "json_file.json_file:JSONFileOutput"

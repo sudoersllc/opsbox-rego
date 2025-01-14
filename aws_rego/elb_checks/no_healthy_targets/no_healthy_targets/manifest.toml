@@ -1,0 +1,10 @@
+[info]
+name = "no_healthy_targets"
+module = "no_healthy_targets"
+class_name = "NoHealthyTargets"
+type="rego"
+uses = ["elb", "rego"]
+
+[rego]
+description = "Check for no healthy targets in load balancers."
+rego_file =  "no_healthy_targets.rego"

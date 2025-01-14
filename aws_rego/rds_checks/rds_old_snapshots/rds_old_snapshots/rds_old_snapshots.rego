@@ -1,19 +1,29 @@
-package aws.cost.rds_old_snapshots
-# Identifying underutilized RDS instances with CPU utilization below 10%
+package aws_rego.rds_checks.rds_old_snapshots.rds_old_snapshots
 
-gather_old_snapshots[snapshot] {
-    instance := input.rds_snapshots[_]
-    snapshot_date := time.parse_rfc3339_ns(instance.SnapshotCreateTime)
-    current_time := time.parse_rfc3339_ns(input.date)
-    one_year_ns := 365 * 24 * 60 * 60 * 1000000000
-    
-    age_ns := current_time - snapshot_date
-    age_ns > one_year_ns
+import rego.v1
 
-    snapshot := instance
-}
+# Get the current time in nanoseconds
+current_time_ns := time.now_ns()
+
+# Calculate the threshold date as 1 year (365 days) before the current date
+one_year_ago_ns := time.add_date(current_time_ns, -1, 0, 0) # Subtract 1 year
+
+# Flatten the nested list of snapshots
+flattened_snapshots := [snapshot |
+	some sublist in input.rds_snapshots
+	some snapshot in sublist
+]
+
+# Filter snapshots older than the threshold date
+old_snapshots := [
+snapshot |
+	some snapshot in flattened_snapshots
+	snapshot_create_ns := time.parse_rfc3339_ns(snapshot.SnapshotCreateTime)
+	snapshot_create_ns < one_year_ago_ns
+]
+
+# Allow if there are old snapshots
+allow if count(old_snapshots) > 0
 
 # Combine results into a single report
-details := {
-    "rds_old_snapshots": [snapshot | snapshot := gather_old_snapshots[_]]
-}
+details := {"rds_old_snapshots": old_snapshots}
