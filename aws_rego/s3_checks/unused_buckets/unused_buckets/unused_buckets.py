@@ -42,8 +42,7 @@ class UnusedBuckets:
                 buckets_yaml = ""
 
             template = """The following S3 buckets have not been used:
-            {buckets}
-            """
+{buckets}"""
             return Result(
                 relates_to="s3",
                 result_name="unused_buckets",

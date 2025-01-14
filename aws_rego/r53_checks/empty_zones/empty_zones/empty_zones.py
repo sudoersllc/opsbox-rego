@@ -33,8 +33,7 @@ class EmptyZones:
         # Template for the output message
         template = """The following Route 53 hosted zones have no DNS records:
         
-        {empty_zones}
-        """
+{empty_zones}"""
         logger.info(empty_zones_yaml)
         
         # Generate the result with formatted output

@@ -35,10 +35,7 @@ class IdleInstances:
 
         template = """The following EC2 instances are idle, with an average CPU utilization of less than 5%.
 The data is presented in the following format:
-- instance_id:
-    region: region
-    state: running
-    avg_cpu_utilization:
+
 
 {instances}"""
 

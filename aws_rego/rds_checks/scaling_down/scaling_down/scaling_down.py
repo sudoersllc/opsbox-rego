@@ -30,9 +30,8 @@ class ScalingDown:
             scaling_instances = ""
 
         template = """The following RSD storage instances should be scaled down:
-        \n
-        {scaling_instances}
-        \n """
+        
+{scaling_instances}"""
 
         if findings:
             return Result(

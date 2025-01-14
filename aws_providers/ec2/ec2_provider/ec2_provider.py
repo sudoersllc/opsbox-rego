@@ -8,7 +8,7 @@ from typing import Annotated
 from core.plugins import Result
 import json
 
-# Define a hookimpl (implementation of the contract)
+# Define a hook implementation marker for the "opsbox" plugin system
 hookimpl = HookimplMarker("opsbox")
 
 def tag_string_to_dict(tag_string):
@@ -64,15 +64,30 @@ class EC2Provider:
         ec2 (boto3.client): The boto3 client for EC2.
         credentials (dict): A dictionary containing AWS access key, secret access key, and region.
     """
-
     @hookimpl
     def grab_config(self):
-        """Return the plugin's configuration."""
+        """Define and return the configuration model for the EC2 provider.
+
+        This includes AWS credentials and optional tags for filtering EC2 resources.
+
+        Returns:
+            EC2Config: The configuration model for the EC2 provider.
+        """
 
         credentials = find_aws_credentials()
         region = find_default_region()
         class EC2Config(BaseModel):
-            """Configuration for the AWS EC2 plugin."""
+            """Configuration schema for the EC2 provider.
+
+            Attributes:
+                aws_access_key_id (str): AWS access key ID.
+                aws_secret_access_key (str): AWS secret access key.
+                aws_region (str, optional): AWS region. Defaults to None.
+                volume_tags (str, optional): Key-value tag pairs for volumes. Defaults to None.
+                instance_tags (str, optional): Key-value tag pairs for instances. Defaults to None.
+                eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
+            """
+
 
             aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True, default=credentials[0])]
             aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True, default=credentials[1])]
@@ -92,70 +107,58 @@ class EC2Provider:
 
     @hookimpl
     def activate(self) -> None:
-        """Initialize the plugin."""
-        logger.trace("Activating EC2 plugin...")
+        """Log a trace message indicating the provider is being activated."""
+        logger.trace("Activating EC2 provider...")
 
     @hookimpl
     def set_data(self, model: type[BaseModel]) -> None:
-        """Set the data for the plugin based on the model."""
-        logger.trace("Setting data for EC2 plugin...")
+        """Store the credentials from the model.
+
+        Args:
+            model (BaseModel): The configuration model for the EC2 provider.
+        """
+        logger.trace("Setting data for EC2 provider...")
         self.credentials = model.model_dump()
 
     @hookimpl
     def gather_data(self):
-        """
-        Gathers data related to AWS EC2 instances, volumes, and Elastic IPs.
+        """Gather AWS EC2 data including instances, volumes, snapshots, and Elastic IPs.
 
         Returns:
-            dict: A dictionary containing the gathered data of the format:
-                "input": {
-                        "volumes": [
-                            {
-                                "volume_id": "vol-1234567890abcdef0",
-                                "state": "available",
-                                "size": 8,
-                                "create_time": "2021-06-01T00:00:00",
-                                "region": "us-west-1"
-                            },
-                            ...
-                        ],
-                        "instances": [
-                            {
-                                "instance_id": "i-1234567890abcdef0",
-                                "state": "running",
-                                "avg_cpu_utilization": 0.0,
-                                "region": "us-west-1"
-                            },
-                            ...
-                        ]
-                    }
+            Result: A formatted result containing the gathered data.
         """
-        logger.info("Gathering data for AWS EC2 instances, volumes, Snapshots, and Elastic IPs...")
+        logger.info("Gathering data for AWS EC2 instances, volumes, snapshots, and Elastic IPs...")
         credentials = self.credentials
 
-
+        # Determine regions to gather data from
         if credentials["aws_region"] is None:
+            # If no region is provided, list all available regions
             region_client = boto3.client(
                 "ec2",
                 aws_access_key_id=credentials["aws_access_key_id"],
                 aws_secret_access_key=credentials["aws_secret_access_key"],
                 region_name="us-west-1",
             )
-
             regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
             logger.info(f"Regions: {regions}")
-
         else:
+            # Split the provided region string into a list
             regions = credentials["aws_region"].split(",")
 
+        # Containers to store gathered data
         all_volumes = []
         all_instances = []
         all_snapshots = []
         all_eips = []
         threads = []
 
+        # Helper function for multi-thread data gathering
         def process_region(region):
-            """Process data for a specific AWS region."""
+            """Thread-safe function to gather data for a specific AWS region.
+
+            Args:
+                region (str): The AWS region to gather data from.
+            """
             logger.debug(f"Gathering data for region {region}...")
             regional_ec2 = boto3.client(
                 "ec2",
@@ -164,24 +167,16 @@ class EC2Provider:
                 region_name=region,
             )
 
-            # Gather volumes data
+            # Gather volumes
             paginator = regional_ec2.get_paginator("describe_volumes")
-            # if tags key-value pairs are provided, filter volumes based on tags
-
+            volume_filters = [{"Name": "status", "Values": ["available"]}]
             if credentials["volume_tags"]:
                 tags = tag_string_to_dict(credentials["volume_tags"])
-                volume_filters = [
-                    {"Name": "status", "Values": ["available"]},
-                ]  # Iterate through the tags dictionary and add them to the filters
                 for key, value in tags.items():
                     volume_filters.append({"Name": f"tag:{key}", "Values": [value]})
-            else:
-                volume_filters = [{"Name": "status", "Values": ["available"]}]
-
             for page in paginator.paginate(Filters=volume_filters):
                 for volume in page["Volumes"]:
                     tags = {tag["Key"]: tag["Value"] for tag in volume.get("Tags", [])}
-
                     all_volumes.append(
                         {
                             "volume_id": volume["VolumeId"],
@@ -192,36 +187,33 @@ class EC2Provider:
                             "tags": tags,
                         }
                     )
-            # Gather instances data
 
+            # Create instance filters if tags are provided
             instance_filters = []
-
             if credentials["instance_tags"]:
                 instance_tags = tag_string_to_dict(credentials["instance_tags"])
-
                 for key, value in instance_tags.items():
                     instance_filters.append({"Name": f"tag:{key}", "Values": [value]})
 
-            # Use instance_filters if available
+            # Gather instances
             instances = regional_ec2.describe_instances(Filters=instance_filters) if instance_filters else regional_ec2.describe_instances()
 
+            # Format and gather cpu utilization data
             for reservation in instances["Reservations"]:
                 for instance in reservation["Instances"]:
                     instance_id = instance["InstanceId"]
                     state = instance["State"]["Name"]
                     instance_type = instance["InstanceType"]
-                    ami_id = instance["ImageId"]
-                    tenancy = instance.get("Placement", {}).get("Tenancy", "shared")  # Default to 'shared'
-                    virtualization_type = instance.get("VirtualizationType", "hvm")  # Default to 'hvm'
-                    ebs_optimized = instance.get("EbsOptimized", False)  # True or False
-                    porcessor = instance.get("ProcessorInfo", "Unknown")  # Default to 'Unknown'
-                    tags = instance.get("Tags", [])
+                    tenancy = instance.get("Placement", {}).get("Tenancy", "shared")
+                    virtualization_type = instance.get("VirtualizationType", "hvm")
+                    ebs_optimized = instance.get("EbsOptimized", False)
+                    processor = instance.get("ProcessorInfo", "Unknown")
+                    tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
 
-                    # Describe the AMI to get the operating system
-                    ami_response = regional_ec2.describe_images(ImageIds=[ami_id])
-                    operating_system = ami_response["Images"][0].get("PlatformDetails", "Unknown") if ami_response["Images"] else "Unknown"
+                    # Get CPU utilization for the last 7 days
+                    end_time = datetime.utcnow()
+                    start_time = end_time - timedelta(days=7)
 
-                    # Gather CPU utilization from CloudWatch
                     cloudwatch = boto3.client(
                         "cloudwatch",
                         aws_access_key_id=credentials["aws_access_key_id"],
@@ -229,24 +221,16 @@ class EC2Provider:
                         region_name=region,
                     )
 
-                    end_time = datetime.utcnow()
-                    start_time = end_time - timedelta(days=7)
-
                     response = cloudwatch.get_metric_statistics(
                         Namespace="AWS/EC2",
                         MetricName="CPUUtilization",
                         Dimensions=[{"Name": "InstanceId", "Value": instance_id}],
                         StartTime=start_time,
                         EndTime=end_time,
-                        Period=3600,  # One-hour granularity
+                        Period=3600,
                         Statistics=["Average"],
                     )
-
-                    datapoints = response["Datapoints"]
-                    avg_cpu_utilization = sum(dp["Average"] for dp in datapoints) / len(datapoints) if datapoints else 0.0
-
-                    tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
-
+                    avg_cpu_utilization = sum(dp["Average"] for dp in response["Datapoints"]) / len(response["Datapoints"]) if response["Datapoints"] else 0.0
                     all_instances.append(
                         {
                             "instance_id": instance_id,
@@ -254,25 +238,26 @@ class EC2Provider:
                             "avg_cpu_utilization": avg_cpu_utilization,
                             "region": region,
                             "instance_type": instance_type,
-                            "operating_system": operating_system,
                             "tenancy": tenancy,
                             "virtualization_type": virtualization_type,
                             "ebs_optimized": ebs_optimized,
-                            "processor": porcessor,
+                            "processor": processor,
                             "tags": tags,
                         }
                     )
 
+            eip_filters = []
+
+            # Create EIP filters if tags are provided, otherwise gather all EIPs
             if credentials["eip_tags"]:
                 eip_tags = tag_string_to_dict(credentials["eip_tags"])
-                eip_filters = []
                 for key, value in eip_tags.items():
                     eip_filters.append({"Name": f"tag:{key}", "Values": [value]})
-
                 eips = regional_ec2.describe_addresses(Filters=eip_filters)["Addresses"]
             else:
                 eips = regional_ec2.describe_addresses()["Addresses"]
 
+            # Gather Elastic IPs
             for eip in eips:
                 all_eips.append(
                     {
@@ -282,19 +267,19 @@ class EC2Provider:
                         "region": region,
                     }
                 )
-            snapshot_filters = []
 
-            if credentials.get("volume_tags"):  # Assuming you want to filter snapshots by volume tags
+            # Create snapshot filters if tags are provided, otherwise gather all snapshots
+            snapshot_filters = []
+            if credentials.get("volume_tags"):
                 tags = tag_string_to_dict(credentials["volume_tags"])
                 for key, value in tags.items():
                     snapshot_filters.append({"Name": f"tag:{key}", "Values": [value]})
 
+            # Gather snapshots
             paginator = regional_ec2.get_paginator("describe_snapshots")
-
             for page in paginator.paginate(OwnerIds=["self"], Filters=snapshot_filters):
                 for snapshot in page["Snapshots"]:
                     tags = {tag["Key"]: tag["Value"] for tag in snapshot.get("Tags", [])}
-
                     all_snapshots.append(
                         {
                             "snapshot_id": snapshot["SnapshotId"],
@@ -307,35 +292,33 @@ class EC2Provider:
                         }
                     )
 
-        # Create threads for each region to gather data concurrently
+        # Start threads for each region
         for region in regions:
             thread = threading.Thread(target=process_region, args=(region,))
             threads.append(thread)
             thread.start()
 
-        # Wait for all threads to complete
+        # Wait for all threads to finish
         for thread in threads:
             thread.join()
 
+        # Format gathered data for the Rego system
         internal = {
             "aws_ec2": all_volumes,
             "aws_ec2_instances": all_instances,
             "aws_ec2_eips": all_eips,
-            "aws_ec2_snapshots": all_snapshots
+            "aws_ec2_snapshots": all_snapshots,
         }
-
-        # Prepare the data in a format that can be consumed by Rego
         rego_ready_data = {
             "input": {
                 "volumes": internal.get("aws_ec2", []),
                 "instances": internal.get("aws_ec2_instances", []),
                 "eips": internal.get("aws_ec2_eips", []),
-                "snapshots": internal.get("aws_ec2_snapshots", [])
+                "snapshots": internal.get("aws_ec2_snapshots", []),
             }
         }
 
-        logger.trace(rego_ready_data)
-
+        # Return the result in a standardized format
         item = Result(
             relates_to="ec2",
             result_name="ec2_data",
@@ -343,6 +326,5 @@ class EC2Provider:
             formatted="",
             details=rego_ready_data,
         )
-
         return item
     

@@ -53,9 +53,9 @@ class StorageClassUsage:
 
             # Template for formatted result
             template = """The following S3 bucket analysis was performed:
-    {glacier_or_standard_ia}
-    {stale_buckets}
-    {mixed_storage}
+{glacier_or_standard_ia}
+{stale_buckets}
+{mixed_storage}
 
     Summary:
     - Percentage of GLACIER or STANDARD_IA buckets: {percentage_glacier_or_standard_ia}%

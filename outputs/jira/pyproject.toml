@@ -1,6 +1,6 @@
 [project]
-name = "opsbox_jira_output"
-version = "0.1.2"
+name = "opsbox-jira-output"
+version = "0.1.3"
 description = "Jira backlog output for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}
