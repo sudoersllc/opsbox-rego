@@ -8,7 +8,7 @@ hookimpl = HookimplMarker("opsbox")
 
 
 class NoHealthyTargets:
-    """Plugin for identifying inactive ELBs."""
+    """Plugin for identifying elbs with no healthy targets."""
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -30,11 +30,13 @@ class NoHealthyTargets:
             # Format the output using the yaml dump for better display
             formatted_load_balancers = yaml.dump(no_healthy_targets, default_flow_style=False)
 
+
             # Create the result item with the formatted data
             item = Result(
                 relates_to="elb",
                 result_name="no_healthy_targets",
-                result_description="No Healthy Targets",
+
+                result_description="ELBs with no healthy targets",
                 details=data.details,
                 formatted=template.format(load_balancers=formatted_load_balancers)
             )
@@ -47,4 +49,5 @@ class NoHealthyTargets:
                 result_description="No Healthy Targets",
                 details=data.details,
                 formatted="No ELBs found with no healthy targets."
+
             )
