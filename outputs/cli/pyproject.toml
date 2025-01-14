@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.entry-points.'opsbox.plugins']
-opsbox_cli = "cli.cli:CLIOutput"
+opsbox_cli = "cli.cli.cli:CLIOutput"
 
 [build-system]
 requires = ["setuptools>=61.0"]
