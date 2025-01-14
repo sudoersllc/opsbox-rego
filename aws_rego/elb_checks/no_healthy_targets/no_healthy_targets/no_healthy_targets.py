@@ -7,7 +7,7 @@ from core.plugins import Result
 hookimpl = HookimplMarker("opsbox")
 
 
-class InactiveLoadBalancers:
+class NoHealthyTargets:
     """Plugin for identifying inactive ELBs."""
 
     @hookimpl

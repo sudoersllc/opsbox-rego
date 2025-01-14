@@ -216,7 +216,7 @@ class RegoHandler:
 
         decision = response_data.get("result", False)
         result_details = decision.get("details", []) if isinstance(decision, dict) else []
-
+        logger.success(decision)
         result = Result(
             relates_to=plugin.name,
             result_name=plugin.name,
