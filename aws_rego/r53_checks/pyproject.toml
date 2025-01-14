@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-r53-checks"
-version = "0.1.2"
+version = "0.1.3"
 description = "Collection of Route 53 checks for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}

@@ -1,10 +1,11 @@
-package aws.cost.stray_ebs
+package aws_rego.ec2_checks.stray_ebs.stray_ebs
 
-default allow = false
+import rego.v1
 
-allow {
-    volume := input.volumes[_]
-    not volume.state == "in-use"
+allow if {
+volume |
+	some volume in input.volumes
+	not volume.state == "in-use"
 }
 
-details := [volume | volume := input.volumes[_]; not volume.state == "in-use"]
+details := [volume | some volume in input.volumes; not volume.state == "in-use"]

@@ -15,7 +15,8 @@ class UnattachedEips:
         """
         eips = []
         formatted = ""
-        for eip in data.details:
+        findings = data.details
+        for eip in findings:
             eips.append(eip)
             try:
                 eips_yaml = yaml.dump(eips, default_flow_style=False)
@@ -23,10 +24,13 @@ class UnattachedEips:
                 logger.error(f"Error formatting volume details: {e}")
             template = """The Eips are Unattached. 
 
-            {eips}"""
+{eips}"""
 
-        formatted = template.format(eips=eips_yaml) if eips else "No unattached EIPs"
-
+        if findings:
+            formatted = template.format(eips=eips_yaml) if eips else "No unattached EIPs"
+        else:
+            formatted = "No unattached EIPs found."
+            
         item = Result(
             relates_to="ec2",
             result_name="unattached_eips",

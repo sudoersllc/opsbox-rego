@@ -11,7 +11,7 @@ from typing import Annotated
 hookimpl = HookimplMarker("opsbox")
 
 
-class ELBProvider:
+class elbProvider:
     """Plugin for gathering data related to AWS S3 (buckets, objects, and storage classes).
 
     Attributes:

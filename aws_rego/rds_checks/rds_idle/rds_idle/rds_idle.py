@@ -16,27 +16,44 @@ class RDSIdle:
         Attributes:
             data (Result): The result of the checks.
         Returns:
-            str: The formatted string containing the findings.
+            Result: The formatted string containing the findings.
         """
         findings = data.details
 
         idle_instances = []
-        if findings:
-            idle = findings.get("underutilized_rds_instances", [])
-            for instance in idle:
-                idle_instances.append(f"Instance: {instance['InstanceIdentifier']} is idle.")
+
+        # Handle findings as a list
+        if isinstance(findings, list):
+            for instance in findings:
+                if instance.get("CPUUtilization", 0) < 5:  # Check if the instance is idle
+                    idle_instances.append(
+                        f"Instance: {instance['InstanceIdentifier']} is idle."
+                    )
+        else:
+            logger.error("Invalid findings format: Expected a list.")
+            return Result(
+                relates_to="rds",
+                result_name="idle_instances",
+                result_description="Idle RDS Instances",
+                details=data.details,
+                formatted="Error: Invalid data format for findings.",
+            )
+
+        # Format the idle instances into YAML
         try:
             idle_instances_yaml = yaml.dump(idle_instances, default_flow_style=False)
         except Exception as e:
             logger.error(f"Error formatting idle_instances details: {e}")
-            idle_instances = ""
+            idle_instances_yaml = "Error formatting data."
 
-        template = """The following RDS storage instances are idle and can be downsized: \n 
-        \n
-        {idle_instances}
-        \n """
+        # Template for the output message
+        template = """The following RDS storage instances are idle and can be downsized:
 
-        if findings:
+{idle_instances}
+        """
+
+        # Generate the result
+        if idle_instances:
             return Result(
                 relates_to="rds",
                 result_name="idle_instances",

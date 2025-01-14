@@ -10,47 +10,56 @@ hookimpl = HookimplMarker("opsbox")
 class UnusedIAMPolicies:
     """Plugin for identifying IAM policies with zero attachments."""
 
+    @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
         Attributes:
             data (CheckResult): The result of the checks.
         Returns:
-            str: The formatted string containing the findings.
+            Result: The formatted result object containing the findings.
         """
         details = data.details
 
+        # Handle cases where details is a list or dictionary
+        if isinstance(details, list):
+            # Assume details directly contains unused policies
+            unused_policies = details
+        elif isinstance(details, dict):
+            # Extract unused policies from the dictionary
+            unused_policies = details.get("policy", [])
+        else:
+            logger.error("Invalid details format: Expected a dictionary or list.")
+            return Result(
+                relates_to="iam",
+                result_name="iam_unused_policies",
+                result_description="IAM Policies with Zero Attachments",
+                details=data.details,
+                formatted="Error: Invalid data format for details.",
+            )
 
-        # Directly get unused policies from the Rego result
-        unused_policies = details.get("unused_policies", [])
-        
-        # Format the unused policies list into YAML for better readability
+        # Format the unused policies list into YAML
         try:
             unused_policies_yaml = yaml.dump(unused_policies, default_flow_style=False)
         except Exception as e:
             logger.error(f"Error formatting unused IAM policies: {e}")
-            unused_policies_yaml = ""
+            unused_policies_yaml = "Error formatting data."
 
         # Template for the output message
-        template = """The following IAM policies have zero attachments:
-        
-        {unused_policies}
-        """
-        logger.info(unused_policies_yaml)
-        
-        # Generate the result with formatted output
         if unused_policies:
-            return Result(
-                relates_to="iam",
-                result_name="iam_unused_policies",
-                result_description="IAM Policies with Zero Attachments",
-                details=data.details,
-                formatted=template.format(unused_policies=unused_policies_yaml),
-            )
+            formatted_output = f"""The following IAM policies have zero attachments:
+
+{unused_policies_yaml}
+            """
+            logger.info(f"Found {len(unused_policies)} unused IAM policies.")
         else:
-            return Result(
-                relates_to="iam",
-                result_name="iam_unused_policies",
-                result_description="IAM Policies with Zero Attachments",
-                details=data.details,
-                formatted="No unused IAM policies found.",
-            )
+            formatted_output = "No unused IAM policies found."
+            logger.info("No unused IAM policies found.")
+
+        # Generate the result with formatted output
+        return Result(
+            relates_to="iam",
+            result_name="iam_unused_policies",
+            result_description="IAM Policies with Zero Attachments",
+            details=data.details,
+            formatted=formatted_output,
+        )

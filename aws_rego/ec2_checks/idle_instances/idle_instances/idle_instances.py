@@ -14,6 +14,7 @@ class IdleInstances:
             str: The formatted string containing the findings.
         """
         findings = data.details
+        logger.debug(f"Findings: {findings}")
         instances = []
         for instance in findings:
             instance_obj = {
@@ -34,26 +35,20 @@ class IdleInstances:
 
         template = """The following EC2 instances are idle, with an average CPU utilization of less than 5%.
 The data is presented in the following format:
-- instance_id:
-    region: region
-    state: running
-    avg_cpu_utilization:
+
 
 {instances}"""
 
-        if instances:
-            return Result(
-                relates_to="ec2",
-                result_name="idle_instances",
-                result_description="Idle EC2 Instances",
-                details=data.details,
-                formatted=template.format(instances=instance_yaml),
-            )
+        if findings:
+            formatted = template.format(instances=instance_yaml)
         else:
-            return Result(
-                relates_to="ec2",
-                result_name="idle_instances",
-                result_description="Idle EC2 Instances",
-                details=data.details,
-                formatted="No idle EC2 instances found.",
-            )
+            formatted = "No idle EC2 instances found."
+
+        item = Result(
+            relates_to="ec2",
+            result_name="idle_instances",
+            result_description="Idle EC2 Instances",
+            details=data.details,
+            formatted=formatted,
+        )
+        return item

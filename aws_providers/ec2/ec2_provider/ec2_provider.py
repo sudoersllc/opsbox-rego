@@ -11,7 +11,6 @@ import json
 # Define a hook implementation marker for the "opsbox" plugin system
 hookimpl = HookimplMarker("opsbox")
 
-
 def tag_string_to_dict(tag_string):
     """Converts a string of key-value pairs to a dictionary."""
     if isinstance(tag_string, str):
@@ -23,10 +22,43 @@ def tag_string_to_dict(tag_string):
             # Handle the error or raise an exception
             raise ValueError("Tags provided are not in a valid JSON format.")
 
+def find_aws_credentials() -> tuple[str, str] | None:
+    """Find AWS credentials in the default AWS configuration file.
+    
+    Returns:
+        tuple[str, str] | None: A tuple containing the AWS access key and secret access key, or None if not
+            found.
+    """
+    try:
+        session = boto3.Session()
+        credentials = session.get_credentials()
+        credentials = credentials.get_frozen_credentials()
+        access_key = credentials.access_key
+        secret_key = credentials.secret_key
+        logger.debug("Found default AWS credentials.")
+        return access_key, secret_key
+    except Exception as _:
+        logger.debug("Default AWS credentials not found.")
+        return None
 
-
+def find_default_region() -> str | None:
+    """Find the default region in the default AWS configuration file.
+    
+    Returns:
+        str | None: The default region, or None if not found.
+    """
+    try:
+        session = boto3.Session()
+        region = session.region_name
+        logger.debug(f"Found default AWS region: {region}")
+        return region
+    except Exception as _:
+        logger.debug("Default AWS region not found.")
+        return None
+    
 class EC2Provider:
-    """Provider for gathering data related to AWS EC2 instances, volumes, snapshots, and Elastic IPs.
+
+    """Plugin for gathering data related to AWS EC2 instances, volumes, and Elastic IPs.
 
     Attributes:
         ec2 (boto3.client): The boto3 client for EC2.
@@ -42,6 +74,8 @@ class EC2Provider:
             EC2Config: The configuration model for the EC2 provider.
         """
 
+        credentials = find_aws_credentials()
+        region = find_default_region()
         class EC2Config(BaseModel):
             """Configuration schema for the EC2 provider.
 
@@ -54,14 +88,22 @@ class EC2Provider:
                 eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
             """
 
+
             aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
             aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
-            aws_region: Annotated[str | None, Field(description="AWS region", required=False, default=None)]
-            volume_tags: Annotated[str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)]
-            instance_tags: Annotated[str | None, Field(description="Key-value tag pairs for instances", required=False, default=None)]
-            eip_tags: Annotated[str | None, Field(description="Key-value tag pairs for Elastic IPs", required=False, default=None)]
+            aws_region: Annotated[str |  None, Field(description="AWS region", required=False,default=region)]
+            volume_tags: Annotated[
+                str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)
+            ]
+            instance_tags: Annotated[
+                str | None, Field(description="Key-value tag pairs for instances", required=False, default=None)
+            ]
+            eip_tags: Annotated[
+                str | None, Field(description="Key-value tag pairs for Elastic IPs", required=False, default=None)
+            ]
 
         return EC2Config
+                
 
     @hookimpl
     def activate(self) -> None:
@@ -285,3 +327,4 @@ class EC2Provider:
             details=rego_ready_data,
         )
         return item
+    

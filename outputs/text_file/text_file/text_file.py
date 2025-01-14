@@ -4,6 +4,7 @@ import os
 from loguru import logger
 from core.plugins import Result
 from typing import Annotated
+import textwrap
 
 
 hookimpl = HookimplMarker("opsbox")
@@ -61,5 +62,6 @@ class TextFileOutput:
                 os.makedirs(module_out)
             with open(f"{module_out}/{result.result_name}.txt", "w", encoding="utf-8") as f:
                 logger.info(f"Writing results for {result.result_name} to {module_out}/{result.result_name}.txt")
-                f.write(result.formatted)
+                clean_text = textwrap.dedent(result.formatted)
+                f.write(clean_text)
         logger.success("Results written to text files!")

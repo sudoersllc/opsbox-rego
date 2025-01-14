@@ -16,9 +16,8 @@ class ObjectLastModified:
         Attributes:
             data (CheckResult): The result of the checks.
         Returns:
-            str: The formatted string containing the findings.
+            Result: The formatted result containing the findings.
         """
-
         findings = data.details
 
         standard_and_old_objects = []
@@ -36,10 +35,11 @@ class ObjectLastModified:
             logger.error(f"Error formatting bucket details: {e}")
             raise e
 
-        percentage_old = findings["details"].get("percentage_standard_and_old", 0)
-        template = """The following S3 old objects are used:
-        {objects}
-        Percentage of total old objects: {percentage_old}% """
+        # Correctly access percentage and handle missing keys
+        percentage_old = findings.get("percentage_standard_and_old", 0)
+        template = """The following S3 objects have not been modified for a long time:
+{objects}
+Percentage of total old objects: {percentage_old}%"""
 
         if findings:
             return Result(
