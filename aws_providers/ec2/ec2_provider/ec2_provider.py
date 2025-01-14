@@ -89,8 +89,8 @@ class EC2Provider:
             """
 
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True, default=credentials[0])]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True, default=credentials[1])]
+            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
+            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
             aws_region: Annotated[str |  None, Field(description="AWS region", required=False,default=region)]
             volume_tags: Annotated[
                 str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)
