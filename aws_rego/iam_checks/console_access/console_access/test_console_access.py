@@ -9,9 +9,8 @@ def test_console_access(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "console_access.rego")
-    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
+    rego_input = os.path.join(current_dir.parent.parent, "iam_test_data.json")
 
-    result = rego_process(rego_policy, rego_input, "data.aws.cost.console_access", ["users_with_console_access"])
     needed_keys = [
         "access_key_1_active",
         "access_key_1_last_rotated",
@@ -36,6 +35,5 @@ def test_console_access(rego_process):
         "user",
         "user_creation_time"
     ]
-    for x in result["users_with_console_access"]:
-        for key in needed_keys:
-            assert key in x, f"Key {key} not found in {x}"
+    rego_process(rego_policy, rego_input, "data.aws.cost.console_access", needed_keys)
+

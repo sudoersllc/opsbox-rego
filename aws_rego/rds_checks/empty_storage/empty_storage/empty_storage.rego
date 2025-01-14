@@ -1,11 +1,11 @@
-package aws.cost.empty_storage
+package aws_rego.rds_checks.empty_storage.empty_storage
 
-empty_storage_instances[instance] {
-    instance := input.rds_instances[_]
-    instance.StorageUtilization < 40
+import rego.v1
+
+allow if {
+instance |
+	some instance in input.rds_instances
+	instance.StorageUtilization < 40
 }
 
-# Combine results into a single report
-details := {
-    "empty_storage_instances": [instance | instance := empty_storage_instances[_]],
-}
+details := [instance | some instance in input.rds_instances; instance.StorageUtilization < 40]

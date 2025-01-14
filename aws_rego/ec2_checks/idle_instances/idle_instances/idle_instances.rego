@@ -1,11 +1,12 @@
-package aws.cost.idle_instances
+package aws_rego.ec2_checks.idle_instances.idle_instances
 
-default allow = false
+import rego.v1
 
-allow {
-    instance := input.instances[_]
-    instance.state == "running"
-    instance.avg_cpu_utilization < 5  # Threshold for low CPU utilization
+allow if {
+instance |
+	some instance in input.instances
+	instance.avg_cpu_utilization < 1 # Check if avg_cpu_utilization is less than 1
+	instance.state == "running" # Check if state is running
 }
 
-details := [instance | instance := input.instances[_]; instance.state == "running"; instance.avg_cpu_utilization < 5]
+details := [instance | some instance in input.instances; instance.avg_cpu_utilization < 1; instance.state = "running"]

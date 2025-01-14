@@ -35,5 +35,14 @@ class StrayEbs:
             {volumes}"""
 
         result = data
-        result.formatted = template.format(volumes=volume_yaml)
-        return result
+        if findings:
+            result.formatted = template.format(volumes=volume_yaml)
+        else:
+            result.formatted = "No stray EBS volumes found."
+        return Result(
+            relates_to="ec2",
+            result_name="stray_ebs",
+            result_description="Stray EBS Volumes",
+            details=data.details,
+            formatted=result.formatted,
+        )

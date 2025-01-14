@@ -1,18 +1,11 @@
-package aws.cost.low_request_count
+package aws_rego.elb_checks.low_request_counts.low_request_counts
 
-# Define the threshold for underutilization
-underutilization_threshold := 100
+import rego.v1
 
-# Rule to identify underutilized ELBs
-underutilized_elbs[elb] {
-    elb := input.elbs[_]
-    elb.RequestCount <= underutilization_threshold
+allow if {
+elb |
+	some elb in input.elbs
+	elb.RequestCount <= 100
 }
 
-# Collect the entire ELB object for all underutilized ELBs
-underutilized_elb_details[elb] {
-    elb := underutilized_elbs[_]
-}
-
-# Collect details of all underutilized ELBs
-details := {"elbs": [elb | elb := underutilized_elb_details[_]]}
+details := [elb | some elb in input.elbs; elb.RequestCount <= 100]

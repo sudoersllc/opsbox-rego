@@ -11,7 +11,6 @@ import json
 # Define a hook implementation marker for the "opsbox" plugin system
 hookimpl = HookimplMarker("opsbox")
 
-
 def tag_string_to_dict(tag_string):
     """Converts a string of key-value pairs to a dictionary."""
     if isinstance(tag_string, str):
@@ -24,9 +23,9 @@ def tag_string_to_dict(tag_string):
             raise ValueError("Tags provided are not in a valid JSON format.")
 
 
-
 class EC2Provider:
-    """Provider for gathering data related to AWS EC2 instances, volumes, snapshots, and Elastic IPs.
+
+    """Plugin for gathering data related to AWS EC2 instances, volumes, and Elastic IPs.
 
     Attributes:
         ec2 (boto3.client): The boto3 client for EC2.
@@ -285,3 +284,4 @@ class EC2Provider:
             details=rego_ready_data,
         )
         return item
+    

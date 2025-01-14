@@ -1,13 +1,14 @@
-package aws.cost.unused_policies
+package aws_rego.iam_checks.unused_policies.unused_policies
+
+import rego.v1
 
 # Identify policies with zero attachments
-unused_policies[policy] {
-    policy := input.iam_policies[_]
-    policy.attachment_count == 0
-}
-
 # Output only the unused policies
-details := {
-    "unused_policies": [policy | policy := unused_policies[_]]
+
+allow if {
+policy |
+	some policy in input.policies
+	policy.attachment_count == 0
 }
 
+details := [policy | some policy in input.policies; policy.attachment_count == 0]
