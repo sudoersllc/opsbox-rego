@@ -33,8 +33,7 @@ class LowRequestCount:
 
         template = """The following ELBs have low request counts:
 
-    {load_balancers}
-        """
+{load_balancers}"""
 
         formatted_load_balancers = yaml.dump(inactive_load_balancers, default_flow_style=False)
 

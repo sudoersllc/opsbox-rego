@@ -13,7 +13,7 @@ class NoHealthyTargets:
     @hookimpl
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
-        findings = data
+        findings = data.details
         logger.debug(f"Findings: {findings}")
 
         no_healthy_targets = []
@@ -23,11 +23,9 @@ class NoHealthyTargets:
             no_healthy_targets.extend(findings)
 
             # Template for displaying inactive load balancers
-            template = """
-            The following ELBs have no healthy targets: 
+            template = """The following ELBs have no healthy targets:
 
-            {load_balancers}
-            """
+{load_balancers}"""
 
             # Format the output using the yaml dump for better display
             formatted_load_balancers = yaml.dump(no_healthy_targets, default_flow_style=False)

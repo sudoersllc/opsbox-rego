@@ -32,7 +32,7 @@ class StrayEbs:
                 logger.error(f"Error formatting volume details: {e}")
             template = """The following EBS volumes are unused. please check if they can be deleted or downsized: \n 
  
-            {volumes}"""
+{volumes}"""
 
         result = data
         if findings:

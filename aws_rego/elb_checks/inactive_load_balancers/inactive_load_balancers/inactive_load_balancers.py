@@ -13,7 +13,7 @@ class InactiveLoadBalancers:
     @hookimpl
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
-        findings = data
+        findings = data.details
         logger.debug(f"Findings: {findings}")
 
         inactive_load_balancers = []
@@ -23,11 +23,9 @@ class InactiveLoadBalancers:
             inactive_load_balancers.extend(findings)
 
             # Template for displaying inactive load balancers
-            template = """
-            The following ELBs are inactive:
-
-            {load_balancers}
-            """
+            template = """The following ELBs are inactive:
+            
+{load_balancers}"""
 
             # Format the output using the yaml dump for better display
             formatted_load_balancers = yaml.dump(inactive_load_balancers, default_flow_style=False)

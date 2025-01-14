@@ -24,7 +24,7 @@ class UnattachedEips:
                 logger.error(f"Error formatting volume details: {e}")
             template = """The Eips are Unattached. 
 
-            {eips}"""
+{eips}"""
 
         if findings:
             formatted = template.format(eips=eips_yaml) if eips else "No unattached EIPs"

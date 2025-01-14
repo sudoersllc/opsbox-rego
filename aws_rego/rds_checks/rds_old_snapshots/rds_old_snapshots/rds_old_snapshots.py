@@ -34,10 +34,9 @@ class RDSOldSnapshots:
             logger.error(f"Error formatting idle_instances details: {e}")
             old_snapshots = ""
 
-        template = """The following snapsshots have been created more than a year ago and should be checked for deletion: \n
-        \n
-        {old_snapshots}
-        \n """  # noqa: E501
+        template = """The following snapsshots have been created more than a year ago and should be checked for deletion:
+
+{old_snapshots}"""  # noqa: E501
 
         if findings:
             return Result(
