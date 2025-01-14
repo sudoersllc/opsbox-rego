@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-elb-checks"
-version = "0.1.5"
+version = "0.1.6"
 description = "Collection of ELB checks for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}
