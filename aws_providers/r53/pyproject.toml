@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-r53-provider"
-version = "0.1.2"
+version = "0.1.3"
 description = "Opsbox provider for Route 53 checks"
 readme = "README.md"
 license = {file = "LICENSE"}
