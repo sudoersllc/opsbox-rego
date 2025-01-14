@@ -44,13 +44,14 @@ This repository contains various types of plugins, each serving a different purp
 Packages are autodetected by opsbox if they are in the same environment.
 
 ### Individual Modules
-Once you have installed the necessary dependencies for the plugins in OpsBox's , you can point the main Opsbox program to this directory using the `--plugin_dir` option. Ensure you have installed the prerequisites for Opsbox before proceeding.
+Once you have installed the necessary dependencies for the plugins in your virtual environment, you can point the main Opsbox program to this directory using the `--plugin_dir` option. Ensure you have installed the prerequisites for Opsbox before proceeding.
 
 ```sh
-main.py ... --plugin_dir path/to/this/repository
+python -m opsbox ... --plugin_dir path/to/this/repository
 ```
 
 This will allow Opsbox to load and utilize the plugins contained in this directory.
+***This is the quickest way to develop plugins without building!***
 
 ## Conclusion
 
