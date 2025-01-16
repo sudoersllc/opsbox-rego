@@ -1,9 +1,9 @@
 [project]
 name = "opsbox-json-file-output"
 version = "0.1.0"
-description = "Add your description here"
+description = "JSON file output for opsbox."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {file = "LICENCE.txt"}
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
@@ -19,7 +19,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-data]
-"text_file_output" = ["manifest.toml"]
+"json_file_output" = ["manifest.toml"]
 
 [project.entry-points.'opsbox.plugins']
-text_file_output = "json_file.json_file:JSONFileOutput"
+json_file_output = "json_file.json_file:JSONFileOutput"
