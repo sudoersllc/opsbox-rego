@@ -1,6 +1,0 @@
-site_name: EC2 Checks
-nav:
-- "Stray Instances": "stray_instances.md"
-- "Unattached EIPs": "unattached_eips.md"
-- "Idle Instances": "idle_instances.md"
-- "Stray EBS Volumes": "stray_ebs.md"
