@@ -1,5 +1,0 @@
-site_name: ELB Checks
-nav:
-  - "High Error Rate Load Balancers": "high_error_rate.md"
-  - "Inactive Load Balancers": "inactive_load_balancers.md"
-  - "Low Request Count Load Balancers": "low_request_counts.md"
