@@ -185,19 +185,20 @@ def rego_process():
 
     # 5) Optionally remove the OPA binary
     # Comment out if you prefer to keep it for debugging/future runs
-    logger.info(f"Cleaning up OPA binary from {os.getcwd()}")
-    if os.name == "posix":
-        try:
-            os.remove(os.path.join(os.getcwd(), "opa"))
-        except FileNotFoundError:
-            pass
-    elif os.name == "nt":
-        try:
-            os.remove(os.path.join(os.getcwd(), "opa.exe"))
-        except FileNotFoundError:
-            pass
-    elif os.name == "darwin":
-        try:
-            os.remove(os.path.join(os.getcwd(), "opa"))
-        except FileNotFoundError:
-            pass
+    if os.getenv("KEEP_OPA_BINARY", "true").lower() != "true":
+        logger.info(f"Cleaning up OPA binary from {os.getcwd()}")
+        if os.name == "posix":
+            try:
+                os.remove(os.path.join(os.getcwd(), "opa"))
+            except FileNotFoundError:
+                pass
+        elif os.name == "nt":
+            try:
+                os.remove(os.path.join(os.getcwd(), "opa.exe"))
+            except FileNotFoundError:
+                pass
+        elif os.name == "darwin":
+            try:
+                os.remove(os.path.join(os.getcwd(), "opa"))
+            except FileNotFoundError:
+                pass
