@@ -27,6 +27,6 @@ include-package-data = true
 
 [tool.uv]
 dev-dependencies = [
-    "opsbox-general-handler>=0.1.2",
     "pytest>=8.3.4",
+    "moto[all]>=5.0.26",
 ]
