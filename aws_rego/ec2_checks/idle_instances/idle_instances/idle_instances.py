@@ -23,8 +23,8 @@ class IdleInstances:
                     "state": instance["state"],
                     "avg_cpu_utilization": instance["avg_cpu_utilization"],
                     "instance_type": instance["instance_type"],
-                    "operating_system": instance["operating_system"],
-                    "tags": instance["tags"],
+                    "operating_system": instance.get("operating_system", "N/A"),
+                    "tags": instance.get("tags", {}),
                 }
             }
             instances.append(instance_obj)

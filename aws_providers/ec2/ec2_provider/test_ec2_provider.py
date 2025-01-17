@@ -1,5 +1,5 @@
 from moto import mock_aws
-from .ec2_provider import EC2Provider
+from .ec2_provider.ec2_provider import EC2Provider
 from pydantic import BaseModel
 import boto3
 from datetime import datetime
@@ -11,7 +11,7 @@ def test_gather_data(json_output=False):
 
     Args:
         json_output (bool, optional): If True, the test will output the JSON result to a file. Defaults to False.
-            File will be saved to tests/data/ec2_test_data.json.
+            File will be saved to ./ec2_test_data.json.
     """
     provider = EC2Provider()
 
@@ -93,7 +93,7 @@ def test_gather_data(json_output=False):
     if json_output:
         import json
 
-        with open("tests\data\ec2_test_data.json", "w") as f:
+        with open("ec2_test_data.json", "w") as f:
             json.dump(result.model_dump()["details"]["input"], f, indent=4)
 
     assert "input" in result.details
