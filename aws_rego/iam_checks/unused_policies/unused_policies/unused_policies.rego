@@ -7,8 +7,8 @@ import rego.v1
 
 allow if {
 policy |
-	some policy in input.policies
+	some policy in input.iam_policies
 	policy.attachment_count == 0
 }
 
-details := [policy | some policy in input.policies; policy.attachment_count == 0]
+details := [policy | some policy in input.iam_policies; policy.attachment_count == 0]
