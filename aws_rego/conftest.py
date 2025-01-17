@@ -156,7 +156,7 @@ def rego_process():
                     msg = f"Key '{key}' not found in OPA details: {list(result.keys())}"
                     logger.error(msg)
                     raise AssertionError(msg)
-                elif isinstance(result, list) and not all(key in x for x in result):
+                elif isinstance(result, list) and not all(key in x for x in result) or len(result) == 0:
                     msg = f"Key '{key}' not found in OPA details: {result}"
                     logger.error(msg)
                     raise AssertionError(msg)
