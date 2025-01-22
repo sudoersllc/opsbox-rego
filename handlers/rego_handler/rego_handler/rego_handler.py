@@ -6,6 +6,11 @@ from typing import TypedDict
 from contextlib import contextmanager
 import pluggy
 import re
+import subprocess
+import json
+import tempfile
+import os
+from pathlib import Path
 
 from loguru import logger
 
@@ -104,9 +109,9 @@ class RegoHandler:
         else:
             data = providers[0].plugin_obj.gather_data()
         # apply check
-        with self.temp_policy(plugin, rego_file_path, base_url) as _:
-            result = self.apply_check(data, plugin, rego_file_path, base_url)
-            result = plugin.plugin_obj.report_findings(result)
+        # with self.temp_policy(plugin, rego_file_path, base_url) as _:
+        result = self.apply_check(data, plugin, rego_file_path)
+        result = plugin.plugin_obj.report_findings(result)
         return result
     
     def extract_package_name(self, file_path):
@@ -123,6 +128,7 @@ class RegoHandler:
             ValueError: If the package name is not found in the file.
         """
         package_pattern = re.compile(r"^package\s+([a-zA-Z0-9_.]+)")
+
 
         with open(file_path, 'r') as file:
             # Find the first line matching the package pattern
@@ -181,42 +187,84 @@ class RegoHandler:
         else:
             logger.success(f"Policy {info['rego_file']} removed successfully.")
 
-    def apply_check(self, data: "Result", plugin: PluginInfo, rego_file_path: str, base_url: str) -> list["Result"]:
-        """Applies a set of registered checks to the given data using Open Policy Agent (OPA).
 
-        Args:
-            data (Result): The data to apply the checks to.
-            plugin (PluginInfo): The plugin to apply the checks from.
-            rego_file_path (str): The path to the Rego file.
-            base_url (str): The base URL of the OPA server
-        Returns:
-            list[Result]: The results of the checks.
-        """
-        # get rego info
+    def apply_check(self, data: "Result", plugin: PluginInfo, rego_file_path: str) -> list["Result"]:
+        """Applies a set of registered checks to the given data using the OPA eval command."""
+        logger.success(f"Rego file path: {rego_file_path}")
         check: RegoInfo = plugin.extra["rego"]
 
-        # grab upload, apply urls
+        # Prepare data and command for OPA eval
         data = data.details
         package_name = self.extract_package_name(rego_file_path)
-        package_name_path = package_name.replace(".", "/")
-        opa_url = f"{base_url}/v1/data/{package_name_path}"
 
-        # Query OPA
-        response = requests.post(opa_url, json=data, timeout=default_timeout)
-        response_data = response.json()
+        logger.success(f"Package name: {package_name}")
+        temp_input_file_path = None
+        try:
+            # Write the input JSON to a temporary file in text mode
+            with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".json", encoding='utf-8') as temp_input_file:
+                json.dump(data['input'], temp_input_file)
+                temp_input_file_path = temp_input_file.name
 
-        # Log Results
-        logger.debug(f"OPA URL: {opa_url}")
-        logger.debug(f"OPA response status code: {response.status_code}")
-        if response.status_code != 200:
-            logger.error(f"OPA response: {response_data}")
+            logger.debug(f"Temporary input file path: {temp_input_file_path}")
+            with open(temp_input_file_path, 'r', encoding='utf-8') as f:
+                logger.debug(f"Input file content:\n{f.read()}")
 
-        else:
-            logger.success(f"OPA successfully queried for check {check['rego_file']}.")
+            opa_eval_command = [
+                "opa", "eval",
+                f"data.aws_rego.ec2_checks.stray_ebs.stray_ebs",  # Adjust the query
+                "--data", str(rego_file_path),
+                "--input", str(temp_input_file_path),
+                "--format=json"  # Add pretty format for debugging if needed
+            ]
 
-        decision = response_data.get("result", False)
-        result_details = decision.get("details", []) if isinstance(decision, dict) else []
-        logger.success(decision)
+            # Debugging the command
+            logger.debug(f"Running OPA command: {' '.join(opa_eval_command)}")
+
+            # Run the OPA eval command
+            process = subprocess.run(
+                opa_eval_command,
+                text=True,
+                capture_output=True,
+                check=True
+            )
+
+            # Parse the output
+            cli_output = process.stdout
+            cli_result = json.loads(cli_output)
+
+            # Extract decision results
+            expressions = cli_result.get("result", [])[0].get("expressions", [])
+            if expressions:
+                decision = expressions[0].get("value", {})
+                result_details = decision.get("details", [])
+            else:
+                decision = {}
+                result_details = []
+
+            logger.success(f"OPA eval successfully executed for {check['rego_file']}.")
+
+        except subprocess.CalledProcessError as e:
+            logger.error(f"OPA eval failed: {e}")
+            logger.error(f"OPA eval stderr: {e.stderr}")
+            decision = {}
+            result_details = []
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse OPA eval output: {e}")
+            decision = {}
+            result_details = []
+
+        except Exception as e:
+            logger.error(f"Error running OPA eval: {e}")
+            decision = {}
+            result_details = []
+
+        finally:
+            # Clean up the temporary file
+            if temp_input_file_path and os.path.exists(temp_input_file_path):
+                os.remove(temp_input_file_path)
+
+        # Create and return Result object
         result = Result(
             relates_to=plugin.name,
             result_name=plugin.name,
