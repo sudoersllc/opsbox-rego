@@ -67,6 +67,7 @@ def _test_rego(rego_path: str, input_data: str, query: str, keys_to_check=None):
     output = json.loads(item.stdout.decode("utf-8"))
     logger.info(output)
     details = output["result"][0]["expressions"][0]["value"]["details"]
+    
     # check if keys are present in the result list
     if keys_to_check and type(details) is list:
         for item in details:

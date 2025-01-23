@@ -1,13 +1,13 @@
 [project]
 name = "opsbox-elb-checks"
-version = "0.1.5"
+version = "0.1.7"
 description = "Collection of ELB checks for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}
 requires-python = "==3.11.*"
 dependencies = [
-    "opsbox-elb-provider>=0.1.2",
-    "opsbox-rego-handler>=0.1.2"
+    "opsbox-elb-provider>=0.1.3",
+    "opsbox-rego-handler>=0.1.4"
 ]
 
 [tool.setuptools.packages.find]
@@ -15,7 +15,6 @@ include = ["*"]
 
 [tool.uv]
 dev-dependencies = [
-    "mkdocs>=1.6.1",
     "pytest>=8.3.4",
 ]
 

@@ -2,7 +2,7 @@
 name = "low_request_count"
 module = "low_request_count"
 class_name = "LowRequestCount"
-type="rego"
+type = "rego"
 uses = ["elb","rego"]
 
 [rego]

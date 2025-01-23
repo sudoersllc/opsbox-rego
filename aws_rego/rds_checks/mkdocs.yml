@@ -1,7 +1,0 @@
-site_name: RDS Checks Documentation
-
-nav:
-  - RDS Idle Plugin: rds_idle.md
-  - Old Snapshots Plugin: old_snapshots.md
-  - Empty Storage Plugin: empty_storage.md
-  - Scaling Down RDS Instances: scaling_down.md

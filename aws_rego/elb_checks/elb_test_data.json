@@ -33,6 +33,22 @@
             "State": "unhealthy",
             "VpcId": "vpc-bc6fa69f",
             "InstanceHealth": []
+        },
+        {
+            "Type": "application",
+            "Name": "test-alb2",
+            "RequestCount": 42,
+            "ErrorRate": 427,
+            "CreatedTime": "2024-12-19T14:46:29Z",
+            "AvailabilityZones": [
+                "us-east-1a"
+            ],
+            "SecurityGroups": [],
+            "Scheme": "internet-facing",
+            "DNSName": "test-alb-1.us-east-1.elb.amazonaws.com",
+            "State": "inactive",
+            "VpcId": "vpc-bc6cfi9f",
+            "InstanceHealth": []
         }
     ]
 }

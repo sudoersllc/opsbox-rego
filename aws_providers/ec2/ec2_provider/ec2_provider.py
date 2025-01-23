@@ -57,7 +57,6 @@ def find_default_region() -> str | None:
         return None
     
 class EC2Provider:
-
     """Plugin for gathering data related to AWS EC2 instances, volumes, and Elastic IPs.
 
     Attributes:
@@ -76,6 +75,7 @@ class EC2Provider:
 
         credentials = find_aws_credentials()
         region = find_default_region()
+
         class EC2Config(BaseModel):
             """Configuration schema for the EC2 provider.
 
@@ -88,9 +88,8 @@ class EC2Provider:
                 eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
             """
 
-
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
+            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True, default=credentials[0])]
+            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True, default=credentials[1])]
             aws_region: Annotated[str |  None, Field(description="AWS region", required=False,default=region)]
             volume_tags: Annotated[
                 str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)
