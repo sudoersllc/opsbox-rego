@@ -1,6 +1,11 @@
 from moto import mock_aws
 import boto3
-from .s3_provider import S3Provider
+import sys
+import os
+
+# Add the root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from s3_provider import S3Provider
 from core.plugins import Result
 from pydantic import BaseModel
 from loguru import logger
