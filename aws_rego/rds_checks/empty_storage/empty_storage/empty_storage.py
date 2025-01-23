@@ -8,8 +8,8 @@ from typing import Annotated
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
-class InactiveLoadBalancersConfig(BaseModel):
-    elb_inactive_requests_threshold: Annotated[int, Field(default = 0, description="# of requests below which to consider an ELB to be inactive. Default = 0.")]
+class EmptyStorageConfig(BaseModel):
+    rds_empty_storage_threshold: Annotated[int, Field(default = 40, description=r"% of storage utilization under which an RDS instance is flagged as empty. Default = 40.")]
 
 class EmptyStorage:
     """Plugin for identifying RDS storage instances with low storage utilization."""
@@ -21,7 +21,7 @@ class EmptyStorage:
         
         Returns:
             type[BaseModel]: The configuration model for the plugin."""
-        return InactiveLoadBalancersConfig
+        return EmptyStorageConfig
 
     @hookimpl
     def set_data(self, model: type[BaseModel]) -> None:
@@ -41,7 +41,7 @@ class EmptyStorage:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["elb_inactive_requests_threshold"] = self.conf["elb_inactive_requests_threshold"]
+        data.details["input"]["rds_empty_storage_threshold"] = self.conf["rds_empty_storage_threshold"]
         return data
 
     @hookimpl
