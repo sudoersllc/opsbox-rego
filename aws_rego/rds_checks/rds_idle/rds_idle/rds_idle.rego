@@ -10,7 +10,7 @@ import rego.v1
 allow if {
 instance |
 	some instance in input.rds_instances
-	instance.CPUUtilization < 5
+	instance.CPUUtilization < input.rds_cpu_idle_threshold
 }
 
-details := [instance | some instance in input.rds_instances; instance.CPUUtilization < 5]
+details := [instance | some instance in input.rds_instances; instance.CPUUtilization < input.rds_cpu_idle_threshold]

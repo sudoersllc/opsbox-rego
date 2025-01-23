@@ -5,7 +5,7 @@ import rego.v1
 allow if {
 instance |
 	some instance in input.rds_instances
-	instance.StorageUtilization < 40
+	instance.StorageUtilization < input.rds_empty_storage_threshold
 }
 
-details := [instance | some instance in input.rds_instances; instance.StorageUtilization < 40]
+details := [instance | some instance in input.rds_instances; instance.StorageUtilization < input.rds_empty_storage_threshold]
