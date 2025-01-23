@@ -24,7 +24,7 @@ def _extract_package_name(rego_policy_path: str) -> str:
 
 def _download_opa():
     """Helper function to download OPA binary based on the OS to the root of the project."""
-    if os.path.exists(".\opa") or os.path.exists(".\opa.exe"):
+    if os.path.exists(r".\opa") or os.path.exists(r".\opa.exe"):
         logger.info("OPA already exists! Using it instead...")
     else:
         logger.info(f"OS: {os.name}")
