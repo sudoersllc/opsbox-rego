@@ -7,10 +7,4 @@ import rego.v1
 # 	some instance in input.rds_instances[_]
 # }
 
-allow if {
-instance |
-	some instance in input.rds_instances
-	instance.CPUUtilization < 5
-}
-
 details := [instance | some instance in input.rds_instances; instance.CPUUtilization < 5]

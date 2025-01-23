@@ -22,8 +22,6 @@ snapshot |
 	snapshot_create_ns < one_year_ago_ns
 ]
 
-# Allow if there are old snapshots
-allow if count(old_snapshots) > 0
 
 # Combine results into a single report
 details := {"rds_old_snapshots": old_snapshots}

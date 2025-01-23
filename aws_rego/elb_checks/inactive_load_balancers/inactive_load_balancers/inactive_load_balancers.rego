@@ -4,17 +4,6 @@ import rego.v1
 
 default allow := false
 
-allow if {
-elb |
-	some elb in input.elbs
-	elb.State == "active"
-}
-
-allow if {
-elb |
-	some elb in input.elbs
-	elb.RequestCount == 0
-}
 
 details contains load_balancer if {
 	some load_balancer in input.elbs

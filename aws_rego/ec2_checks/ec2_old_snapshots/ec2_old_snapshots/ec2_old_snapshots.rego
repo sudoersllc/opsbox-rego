@@ -16,7 +16,6 @@ snapshot |
 	snapshot_start_ns < one_year_ago_ns
 ]
 
-allow if count(old_snapshots) > 0
 
 # Combine results into a single report
 details := {"ec2_old_snapshots": old_snapshots}

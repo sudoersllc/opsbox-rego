@@ -4,11 +4,5 @@ import rego.v1
 
 # Find users without MFA enabled
 
-allow if {
-user |
-	some user in input.credential_report
-	user.mfa_active == "false"
-}
-
 # Output only users without MFA
 details := [user | some user in input.credential_report; user.mfa_active == "false"]
