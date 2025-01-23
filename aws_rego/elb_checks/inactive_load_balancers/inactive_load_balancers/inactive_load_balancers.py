@@ -19,7 +19,7 @@ class InactiveLoadBalancers:
         inactive_load_balancers = []
 
         # Check for findings and collect inactive load balancers
-        if findings and isinstance(findings, list):  # Ensure findings is a list
+        if findings is not None:
             inactive_load_balancers.extend(findings)
 
             # Template for displaying inactive load balancers
@@ -48,3 +48,4 @@ class InactiveLoadBalancers:
                 details=data.details,
                 formatted="No inactive ELBs found."
             )
+ 
