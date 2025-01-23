@@ -1,12 +1,7 @@
 from moto import mock_aws
 import boto3
 import json
-import sys
-import os
-
-# Add the root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-from iam_provider import IAMProvider
+from .iam_provider.iam_provider import IAMProvider
 from core.plugins import Result
 from pydantic import BaseModel
 

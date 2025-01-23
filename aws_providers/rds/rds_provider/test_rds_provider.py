@@ -1,11 +1,6 @@
 from moto import mock_aws
 import boto3
-import sys
-import os
-
-# Add the root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-from rds_provider import RDSProvider
+from .rds_provider.rds_provider import RDSProvider
 from core.plugins import Result
 from pydantic import BaseModel
 from loguru import logger

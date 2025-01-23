@@ -1,13 +1,6 @@
 from moto import mock_aws
 import boto3
-
-import sys
-import os
-
-# Add the root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-
-from elb_provider import elbProvider
+from .elb_provider.elb_provider import elbProvider
 from core.plugins import Result
 from pydantic import BaseModel
 from loguru import logger

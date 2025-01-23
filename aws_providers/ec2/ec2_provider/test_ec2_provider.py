@@ -1,10 +1,5 @@
 from moto import mock_aws
-import sys
-import os
-
-# Add the root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-from ec2_provider import EC2Provider
+from .ec2_provider.ec2_provider import EC2Provider
 from pydantic import BaseModel
 import boto3
 from datetime import datetime
