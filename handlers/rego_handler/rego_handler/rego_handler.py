@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 from pydantic import BaseModel, Field
 import requests
@@ -27,11 +28,17 @@ class RegoSpec:
 
     @hookspec
     def report_findings(self, data: "Result") -> "Result":
-        """Format the check results in a human-readable format."""
+        """Format the check results in a human-readable format.
+        You would do this by adding the formatted results to the 'formatted' key of the result.
+        """
 
     @hookspec
     def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the rego input."""
+        """Inject data into the rego input.
+        Normally, you would use this to inject data and arguments from a plugin's configuration into the input data.
+        This is useful for passing arguments to the rego policy, which can use anything sent in from the input
+        with the 'input' key.
+        """
 
 
 class RegoInfo(TypedDict):
@@ -141,6 +148,11 @@ class RegoHandler:
                 )
             )
 
+        # apply data injection
+        with contextlib.suppress(AttributeError):
+            input_data = plugin.plugin_obj.inject_data(input_data)
+            logger.debug(f"Data injected for plugin {plugin.name}.")
+            logger.trace(f"Injected data: {input_data}")
         # apply check
         if self.config.opa_url is not None:
             logger.debug(f"Applying check {plugin.name} online.")
