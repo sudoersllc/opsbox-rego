@@ -29,6 +29,10 @@ class RegoSpec:
     def report_findings(self, data: "Result") -> "Result":
         """Format the check results in a human-readable format."""
 
+    @hookspec
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the rego input."""
+
 
 class RegoInfo(TypedDict):
     """A dictionary representing the details of a rego check.
