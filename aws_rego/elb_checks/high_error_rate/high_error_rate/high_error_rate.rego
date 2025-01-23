@@ -5,7 +5,7 @@ import rego.v1
 allow if {
 elb |
 	some elb in input.elbs
-	elb.ErrorRate > 5
+	elb.ErrorRate >= input.elb_error_rate_threshold
 }
 
-details := [elb | some elb in input.elbs; elb.ErrorRate > 1]
+details := [elb | some elb in input.elbs; elb.ErrorRate >= input.elb_error_rate_threshold]

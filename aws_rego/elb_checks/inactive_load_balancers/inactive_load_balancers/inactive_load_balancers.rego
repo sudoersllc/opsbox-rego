@@ -13,7 +13,7 @@ elb |
 allow if {
 elb |
 	some elb in input.elbs
-	elb.RequestCount == 0
+	elb.RequestCount <= input.elb_inactive_requests_threshold
 }
 
 details contains load_balancer if {
@@ -23,6 +23,6 @@ details contains load_balancer if {
 
 details contains load_balancer if {
 	some load_balancer in input.elbs
-	load_balancer.RequestCount == 0
+	load_balancer.RequestCount <= input.elb_inactive_requests_threshold
 	load_balancer.State == "active"
 }
