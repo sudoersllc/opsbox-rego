@@ -2,7 +2,7 @@ from pluggy import HookimplMarker, HookspecMarker, PluginManager
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from core.plugins import PluginInfo, Result, Registry
+    from opsbox import PluginInfo, Result, Registry
     from typing import Any
 from loguru import logger
 
