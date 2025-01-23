@@ -179,7 +179,7 @@ class RegoHandler:
         # fix slash issues and create base URL
         base_url = base_url.rstrip("/") if base_url is not None else None
         if base_url is not None:
-            base_url = base_url + "/v1/status"
+            base_url = base_url + "/"
 
         if base_url is None:  # check for subproccess existence
             try:
