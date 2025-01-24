@@ -15,7 +15,7 @@ class RDSOldSnapshotsConfig(BaseModel):
         datetime,
         Field(
             default=(datetime.now() - timedelta(days=90)),
-            description="How long ago a snapshot was created to be considered old.",
+            description="How long ago a snapshot was created to be considered old. Default is 90 days.",
         ),
     ]
 

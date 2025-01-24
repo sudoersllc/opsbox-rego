@@ -17,7 +17,7 @@ def test_storage_class_usage(rego_process):
     with open(test_data, "r") as file:
         data = json.load(file)
         if "s3_stale_bucket_date_threshold" not in data:
-            data["s3_stale_bucket_date_threshold"] = int((datetime.now() - datetime.timedelta(days=10)).timestamp())
+            data["s3_stale_bucket_date_threshold"] = int((datetime.datetime.now() - datetime.timedelta(days=10)).timestamp())
             write = True
 
     # overwrite the file
