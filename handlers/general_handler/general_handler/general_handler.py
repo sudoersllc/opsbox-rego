@@ -73,7 +73,7 @@ class GeneralHandler:
         if plugin.type == "input":
             providers: list["PluginInfo"] = [
                 x
-                for x in registry.produce_pipeline().dependencies
+                for x in registry.active_plugins
                 if (x.type == "provider") and (x.name in plugin.uses)
             ]
             data = []
