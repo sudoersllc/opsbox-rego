@@ -1,0 +1,66 @@
+name: Feature request
+description: Suggest a feature to help improve the project.
+title: "<short description>"
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Feature Description
+        Provide a clear and concise description of the feature you would like to see implemented.
+        Include what package or part of the project the feature would be related to.
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: A detailed explanation of the proposed feature.
+      placeholder: Describe the feature you are suggesting.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Use Case
+        Explain the problem this feature would solve or the use case it would support.
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe the problem or use case for the feature.
+      placeholder: Provide details on how this feature would help or be used.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Proposed Implementation
+        Provide details about how this feature could be implemented and/or how you envision it working. Include both technical details (e.g., methods, APIs) and examples of how you would use the feature (e.g., calling `xyz`).
+
+  - type: textarea
+    id: proposed_implementation
+    attributes:
+      label: Proposed Implementation
+      description: Include technical details about how the feature could be implemented and/or examples of how it would be used.
+      placeholder: |
+        Example:
+        - Implementation: Add a new method `xyz()` to the API that does...
+        - Usage: A user could call `xyz()` to achieve...
+
+  - type: markdown
+    attributes:
+      value: |
+        # Additional Context
+        Add any other context that may help explain your feature request.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Include any other relevant details about your feature request.
+      placeholder: Add any extra information or context here.
