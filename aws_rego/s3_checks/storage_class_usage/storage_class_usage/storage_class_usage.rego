@@ -2,11 +2,6 @@ package aws_rego.s3_checks.storage_class_usage.storage_class_usage
 
 import rego.v1
 
-# Current time is provided in the input
-current_time := input.current_time
-
-# Define stale threshold in seconds (e.g., 1 year = 31,536,000 seconds)
-stale_threshold := 31536000
 
 # Check if the bucket is in GLACIER or STANDARD_IA storage class
 is_glacier_or_standard_ia(bucket) if {
@@ -18,7 +13,7 @@ is_glacier_or_standard_ia(bucket) if {
 # Check if the bucket is stale
 is_stale(bucket) if {
 	bucket.last_modified != null
-	bucket.last_modified < current_time - stale_threshold
+	bucket.last_modified < input.s3_stale_bucket_date_threshold
 }
 
 # Check if the bucket has a MIXED storage class
