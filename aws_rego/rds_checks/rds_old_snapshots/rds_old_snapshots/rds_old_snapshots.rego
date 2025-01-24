@@ -5,9 +5,6 @@ import rego.v1
 # Get the current time in nanoseconds
 current_time_ns := time.now_ns()
 
-# Calculate the threshold date as 1 year (365 days) before the current date
-one_year_ago_ns := time.add_date(current_time_ns, -1, 0, 0) # Subtract 1 year
-
 # Flatten the nested list of snapshots
 flattened_snapshots := [snapshot |
 	some sublist in input.rds_snapshots
@@ -19,7 +16,7 @@ old_snapshots := [
 snapshot |
 	some snapshot in flattened_snapshots
 	snapshot_create_ns := time.parse_rfc3339_ns(snapshot.SnapshotCreateTime)
-	snapshot_create_ns < one_year_ago_ns
+	snapshot_create_ns < input.rds_old_date_threshold
 ]
 
 # Allow if there are old snapshots
