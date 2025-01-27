@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-general-handler"
-version = "0.1.2"
+version = "0.2.0"
 description = "General Handler for opsbox."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -8,6 +8,7 @@ requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
     "pluggy>=1.5.0",
+    "opsbox>=0.2.0",
 ]
 
 [project.entry-points.'opsbox.plugins']
