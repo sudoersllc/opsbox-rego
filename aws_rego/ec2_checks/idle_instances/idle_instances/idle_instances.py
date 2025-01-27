@@ -1,6 +1,6 @@
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
 from pydantic import BaseModel, Field
 from typing import Annotated
 from datetime import datetime, timedelta

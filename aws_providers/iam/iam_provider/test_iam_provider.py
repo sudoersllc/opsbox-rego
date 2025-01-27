@@ -2,7 +2,7 @@ from moto import mock_aws
 import boto3
 import json
 from .iam_provider.iam_provider import IAMProvider
-from core.plugins import Result
+from opsbox import Result
 from pydantic import BaseModel
 
 

@@ -2,7 +2,7 @@ import contextlib
 from pathlib import Path
 from pydantic import BaseModel, Field
 import requests
-from core.plugins import PluginInfo, Registry, Result
+from opsbox import PluginInfo, Registry, Result
 from typing import TypedDict
 from contextlib import contextmanager
 import pluggy

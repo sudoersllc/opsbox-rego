@@ -1,7 +1,8 @@
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from core.plugins import Result
+from datetime import datetime
+from opsbox import Result
 from pydantic import BaseModel, Field
 from typing import Annotated
 from datetime import datetime, timedelta

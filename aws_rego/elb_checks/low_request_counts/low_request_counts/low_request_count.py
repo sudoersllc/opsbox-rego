@@ -1,6 +1,6 @@
 from pluggy import HookimplMarker
 import yaml
-from core.plugins import Result
+from opsbox import Result
 import logging as logger
 from pydantic import BaseModel, Field
 from typing import Annotated

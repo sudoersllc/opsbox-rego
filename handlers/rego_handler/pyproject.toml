@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-rego-handler"
-version = "0.1.5"
+version = "0.2.0"
 description = "Handles rego plugins for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}
@@ -8,6 +8,7 @@ requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
     "pluggy>=1.5.0",
+    "opsbox>=0.2.0",
 ]
 
 [project.entry-points.'opsbox.plugins']

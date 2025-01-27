@@ -4,7 +4,7 @@ from datetime import datetime
 import boto3
 from loguru import logger
 import threading
-from core.plugins import Result
+from opsbox import Result
 from typing import Annotated
 
 
