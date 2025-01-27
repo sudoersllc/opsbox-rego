@@ -5,7 +5,7 @@ import rego.v1
 allow if {
 elb |
 	some elb in input.elbs
-	elb.RequestCount <= 100
+	elb.RequestCount <= input.elb_low_requests_threshold
 }
 
-details := [elb | some elb in input.elbs; elb.RequestCount <= 100]
+details := [elb | some elb in input.elbs; elb.RequestCount <= input.elb_low_requests_threshold]
