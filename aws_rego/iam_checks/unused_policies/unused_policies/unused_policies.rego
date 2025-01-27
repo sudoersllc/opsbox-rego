@@ -8,7 +8,7 @@ import rego.v1
 allow if {
 policy |
 	some policy in input.iam_policies
-	policy.attachment_count == 0
+	policy.attachment_count == input.iam_unused_attachment_threshold
 }
 
-details := [policy | some policy in input.iam_policies; policy.attachment_count == 0]
+details := [policy | some policy in input.iam_policies; policy.attachment_count == input.iam_unused_attachment_threshold]

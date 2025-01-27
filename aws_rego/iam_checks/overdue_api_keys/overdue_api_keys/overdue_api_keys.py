@@ -2,13 +2,52 @@ from pluggy import HookimplMarker
 import yaml
 from loguru import logger
 from core.plugins import Result
+from pydantic import BaseModel, Field
+from typing import Annotated
+from datetime import datetime, timedelta
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+class OverdueAPIKeysConfig(BaseModel):
+    iam_overdue_key_date_threshold: Annotated[
+        datetime,
+        Field(
+            default=(datetime.now() - timedelta(days=90)),
+            description="How long ago a key was last used for it to be considered overdue. Default is 90 days.",
+        ),
+    ]
 
 class OverdueAPIKeysIAM:
-    """Plugin for identifying IAM all policies with zero attachments."""
+    """Plugin for identifying IAM keys that are overdue for rotation."""
+
+    @hookimpl
+    def grab_config(self) -> type[BaseModel]:
+        """Return the plugin's configuration pydantic model.
+        These should be things your plugin needs/wants to function."""
+        return OverdueAPIKeysConfig
+
+    @hookimpl
+    def set_data(self, model: type[BaseModel]) -> None:
+        """Set the data for the plugin based on the model.
+
+        Args:
+            model (BaseModel): The model containing the data for the plugin."""
+        self.conf = model.model_dump()
+
+    @hookimpl
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the plugin.
+
+        Args:
+            data (Result): The data to inject into the plugin.
+
+        Returns:
+            Result: The data with the injected values.
+        """
+        timestamp = int(self.conf["iam_overdue_key_date_threshold"].timestamp() * 1e9)
+        data.details["input"]["iam_overdue_key_date_threshold"] = timestamp
+        return data
 
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
