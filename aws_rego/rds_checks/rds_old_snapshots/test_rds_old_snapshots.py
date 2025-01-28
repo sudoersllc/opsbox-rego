@@ -8,12 +8,12 @@ from datetime import datetime, timedelta
 def test_rds_old_snapshots(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
     rego_policy = os.path.join(current_dir, "rds_old_snapshots.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "rds_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
 
     # if test key does not exist in the result, the test will fail.
     # we need to add rds_old_date_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "rds_test_data.json")
+    test_data = os.path.join(current_dir.parent, "rds_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "rds_old_date_threshold" not in data:
