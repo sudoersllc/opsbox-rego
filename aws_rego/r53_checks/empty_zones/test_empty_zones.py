@@ -9,7 +9,7 @@ def test_unused_policies(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "empty_zones.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "r53_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "r53_test_data.json")
 
     needed_keys = ["id", "name", "private_zone", "record_count"]
     result = rego_process(rego_policy, rego_input, "data.aws.cost.unused_policies", ["empty_hosted_zones"])
