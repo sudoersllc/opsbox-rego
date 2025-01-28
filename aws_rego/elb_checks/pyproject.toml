@@ -19,10 +19,10 @@ dev-dependencies = [
 ]
 
 [project.entry-points.'opsbox.plugins']
-opsbox_elb_low_request_counts = "low_request_counts.low_request_counts.low_request_count:LowRequestCount"
-opsbox_elb_inactive_load_balancers = "inactive_load_balancers.inactive_load_balancers.inactive_load_balancers:InactiveLoadBalancers"
-opsbox_elb_high_error_rate = "high_error_rate.high_error_rate.high_error_rate:HighErrorRate"
-opsbox_elb_no_healthy_targets = "no_healthy_targets.no_healthy_targets.no_healthy_targets:NoHealthyTargets"
+opsbox_elb_low_request_counts = "low_request_counts.low_request_count:LowRequestCount"
+opsbox_elb_inactive_load_balancers = "inactive_load_balancers.inactive_load_balancers:InactiveLoadBalancers"
+opsbox_elb_high_error_rate = "high_error_rate.high_error_rate:HighErrorRate"
+opsbox_elb_no_healthy_targets = "no_healthy_targets.no_healthy_targets:NoHealthyTargets"
 
 [tool.setuptools]
 include-package-data = true

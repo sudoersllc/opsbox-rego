@@ -11,7 +11,7 @@ def test_high_error_rate(rego_process):
     # if test key does not exist in the result, the test will fail.
     # we need to add elb_error_rate_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "elb_test_data.json")
+    test_data = os.path.join(current_dir.parent, "elb_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "elb_error_rate_threshold" not in data:
@@ -25,6 +25,6 @@ def test_high_error_rate(rego_process):
     
     # Load rego policy
     rego_policy = os.path.join(current_dir, "high_error_rate.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "elb_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "elb_test_data.json")
     needed_keys = ["AvailabilityZones", "CreatedTime", "DNSName", "ErrorRate", "InstanceHealth", "Name", "RequestCount", "Scheme", "SecurityGroups", "State", "Type", "VpcId"]
     rego_process(rego_policy, rego_input, "data.aws.cost.high_error_rate", needed_keys)

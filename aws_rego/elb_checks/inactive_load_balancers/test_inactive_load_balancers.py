@@ -8,7 +8,7 @@ def test_inactive_load_balancers(rego_process):
     # if test key does not exist in the result, the test will fail.
     # we need to add elb_inactive_requests_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "elb_test_data.json")
+    test_data = os.path.join(current_dir.parent, "elb_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "elb_inactive_requests_threshold" not in data:
@@ -22,7 +22,7 @@ def test_inactive_load_balancers(rego_process):
 
     # Load rego policy
     rego_policy = os.path.join(current_dir, "inactive_load_balancers.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "elb_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "elb_test_data.json")
     needed_keys = [
         "AvailabilityZones",
         "CreatedTime",
