@@ -10,7 +10,7 @@ def test_idle_instances(rego_process):
     # if test key does not exist in the result, the test will fail.
     # we need to add ec2_cpu_idle_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "ec2_test_data.json")
+    test_data = os.path.join(current_dir.parent, "ec2_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "ec2_cpu_idle_threshold" not in data:
@@ -24,6 +24,6 @@ def test_idle_instances(rego_process):
 
     
     rego_policy = os.path.join(current_dir, "idle_instances.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "ec2_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
     needed_keys = ["avg_cpu_utilization", "ebs_optimized", "instance_id", "instance_type", "operating_system", "processor", "region", "state", "tags", "tenancy", "virtualization_type"]
     rego_process(rego_policy, rego_input, "aws_rego.ec2_checks.idle_instances.idle_instances", needed_keys)

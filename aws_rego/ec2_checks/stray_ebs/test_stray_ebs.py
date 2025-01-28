@@ -7,7 +7,7 @@ def test_idle_instances(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "stray_ebs.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "ec2_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
     needed_keys = [
         "create_time",
         "region",

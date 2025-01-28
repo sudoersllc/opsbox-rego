@@ -7,7 +7,7 @@ def test_unattached_eips(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "unattached_eips.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "ec2_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
     needed_keys = [
         "association_id",
         "domain",
