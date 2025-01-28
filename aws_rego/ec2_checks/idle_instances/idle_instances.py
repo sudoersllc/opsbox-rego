@@ -3,7 +3,6 @@ from loguru import logger
 from opsbox import Result
 from pydantic import BaseModel, Field
 from typing import Annotated
-from datetime import datetime, timedelta
 from pluggy import HookimplMarker
 
 # Define a hookimpl (implementation of the contract)
