@@ -9,7 +9,7 @@ def test_mfa_enabled(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "mfa_enabled.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "iam_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
 
     needed_keys = [
         "access_key_1_active",

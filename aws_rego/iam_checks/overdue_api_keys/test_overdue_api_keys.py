@@ -13,7 +13,7 @@ def test_overdue_api_keys(rego_process):
     # if test key does not exist in the result, the test will fail.
     # we need to add iam_overdue_key_date_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "iam_test_data.json")
+    test_data = os.path.join(current_dir.parent, "iam_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "iam_overdue_key_date_threshold" not in data:
@@ -26,7 +26,7 @@ def test_overdue_api_keys(rego_process):
             json.dump(data, file, indent=4)
 
     rego_policy = os.path.join(current_dir, "overdue_api_keys.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "iam_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
 
     result = rego_process(rego_policy, rego_input, "data.aws.cost.overdue_api_keys", ["overdue_api_keys"])
     needed_keys = [
