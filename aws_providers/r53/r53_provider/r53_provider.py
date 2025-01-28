@@ -63,11 +63,24 @@ class Route53Provider:
         threads = []
 
         def fetch_route53_data():
-            route53 = boto3.client(
-                "route53",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"]
-            )
+            try:
+                if credentials["aws_access_key_id"] is None or credentials["aws_secret_access_key"] is None:
+                    route53 = boto3.client("route53")
+                else:
+                    route53 = boto3.client(
+                        "route53",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"]
+                    )
+            except Exception as e:
+                logger.error(f"Error creating Route 53 client: {e}")
+                return Result(
+                    relates_to="aws_data",
+                    result_name="aws_data",
+                    result_description="Gathered data related to Route 53.",
+                    formatted="Error creating Route 53 client.",
+                    details={},
+                )
 
             # Gather hosted zones
             paginator = route53.get_paginator("list_hosted_zones")

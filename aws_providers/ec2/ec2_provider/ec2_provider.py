@@ -129,19 +129,38 @@ class EC2Provider:
         logger.info("Gathering data for AWS EC2 instances, volumes, snapshots, and Elastic IPs...")
         credentials = self.credentials
 
-        # Determine regions to gather data from
+        
         if credentials["aws_region"] is None:
-            # If no region is provided, list all available regions
-            region_client = boto3.client(
-                "ec2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name="us-west-1",
-            )
-            regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
-            logger.info(f"Regions: {regions}")
+            logger.info("Gathering data for IAM...")
+            credentials = self.credentials
+
+            # Use the specified region or default to "us-west-1"
+            region = credentials["aws_region"] or "us-west-1"
+            
+            if credentials["aws_access_key_id"] is None:
+                # Use the instance profile credentials
+                region_client = boto3.client("ec2", region_name=region)
+            else:
+                try:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+                    regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+
+                except Exception as e:
+                    logger.error(f"Error creating IAM client: {e}")
+                    return Result(
+                        relates_to="aws_data",
+                        result_name="aws_iam_data",
+                        result_description="Structured IAM data using.",
+                        formatted="Error creating IAM client.",
+                        details={},
+                    )
+
         else:
-            # Split the provided region string into a list
             regions = credentials["aws_region"].split(",")
 
         # Containers to store gathered data

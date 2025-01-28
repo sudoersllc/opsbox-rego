@@ -20,8 +20,8 @@ class IAMProvider:
         class IAMConfig(BaseModel):
             """Configuration for the AWS IAM plugin."""
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
+            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=False,default=None)]
+            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=False,default=None)]
             aws_region: Annotated[str | None, Field(description="AWS region", required=False, default=None)]
 
         return IAMConfig
@@ -46,13 +46,28 @@ class IAMProvider:
 
         # Use the specified region or default to "us-west-1"
         region = credentials["aws_region"] or "us-west-1"
-
-        iam_client = boto3.client(
-            "iam",
-            aws_access_key_id=credentials["aws_access_key_id"],
-            aws_secret_access_key=credentials["aws_secret_access_key"],
-            region_name=region,
-        )
+        
+        if credentials["aws_access_key_id"] is None:
+            # Use the instance profile credentials
+            iam_client = boto3.client("iam", region_name=region)
+        else:
+            try:
+                iam_client = boto3.client(
+                    "iam",
+                    aws_access_key_id=credentials["aws_access_key_id"],
+                    aws_secret_access_key=credentials["aws_secret_access_key"],
+                    region_name=region,
+                )
+            except Exception as e:
+                logger.error(f"Error creating IAM client: {e}")
+                return Result(
+                    relates_to="aws_data",
+                    result_name="aws_iam_data",
+                    result_description="Structured IAM data using.",
+                    formatted="Error creating IAM client.",
+                    details={},
+                )
+                
 
         # Prepare structured data containers
         iam_users = []
