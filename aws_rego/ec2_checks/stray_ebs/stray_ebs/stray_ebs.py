@@ -1,6 +1,6 @@
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
 
 
 class StrayEbs:

@@ -1,0 +1,93 @@
+name: Bug report
+description: Report a bug to help us improve.
+title: "<short description>"
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Bug Description
+        Please provide a clear and concise description of the bug.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Provide details about the bug.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Steps to Reproduce
+        Provide step-by-step instructions to reproduce the issue.
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the issue.
+      placeholder: |
+        Example:
+        1. Go to '...'
+        2. Run '...'
+        3. See the error
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Expected Behavior
+        Describe what you expected to happen.
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: Describe the expected outcome.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Environment Details
+        Provide information about your environment, such as OS, Python version, and package versions.
+
+  - type: input
+    id: environment_info
+    attributes:
+      label: Environment Details
+      description: Include OS, Python version, and package versions.
+      placeholder: |
+        OS: [e.g. Windows 10, macOS Monterey]
+        Python: [e.g. 3.11.2, 3.12.1]
+        Package Versions: <output of `uv pip list` or `pip list`>
+
+  - type: input
+    id: installation_details
+    attributes:
+      label: Installation Method
+      description: Describe how you installed the program (e.g., pip, source) and accompanying packages.
+      placeholder: |
+        Installation method: [e.g. pip install opsbox, uv tool install 'opsbox[aws]']
+
+  - type: markdown
+    attributes:
+      value: |
+        # Additional Context
+        Add any other context about the problem that may be helpful.
+        ***If applicable, add screenshots here to help explain your problem!***
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Provide any additional information that may help understand the issue.
+      placeholder: Include any other relevant details here.

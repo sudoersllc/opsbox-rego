@@ -1,7 +1,7 @@
 from moto import mock_aws
 import boto3
 from .elb_provider.elb_provider import elbProvider
-from core.plugins import Result
+from opsbox import Result
 from pydantic import BaseModel
 from loguru import logger
 

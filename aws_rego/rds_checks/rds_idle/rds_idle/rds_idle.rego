@@ -7,4 +7,4 @@ import rego.v1
 # 	some instance in input.rds_instances[_]
 # }
 
-details := [instance | some instance in input.rds_instances; instance.CPUUtilization < 5]
+details := [instance | some instance in input.rds_instances; instance.CPUUtilization < input.rds_cpu_idle_threshold]

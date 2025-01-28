@@ -7,5 +7,5 @@ import rego.v1
 details := {"recommendations_for_scaling_down": [
 recommendation |
 	some recommendation in input.rds_instances
-	recommendation.CPUUtilization < 20
+	recommendation.CPUUtilization < input.rds_cpu_scaling_threshold
 ]}

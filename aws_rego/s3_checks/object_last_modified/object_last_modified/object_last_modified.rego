@@ -2,20 +2,14 @@ package aws_rego.s3_checks.object_last_modified.object_last_modified
 
 import rego.v1
 
-# Helper function to calculate the difference in days between two timestamps
-days_diff(start, end) := diff if {
-	diff := (end - start) / 86400 # Convert seconds to days
-}
-
-# Check if the object is in STANDARD storage class and hasn't been modified in over 90 days
+# Check if the object is in STANDARD storage class and hasn't been modified before the threshold date
 is_standard_and_old(s3object) if {
 	s3object.StorageClass == "STANDARD" # Ensure the storage class is STANDARD
 	s3object.LastModified > 0 # Ensure LastModified is a valid timestamp
-	now := time.now_ns() / 1000000000 # Current time in seconds
-	days_diff(s3object.LastModified, now) > 90 # Check if the age is greater than 90 days
+	s3object.LastModified < input.s3_last_modified_date_threshold # Check if the age is greater than the threshold
 }
 
-# Count objects in STANDARD storage class that haven't been modified in over 90 days
+# Count objects in STANDARD storage class that haven't been modified before the threshold date
 count_standard_and_old := count([s3object | some s3object in input.objects; is_standard_and_old(s3object)])
 
 # Total number of objects

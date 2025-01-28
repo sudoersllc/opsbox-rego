@@ -11,10 +11,10 @@ from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.program import LLMTextCompletionProgram
 
 from typing import TYPE_CHECKING, Annotated
-from core.config import AppConfig
+from opsbox import AppConfig
 
 if TYPE_CHECKING:
-    from core.plugins import Result
+    from opsbox import Result
 
 hookimpl = HookimplMarker("opsbox")
 

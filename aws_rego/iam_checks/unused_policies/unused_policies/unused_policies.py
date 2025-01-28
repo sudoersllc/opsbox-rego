@@ -1,14 +1,52 @@
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
+from pydantic import BaseModel, Field
+from typing import Annotated
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
 
+class UnusedPoliciesConfig(BaseModel):
+    iam_unused_attachment_threshold: Annotated[
+        int,
+        Field(
+            default=0,
+            description="The number of attachments a policy must have to be considered used. Default is 0.",
+        ),
+    ]
+
 class UnusedIAMPolicies:
     """Plugin for identifying IAM policies with zero attachments."""
+
+    @hookimpl
+    def grab_config(self) -> type[BaseModel]:
+        """Return the plugin's configuration pydantic model.
+        These should be things your plugin needs/wants to function."""
+        return UnusedPoliciesConfig
+
+    @hookimpl
+    def set_data(self, model: type[BaseModel]) -> None:
+        """Set the data for the plugin based on the model.
+
+        Args:
+            model (BaseModel): The model containing the data for the plugin."""
+        self.conf = model.model_dump()
+
+    @hookimpl
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the plugin.
+
+        Args:
+            data (Result): The data to inject into the plugin.
+
+        Returns:
+            Result: The data with the injected values.
+        """
+        data.details["input"]["iam_unused_attachment_threshold"] = self.conf["iam_unused_attachment_threshold"]
+        return data
 
     @hookimpl
     def report_findings(self, data: "Result"):

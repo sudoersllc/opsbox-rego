@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from loguru import logger
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from core.plugins import Result
+from opsbox import Result
 
 
 from typing import TYPE_CHECKING, Annotated

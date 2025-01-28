@@ -1,14 +1,48 @@
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
+from pydantic import BaseModel, Field
+from typing import Annotated
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+class EmptyStorageConfig(BaseModel):
+    rds_empty_storage_threshold: Annotated[int, Field(default = 40, description=r"% of storage utilization under which an RDS instance is flagged as empty. Default = 40.")]
 
 class EmptyStorage:
-    """Plugin for identifying RDS storage instances with <40% storage utilization."""
+    """Plugin for identifying RDS storage instances with low storage utilization."""
+
+    @hookimpl
+    def grab_config(self) -> type[BaseModel]:
+        """Return the plugin's configuration pydantic model.
+        These should be things your plugin needs/wants to function.
+        
+        Returns:
+            type[BaseModel]: The configuration model for the plugin."""
+        return EmptyStorageConfig
+
+    @hookimpl
+    def set_data(self, model: type[BaseModel]) -> None:
+        """Set the data for the plugin based on the model.
+
+        Args:
+            model (BaseModel): The model containing the data for the plugin."""
+        self.conf = model.model_dump()
+
+    @hookimpl
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the plugin.
+
+        Args:
+            data (Result): The data to inject into the plugin.
+
+        Returns:
+            Result: The data with the injected values.
+        """
+        data.details["input"]["rds_empty_storage_threshold"] = self.conf["rds_empty_storage_threshold"]
+        return data
 
     @hookimpl
     def report_findings(self, data: "Result"):

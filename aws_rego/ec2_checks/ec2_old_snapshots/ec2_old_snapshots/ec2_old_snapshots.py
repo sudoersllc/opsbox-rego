@@ -1,14 +1,54 @@
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
+from pydantic import BaseModel, Field
+from typing import Annotated
+from datetime import datetime, timedelta
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
 
+class EC2OldSnapshotsConfig(BaseModel):
+    ec2_snapshot_old_threshold: Annotated[
+        datetime,
+        Field(
+            default=(datetime.now() - timedelta(days=90)),
+            description="How long ago a snapshot was created to be considered old. Default is 90 days.",
+        ),
+    ]
+
 class EC2OLD:
     """Plugin for identifying idle RDS instances."""
+
+    @hookimpl
+    def grab_config(self) -> type[BaseModel]:
+        """Return the plugin's configuration pydantic model.
+        These should be things your plugin needs/wants to function."""
+        return EC2OldSnapshotsConfig
+
+    @hookimpl
+    def set_data(self, model: type[BaseModel]) -> None:
+        """Set the data for the plugin based on the model.
+
+        Args:
+            model (BaseModel): The model containing the data for the plugin."""
+        self.conf = model.model_dump()
+
+    @hookimpl
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the plugin.
+
+        Args:
+            data (Result): The data to inject into the plugin.
+
+        Returns:
+            Result: The data with the injected values.
+        """
+        timestamp = int(self.conf["ec2_snapshot_old_threshold"].timestamp() * 1e9)
+        data.details["input"]["ec2_snapshot_old_threshold"] = timestamp
+        return data
 
     @hookimpl
     def report_findings(self, data: "Result"):

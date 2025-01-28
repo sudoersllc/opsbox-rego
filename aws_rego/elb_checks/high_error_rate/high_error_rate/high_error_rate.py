@@ -1,15 +1,34 @@
+from typing import Annotated
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
+from pydantic import BaseModel, Field
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
+
+class HighELBErrorRateConfig(BaseModel):
+    elb_error_rate_threshold: Annotated[int, Field(default = 0, description="# of errors needed to consider an ELB to have a high error rate.")]
 
 
 class HighErrorRate:
     """Plugin for identifying ELBs with high error rates."""
 
+    @hookimpl
+    def grab_config(self) -> type[BaseModel]:
+        """Return the plugin's configuration pydantic model.
+        These should be things your plugin needs/wants to function."""
+        return HighELBErrorRateConfig
+
+    @hookimpl
+    def set_data(self, model: type[BaseModel]) -> None:
+        """Set the data for the plugin based on the model.
+
+        Args:
+            model (BaseModel): The model containing the data for the plugin."""
+        self.conf = model.model_dump()
+        
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -22,7 +41,10 @@ class HighErrorRate:
 
         high_error_rate_load_balancers = []
         if findings:
-            load_balancers = findings.get("high_error_rate_load_balancers", [])
+            if findings is type(dict):
+                load_balancers = findings.get("high_error_rate_load_balancers", [])
+            else:
+                load_balancers = findings
             for lb in load_balancers:
                 logger.debug(f"Processing load balancer: {lb}")
                 if isinstance(lb, dict) and "name" in lb and "type" in lb and "error_rate" in lb:
@@ -55,6 +77,18 @@ class HighErrorRate:
                 details=data.details,
                 formatted="No ELBs with high error rates found.",
            )
-            
+
+    @hookimpl
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the plugin.
+
+        Args:
+            data (Result): The data to inject into the plugin.
+
+        Returns:
+            Result: The data with the injected values.
+        """
+        data.details["input"]["elb_error_rate_threshold"] = self.conf["elb_error_rate_threshold"]
+        return data
         
 
