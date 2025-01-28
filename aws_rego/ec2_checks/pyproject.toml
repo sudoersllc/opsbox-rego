@@ -26,8 +26,8 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_ec2_old_snapshots = "ec2_old_snapshots.ec2_old_snapshots.ec2_old_snapshots:EC2OLD"
-opsbox_ec2_idle_instances = "idle_instances.idle_instances.idle_instances:IdleInstances"
-opsbox_ec2_stray_ebs = "stray_ebs.stray_ebs.stray_ebs:StrayEbs"
-opsbox_ec2_unattached_eips = "unattached_eips.unattached_eips.unattached_eips:UnattachedEips"
+opsbox_ec2_old_snapshots = "ec2_old_snapshots.ec2_old_snapshots:EC2OLD"
+opsbox_ec2_idle_instances = "idle_instances.idle_instances:IdleInstances"
+opsbox_ec2_stray_ebs = "stray_ebs.stray_ebs:StrayEbs"
+opsbox_ec2_unattached_eips = "unattached_eips.unattached_eips:UnattachedEips"
 

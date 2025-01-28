@@ -26,5 +26,5 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_r53_empty_zones = "empty_zones.empty_zones.empty_zones:EmptyZones"
+opsbox_r53_empty_zones = "empty_zones.empty_zones:EmptyZones"
 
