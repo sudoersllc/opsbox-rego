@@ -73,8 +73,6 @@ class RDSProvider:
         """
         credentials = self.credentials
 
-        logger.info(credentials["aws_region"])
-
         if credentials["aws_region"] is None:
             region_client = boto3.client(
                 "ec2",
@@ -84,10 +82,11 @@ class RDSProvider:
             )
 
             regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
-            logger.info(f"Regions: {regions}")
 
         else:
             regions = credentials["aws_region"].split(",")
+        
+        logger.info(f"Gathering data for RDS instances from regions: {regions}")
 
         region_threads = []  # List to store threads
         instance_data = []  # List to store instances
@@ -247,6 +246,5 @@ class RDSProvider:
             details=rego_ready_data,
             formatted="",
         )
-        logger.trace(f"RDS data: {item.details}")
-        logger.success("Successfully gathered data for RDS instances")
+        logger.success("Successfully gathered data for RDS instances.", extra = {"output_data": rego_ready_data})
         return item
