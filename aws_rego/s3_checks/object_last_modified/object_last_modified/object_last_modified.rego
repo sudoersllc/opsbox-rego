@@ -19,9 +19,6 @@ total_objects := count(input.objects)
 percentage_standard_and_old := (100 * count_standard_and_old) / total_objects
 
 # Allow rule based on percentage threshold
-allow if {
-	percentage_standard_and_old >= 70
-}
 
 # Output details of the objects
 standard_and_old_objects := [s3object | some s3object in input.objects; is_standard_and_old(s3object)]

@@ -11,7 +11,6 @@ snapshot |
 	snapshot_start_ns < input.ec2_snapshot_old_threshold
 ]
 
-allow if count(old_snapshots) > 0
 
 # Combine results into a single report
 details := {"ec2_old_snapshots": old_snapshots}

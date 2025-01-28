@@ -14,10 +14,5 @@ records_exist_for_zone(zone_id) if {
 	record.zone_id == zone_id
 }
 
-allow if {
-	some zone in input.hosted_zones
-	not records_exist_for_zone(zone.id)
-}
-
 # Generate details for empty hosted zones
 details := {"empty_hosted_zones": [zone | zone := empty_hosted_zones[_]]}
