@@ -2,9 +2,10 @@ import boto3
 from pydantic import BaseModel, Field
 from pluggy import HookimplMarker
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from loguru import logger
 
 
-from core.plugins import Result
+from opsbox import Result
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
@@ -35,12 +36,28 @@ class CWAvailableMetrics:
     def activate(self) -> None:
         """Activate the plugin."""
         credentials = self.credentials
-        self.client = boto3.client(
-            "cloudwatch",
-            aws_access_key_id=credentials["aws_access_key_id"],
-            aws_secret_access_key=credentials["aws_secret_access_key"],
-            region_name=credentials["aws_region"],
-        )
+        try:
+            if credentials["aws_region"] is None or credentials["aws_region"] == "":
+                self.client = boto3.client(
+                    "cloudwatch",
+                )
+            else:
+                self.client = boto3.client(
+                    "cloudwatch",
+                    aws_access_key_id=credentials["aws_access_key_id"],
+                    aws_secret_access_key=credentials["aws_secret_access_key"],
+                    region_name=credentials["aws_region"],
+                )
+        except Exception as e:
+            return Result(
+                logger.error(f"Error activating the plugin: {e}"),
+                relates_to="cloudwatch_metrics",
+                result_name="cw_available_metrics",
+                result_description="Gathered available metrics from Cloudwatch.",
+                details={},
+                formatted=f"Error activating the plugin: {e}",
+            )
+            
 
     @hookimpl
     def set_data(self, model: dict):

@@ -1,8 +1,8 @@
 from moto import mock_aws
 import boto3
 import json
-from .iam_provider import IAMProvider
-from core.plugins import Result
+from .iam_provider.iam_provider import IAMProvider
+from opsbox import Result
 from pydantic import BaseModel
 
 
@@ -13,7 +13,7 @@ def test_iam_provider_gather_data(json_output=False):
 
     Args:
         json_output (bool, optional): If True, the test will output the JSON result to a file. Defaults to False.
-            File will be saved to tests/data/iam_test_data.json.
+            File will be saved to ./iam_test_data.json.
     """
     # Mock AWS credentials (moto uses dummy credentials)
     aws_access_key_id = "fake_access_key"
@@ -58,7 +58,7 @@ def test_iam_provider_gather_data(json_output=False):
     result = provider.gather_data()
 
     if json_output:
-        with open("tests\data\iam_test_data.json", "w") as f:
+        with open("iam_test_data.json", "w") as f:
             json.dump(result.model_dump()["details"]["input"], f, indent=4)
 
     # Assertions

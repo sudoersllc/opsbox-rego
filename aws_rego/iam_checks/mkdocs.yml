@@ -1,7 +1,0 @@
-site_name: IAM Checks
-
-nav:
-  - Console Access: console_access.md
-  - Unused Policies: unused_policies.md
-  - MFA Enabled: mfa_enabled.md
-  - Overdue Api Keys: overdue_api_keys.md

@@ -7,11 +7,17 @@ license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
-    "mkdocs-monorepo-plugin>=1.1.0",
-    "mkdocs>=1.6.1",
+    "opsbox==0.2.0",
     "pydantic>=2.10.2",
     "pymdown-extensions>=10.12",
     "tqdm>=4.67.1",
+]
+
+[project.optional-dependencies]
+testing = [
+    "boto3>=1.36.4",
+    "moto>=5.0.27",
+    "pytest>=8.3.4",
 ]
 
 

@@ -36,7 +36,10 @@ To begin, we first need to have a good testing/build environment.
 In the root of the git directory, run `uv sync`. This will install everything needed.
 
 #### Run build.py
-Next, run the bulk build script using `uv run build.py`
+Next, run the bulk build script using `uv run build.py`.
+
+You can specify a clean run, which deletes existing dist files before building, using `--clean`.
+You can specify what root directory to look for projects under using `--build-dir`, and where to collect common distributions using `--dist-dir`.
 
 #### Enjoy!
 The build script will copy all the distributions to the root /dist folder.

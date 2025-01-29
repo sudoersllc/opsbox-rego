@@ -1,13 +1,13 @@
 [project]
 name = "opsbox-aws-iam-checks"
-version = "0.1.4"
+version = "0.2.0"
 description = "Collection of IAM checks for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
-    "opsbox-iam-provider>=0.1.2",
-    "opsbox-rego-handler>=0.1.2"
+    "opsbox-iam-provider>=0.1.3",
+    "opsbox-rego-handler>=0.2.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -15,7 +15,6 @@ include = ["*"]
 
 [tool.uv]
 dev-dependencies = [
-    "mkdocs>=1.6.1",
     "pytest>=8.3.4",
 ]
 
@@ -27,9 +26,9 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_aws_iam_mfa_enabled = "mfa_enabled.mfa_enabled.mfa_enabled:IAMMFADisabled"
-opsbox_aws_iam_console_access = "console_access.console_access.console_access:ConsoleAccessIAM"
-opsbox_aws_iam_overdue_api_keys = "overdue_api_keys.overdue_api_keys.overdue_api_keys:OverdueAPIKeysIAM"
-opsbox_aws_iam_unused_policies = "unused_policies.unused_policies.unused_policies:UnusedIAMPolicies"
+opsbox_aws_iam_mfa_enabled = "mfa_enabled.mfa_enabled:IAMMFADisabled"
+opsbox_aws_iam_console_access = "console_access.console_access:ConsoleAccessIAM"
+opsbox_aws_iam_overdue_api_keys = "overdue_api_keys.overdue_api_keys:OverdueAPIKeysIAM"
+opsbox_aws_iam_unused_policies = "unused_policies.unused_policies:UnusedIAMPolicies"
 
 

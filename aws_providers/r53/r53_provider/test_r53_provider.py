@@ -1,7 +1,7 @@
 from moto import mock_aws
 import boto3
-from .r53_provider import Route53Provider
-from core.plugins import Result
+from .r53_provider.r53_provider import Route53Provider
+from opsbox import Result
 from pydantic import BaseModel
 from loguru import logger
 
@@ -13,7 +13,7 @@ def test_route53_provider_gather_data(json_output=False):
 
     Args:
         json_output (bool, optional): If True, the test will output the JSON result to a file. Defaults to False.
-            File will be saved to tests/data/r53_test_data.json.
+            File will be saved to ./r53_test_data.json.
     """
     # Mock AWS credentials (moto uses dummy credentials)
     aws_access_key_id = "fake_access_key"
@@ -83,7 +83,7 @@ def test_route53_provider_gather_data(json_output=False):
     if json_output:
         import json
 
-        with open("tests\data\\r53_test_data.json", "w") as f:
+        with open("r53_test_data.json", "w") as f:
             json.dump(result.model_dump()["details"]["input"], f, indent=4)
 
     # Assertions

@@ -7,7 +7,7 @@ import base64
 import markdown
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.program import LLMTextCompletionProgram
-from core.config import AppConfig
+from opsbox import AppConfig
 
 
 from typing import TYPE_CHECKING, Annotated

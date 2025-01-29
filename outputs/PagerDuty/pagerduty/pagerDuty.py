@@ -5,9 +5,9 @@ from loguru import logger
 
 import requests
 from llama_index.core import VectorStoreIndex, Document
-from core.config import AppConfig
+from opsbox import AppConfig
 from llama_index.core.program import LLMTextCompletionProgram
-from core.plugins import Result
+from opsbox import Result
 import json
 
 from typing import Annotated

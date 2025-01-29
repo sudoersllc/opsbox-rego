@@ -1,0 +1,50 @@
+{
+    "hosted_zones": [
+        {
+            "id": "/hostedzone/7Z4TMBU7PTBT23B",
+            "name": "example.com.",
+            "record_count": 4,
+            "private_zone": false
+        },
+        {
+            "id": "/hostedzone/7ZSTMBU7PTBT23B",
+            "name": "example2.com.",
+            "record_count": 0,
+            "private_zone": false
+        }
+    ],
+    "records": [
+        {
+            "zone_id": "/hostedzone/7Z4TMBU7PTBT23B",
+            "name": "api.example.com.",
+            "type": "CNAME",
+            "ttl": 300,
+            "records": [
+                {
+                    "Value": "www.example.com."
+                }
+            ]
+        },
+        {
+            "zone_id": "/hostedzone/7Z4TMBU7PTBT23B",
+            "name": "www.example.com.",
+            "type": "A",
+            "ttl": 300,
+            "records": [
+                {
+                    "Value": "192.0.2.1"
+                }
+            ]
+        }
+    ],
+    "health_checks": [
+        {
+            "id": "ee156676-1aef-4696-94c6-f85ff628abae",
+            "type": "HTTP",
+            "ip_address": "192.0.2.1",
+            "port": 80,
+            "resource_path": "/",
+            "failure_threshold": 3
+        }
+    ]
+}

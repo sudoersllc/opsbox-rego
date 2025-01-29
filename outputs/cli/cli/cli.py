@@ -1,6 +1,8 @@
 from pluggy import HookimplMarker
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
+from opsbox.cli import console
+from rich.pretty import Pretty
 
 hookimpl = HookimplMarker("opsbox")
 
@@ -19,6 +21,10 @@ class CLIOutput:
         Args:
             results (list[FormattedResult]): The formatted results from the checks.
         """
-        logger.info("Check Results:")
+        console.rule("CLI output")
+        resultant_plugins = [item.result_name for item in results]
+        console.print(f"\n[bold green]You have {len(results)} results from the following plugins:[/bold green] [red]{resultant_plugins}[/red]\n")
         for result in results:
-            logger.info(result.details)
+            console.rule(f"[bold cyan]{result.result_name}[/bold cyan]")
+            console.print(Pretty(result.details))
+            console.rule()
