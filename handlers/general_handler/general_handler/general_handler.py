@@ -2,7 +2,7 @@ from pluggy import HookimplMarker, HookspecMarker, PluginManager
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from core.plugins import PluginInfo, Result, Registry
+    from opsbox import PluginInfo, Result, Registry
     from typing import Any
 from loguru import logger
 
@@ -73,7 +73,7 @@ class GeneralHandler:
         if plugin.type == "input":
             providers: list["PluginInfo"] = [
                 x
-                for x in registry.produce_pipeline().dependencies
+                for x in registry.active_plugins
                 if (x.type == "provider") and (x.name in plugin.uses)
             ]
             data = []

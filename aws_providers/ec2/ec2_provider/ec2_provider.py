@@ -5,7 +5,7 @@ import boto3
 from loguru import logger
 import threading
 from typing import Annotated
-from core.plugins import Result
+from opsbox import Result
 import json
 
 # Define a hook implementation marker for the "opsbox" plugin system
@@ -74,6 +74,8 @@ class EC2Provider:
         """
 
         credentials = find_aws_credentials()
+        if credentials is None:
+            credentials = None, None
         region = find_default_region()
 
         class EC2Config(BaseModel):
@@ -88,8 +90,8 @@ class EC2Provider:
                 eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
             """
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True, default=credentials[0])]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True, default=credentials[1])]
+            aws_access_key_id: Annotated[str, Field(description="AWS access key ID", required=True, default=credentials[0])]
+            aws_secret_access_key: Annotated[str, Field(description="AWS secret access key", required=True, default=credentials[1])]
             aws_region: Annotated[str |  None, Field(description="AWS region", required=False,default=region)]
             volume_tags: Annotated[
                 str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)

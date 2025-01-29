@@ -1,7 +1,8 @@
+import contextlib
 from pathlib import Path
 from pydantic import BaseModel, Field
 import requests
-from core.plugins import PluginInfo, Registry, Result
+from opsbox import PluginInfo, Registry, Result
 from typing import TypedDict
 from contextlib import contextmanager
 import pluggy
@@ -27,7 +28,17 @@ class RegoSpec:
 
     @hookspec
     def report_findings(self, data: "Result") -> "Result":
-        """Format the check results in a human-readable format."""
+        """Format the check results in a human-readable format.
+        You would do this by adding the formatted results to the 'formatted' key of the result.
+        """
+
+    @hookspec
+    def inject_data(self, data: "Result") -> "Result":
+        """Inject data into the rego input.
+        Normally, you would use this to inject data and arguments from a plugin's configuration into the input data.
+        This is useful for passing arguments to the rego policy, which can use anything sent in from the input
+        with the 'input' key.
+        """
 
 
 class RegoInfo(TypedDict):
@@ -111,7 +122,7 @@ class RegoHandler:
         # grab list of providers
         providers: list[PluginInfo] = [
             x
-            for x in registry.produce_pipeline().dependencies
+            for x in registry.active_plugins
             if (x.type == "provider") and (x.name in plugin.uses)
         ]
 
@@ -137,6 +148,11 @@ class RegoHandler:
                 )
             )
 
+        # apply data injection
+        with contextlib.suppress(AttributeError):
+            input_data = plugin.plugin_obj.inject_data(input_data)
+            logger.debug(f"Data injected for plugin {plugin.name}.")
+            logger.trace(f"Injected data: {input_data}")
         # apply check
         if self.config.opa_url is not None:
             logger.debug(f"Applying check {plugin.name} online.")
@@ -163,7 +179,7 @@ class RegoHandler:
         # fix slash issues and create base URL
         base_url = base_url.rstrip("/") if base_url is not None else None
         if base_url is not None:
-            base_url = base_url + "/v1/status"
+            base_url = base_url + "/"
 
         if base_url is None:  # check for subproccess existence
             try:

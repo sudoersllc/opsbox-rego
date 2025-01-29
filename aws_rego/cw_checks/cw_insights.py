@@ -15,7 +15,7 @@ from pluggy import HookimplMarker
 
 from typing import cast
 
-from core.plugins import Result
+from opsbox import Result
 
 hookimpl = HookimplMarker("opsbox")
 

@@ -1,13 +1,13 @@
 [project]
 name = "opsbox-rds-checks"
-version = "0.1.7"
+version = "0.2.0"
 description = "Collection of RDS checks for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}
 requires-python = "==3.11.*"
 dependencies = [
     "opsbox-rds-provider>=0.1.3",
-    "opsbox-rego-handler>=0.1.4"
+    "opsbox-rego-handler>=0.2.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_rds_empty_storage = "empty_storage.empty_storage.empty_storage:EmptyStorage"
-opsbox_rds_idle = "rds_idle.rds_idle.rds_idle:RDSIdle"
-opsbox_rds_old_snapshots = "rds_old_snapshots.rds_old_snapshots.rds_old_snapshots:RDSOldSnapshots"
-opsbox_rds_scaling_down = "scaling_down.scaling_down.scaling_down:ScalingDown"
+opsbox_rds_empty_storage = "empty_storage.empty_storage:EmptyStorage"
+opsbox_rds_idle = "rds_idle.rds_idle:RDSIdle"
+opsbox_rds_old_snapshots = "rds_old_snapshots.rds_old_snapshots:RDSOldSnapshots"
+opsbox_rds_scaling_down = "scaling_down.scaling_down:ScalingDown"

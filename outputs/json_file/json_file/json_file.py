@@ -2,7 +2,7 @@ from pluggy import HookimplMarker
 from pydantic import BaseModel, Field
 import os
 from loguru import logger
-from core.plugins import Result
+from opsbox import Result
 from typing import Annotated
 import json
 

@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from loguru import logger
 
 
-from core.plugins import Result
+from opsbox import Result
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")

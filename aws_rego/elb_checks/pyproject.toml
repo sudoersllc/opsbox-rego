@@ -1,13 +1,13 @@
 [project]
 name = "opsbox-elb-checks"
-version = "0.1.7"
+version = "0.2.0"
 description = "Collection of ELB checks for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}
 requires-python = "==3.11.*"
 dependencies = [
     "opsbox-elb-provider>=0.1.3",
-    "opsbox-rego-handler>=0.1.4"
+    "opsbox-rego-handler>=0.2.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -19,10 +19,10 @@ dev-dependencies = [
 ]
 
 [project.entry-points.'opsbox.plugins']
-opsbox_elb_low_request_counts = "low_request_counts.low_request_counts.low_request_count:LowRequestCount"
-opsbox_elb_inactive_load_balancers = "inactive_load_balancers.inactive_load_balancers.inactive_load_balancers:InactiveLoadBalancers"
-opsbox_elb_high_error_rate = "high_error_rate.high_error_rate.high_error_rate:HighErrorRate"
-opsbox_elb_no_healthy_targets = "no_healthy_targets.no_healthy_targets.no_healthy_targets:NoHealthyTargets"
+opsbox_elb_low_request_counts = "low_request_counts.low_request_count:LowRequestCount"
+opsbox_elb_inactive_load_balancers = "inactive_load_balancers.inactive_load_balancers:InactiveLoadBalancers"
+opsbox_elb_high_error_rate = "high_error_rate.high_error_rate:HighErrorRate"
+opsbox_elb_no_healthy_targets = "no_healthy_targets.no_healthy_targets:NoHealthyTargets"
 
 [tool.setuptools]
 include-package-data = true

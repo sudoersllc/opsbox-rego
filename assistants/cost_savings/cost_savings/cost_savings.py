@@ -3,8 +3,8 @@ from llama_index.core import VectorStoreIndex, Document
 from pluggy import HookimplMarker
 from pydantic import BaseModel, Field
 from loguru import logger
-from core.config import AppConfig
-from core.plugins import Result
+from opsbox import AppConfig
+from opsbox import Result
 
 # ruff: noqa: E501
 

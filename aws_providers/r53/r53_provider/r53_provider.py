@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 import boto3
 from loguru import logger
 from typing import Annotated
-from core.plugins import Result
+from opsbox import Result
 import threading
 
 # Define a hookimpl (implementation of the contract)
