@@ -33,8 +33,8 @@ class S3Provider:
         class S3Config(BaseModel):
             """Configuration for the AWS S3 plugin."""
 
-            aws_access_key_id: Annotated[str,Field(..., description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str,Field(..., description="AWS secret access key", required=True)]
+            aws_access_key_id: Annotated[str,Field(default = None, description="AWS access key ID", required=True)]
+            aws_secret_access_key: Annotated[str,Field(default = None, description="AWS secret access key", required=True)]
             aws_region: Annotated[
                 str | None, Field(description="AWS-Region", required=False, default=None)
             ]

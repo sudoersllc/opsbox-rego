@@ -30,8 +30,8 @@ class RDSProvider:
         class RDSConfig(BaseModel):
             """Configuration for the AWS RDS plugin."""
 
-            aws_access_key_id: Annotated[str,Field(..., description="AWS access key ID", required=False, default=None)]
-            aws_secret_access_key: Annotated[str,Field(..., description="AWS secret access key", required=False, default=None)]
+            aws_access_key_id: Annotated[str,Field(description="AWS access key ID", required=False, default=None)]
+            aws_secret_access_key: Annotated[str,Field(description="AWS secret access key", required=False, default=None)]
             aws_region: Annotated[
                 str | None, Field(description="AWS-Region", required=False, default=None)
             ]

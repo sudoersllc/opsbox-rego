@@ -20,8 +20,8 @@ class Route53Provider:
         class Route53Config(BaseModel):
             """Configuration for the AWS Route 53 plugin."""
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=False, default=None)]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=False, default=None)]
+            aws_access_key_id: Annotated[str, Field(description="AWS access key ID", required=False, default=None)]
+            aws_secret_access_key: Annotated[str, Field(description="AWS secret access key", required=False, default=None)]
             aws_region: Annotated[str | None, Field(description="AWS region", required=False, default=None)]
 
         return Route53Config
