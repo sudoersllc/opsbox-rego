@@ -34,8 +34,8 @@ class elbProvider:
                 aws_secret_access_key (str): AWS secret access key.
                 aws_region (str): AWS region."""
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
+            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=False, default=None)]
+            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=False, default=None)]
             aws_region: Annotated[str | None, Field(description="AWS-Region", required=False, default=None)]
 
         return ELBConfig
