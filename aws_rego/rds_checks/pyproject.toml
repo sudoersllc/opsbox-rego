@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_rds_empty_storage = "empty_storage.empty_storage.empty_storage:EmptyStorage"
-opsbox_rds_idle = "rds_idle.rds_idle.rds_idle:RDSIdle"
-opsbox_rds_old_snapshots = "rds_old_snapshots.rds_old_snapshots.rds_old_snapshots:RDSOldSnapshots"
-opsbox_rds_scaling_down = "scaling_down.scaling_down.scaling_down:ScalingDown"
+opsbox_rds_empty_storage = "empty_storage.empty_storage:EmptyStorage"
+opsbox_rds_idle = "rds_idle.rds_idle:RDSIdle"
+opsbox_rds_old_snapshots = "rds_old_snapshots.rds_old_snapshots:RDSOldSnapshots"
+opsbox_rds_scaling_down = "scaling_down.scaling_down:ScalingDown"

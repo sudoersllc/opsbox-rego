@@ -67,15 +67,34 @@ class elbProvider:
 
         # If no region is provided, get all regions
         if credentials["aws_region"] is None:
-            region_client = boto3.client(
-                "ec2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name="us-west-1",
-            )
+            logger.info("Gathering data for IAM...")
+            credentials = self.credentials
 
-            regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
-            logger.info(f"Regions: {regions}")
+            # Use the specified region or default to "us-west-1"
+            region = credentials["aws_region"] or "us-west-1"
+            
+            if credentials["aws_access_key_id"] is None:
+                # Use the instance profile credentials
+                region_client = boto3.client("iam", region_name=region)
+            else:
+                try:
+                    region_client = boto3.client(
+                        "elb",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+                    regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+
+                except Exception as e:
+                    logger.error(f"Error creating IAM client: {e}")
+                    return Result(
+                        relates_to="aws_data",
+                        result_name="aws_iam_data",
+                        result_description="Structured IAM data using.",
+                        formatted="Error creating IAM client.",
+                        details={},
+                    )
 
         else:
             regions = credentials["aws_region"].split(",")
@@ -93,25 +112,34 @@ class elbProvider:
             credentials = self.credentials
             logger.debug(f"Gathering data for region {region}...")
 
-            # Initialize boto3 clients with provided credentials
-            elb_client = boto3.client(
-                "elb",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name=region,
-            )
-            elbv2_client = boto3.client(
-                "elbv2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name=region,
-            )
-            cw_client = boto3.client(
-                "cloudwatch",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name=region,
-            )
+            try:
+                # Initialize boto3 clients with provided credentials
+                if credentials["aws_access_key_id"] is None or credentials["aws_secret_access_key"] is None:
+                    elb_client = boto3.client("elb", region_name=region)
+                    elbv2_client = boto3.client("elbv2", region_name=region)
+                    cw_client = boto3.client("cloudwatch", region_name=region)
+                else:
+                    elb_client = boto3.client(
+                        "elb",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+                    elbv2_client = boto3.client(
+                        "elbv2",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+                    cw_client = boto3.client(
+                        "cloudwatch",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+            except Exception as e:
+                logger.error(f"Error creating ELB clients: {e}")
+                return
 
             end_time = datetime.now()
             start_time = end_time - timedelta(days=30)

@@ -26,6 +26,6 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [project.entry-points.'opsbox.plugins']
-opsbox_s3_unused_buckets = "unused_buckets.unused_buckets.unused_buckets:UnusedBuckets"
-opsbox_s3_storage_class_usage = "storage_class_usage.storage_class_usage.storage_class_usage:StorageClassUsage"
-opsbox_s3_object_last_modified = "object_last_modified.object_last_modified.object_last_modified:ObjectLastModified"
+opsbox_s3_unused_buckets = "unused_buckets.unused_buckets:UnusedBuckets"
+opsbox_s3_storage_class_usage = "storage_class_usage.storage_class_usage:StorageClassUsage"
+opsbox_s3_object_last_modified = "object_last_modified.object_last_modified:ObjectLastModified"
