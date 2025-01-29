@@ -127,15 +127,16 @@ class RegoHandler:
         ]
 
         if len(providers) == 1:
+            logger.trace(f"Provider found for rego plugin {plugin.name}.")
             provider = providers[0]
             input_data = provider.plugin_obj.gather_data()
+            logger.debug(f"Input provider data gathered for plugin {plugin.name}.")
         if len(providers) > 1:
             raise RuntimeError("Rego plugins can only use one provider.")
         if len(providers) == 0:
             logger.warning(
-                f"No provider found for rego plugin {plugin.name}. Using empty data."
+                f"No provider found for rego plugin {plugin.name}. Using prior results."
             )
-            logger.trace(f"Plugin {plugin.name} uses: {plugin.uses}")
 
             input_data = (
                 prior_results[0]
@@ -151,16 +152,13 @@ class RegoHandler:
         # apply data injection
         with contextlib.suppress(AttributeError):
             input_data = plugin.plugin_obj.inject_data(input_data)
-            logger.debug(f"Data injected for plugin {plugin.name}.")
-            logger.trace(f"Injected data: {input_data}")
+            logger.debug(f"Data injected for plugin {plugin.name}.", extra={"after_inject": input_data})
         # apply check
         if self.config.opa_url is not None:
-            logger.debug(f"Applying check {plugin.name} online.")
             result = self.execute_check_online(
                 input_data, plugin, rego_file_path, self.config.opa_url
             )
         else:
-            logger.debug(f"Applying check {plugin.name} in subprocess.")
             result = self.execute_check_in_subproc(input_data, plugin, rego_file_path)
 
         # format results
@@ -228,7 +226,6 @@ class RegoHandler:
             for line in file:
                 match = package_pattern.match(line.strip())
                 if match:
-                    print(match.group(1))
                     return match.group(1)
         raise ValueError(f"Package name not found in {file_path}")
 
@@ -262,8 +259,9 @@ class RegoHandler:
                 timeout=default_timeout,
             )
 
+            logger.trace(f"Policy {info['rego_file']} uploaded to OPA server {base_url} with response code {resp.status_code}")
+
             # check for success
-            logger.trace(f"Policy Upload Code: {resp.status_code}")
             if resp.status_code != 200:
                 logger.error(f"Policy upload failed: {resp.text}")
                 raise RuntimeError(f"Policy upload failed: {resp.text}")
@@ -286,7 +284,7 @@ class RegoHandler:
             logger.error(f"Policy removal failed: {resp.text}")
             raise Exception(f"Policy removal failed: {resp.text}")
         else:
-            logger.success(f"Policy {info['rego_file']} removed successfully.")
+            logger.success(f"Policy {info['rego_file']} removed from the server successfully.")
 
     def execute_check_in_subproc(
         self, data: "Result", plugin: PluginInfo, rego_file_path: str
@@ -350,7 +348,7 @@ class RegoHandler:
                 decision = {}
                 result_details = []
 
-            logger.success(f"OPA eval successfully executed for {check['rego_file']}.")
+            logger.success(f"OPA eval successfully executed for {check['rego_file']}.", extra={"result": decision})
 
         except subprocess.CalledProcessError as e:
             logger.error(f"OPA eval failed: {e}")
@@ -407,6 +405,7 @@ class RegoHandler:
         Returns:
             list[Result]: The results of the checks.
         """
+        logger.info(f"Applying check {plugin.name} using OPA server located at {base_url}.")
         with self._upload_temp_policy(
             plugin, rego_file_path, base_url
         ) as _:  # upload policy to OPA server
@@ -420,25 +419,25 @@ class RegoHandler:
             package_name_path = package_name.replace(".", "/")
             opa_url = f"{base_url}/v1/data/{package_name_path}"
 
+
             # Query OPA server
             response = requests.post(opa_url, json=data, timeout=default_timeout)
             response_data = response.json()
 
             # Log Results
-            logger.debug(f"OPA URL: {opa_url}")
-            logger.debug(f"OPA response status code: {response.status_code}")
+            logger.trace(f"OPA response from post to {opa_url} returned code {response.status_code}")
+
             if response.status_code != 200:
-                logger.error(f"OPA response: {response_data}")
+                logger.error(f"OPA server did not return a 200 status code, instead it returned {response.status_code}.", extra={"response": response_data})
             else:
                 logger.success(
-                    f"OPA successfully queried for check {check['rego_file']}."
+                    f"OPA successfully queried for check {check['rego_file']}.", extra={"response": response_data}
                 )
 
             decision = response_data.get("result", False)
             result_details = (
                 decision.get("details", []) if isinstance(decision, dict) else []
             )
-            logger.success(decision)
             result = Result(
                 relates_to=plugin.name,
                 result_name=plugin.name,

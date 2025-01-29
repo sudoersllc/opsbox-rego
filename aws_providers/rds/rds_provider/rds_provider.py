@@ -273,6 +273,5 @@ class RDSProvider:
             details=rego_ready_data,
             formatted="",
         )
-        logger.trace(f"RDS data: {item.details}")
-        logger.success("Successfully gathered data for RDS instances")
+        logger.success("Successfully gathered data for RDS instances.", extra = {"output_data": rego_ready_data})
         return item
