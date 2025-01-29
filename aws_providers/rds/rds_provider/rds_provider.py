@@ -142,6 +142,7 @@ class RDSProvider:
 
         def process_region(region):
 
+
             if self.credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 rds_client = boto3.client("rds", region_name=region)
@@ -208,10 +209,10 @@ class RDSProvider:
 
 
 
+        credentials = self.credentials
 
         if credentials["aws_region"] is None:
             logger.info("Gathering data for IAM...")
-            credentials = self.credentials
 
             # Use the specified region or default to "us-west-1"
             region = credentials["aws_region"] or "us-west-1"
