@@ -179,13 +179,17 @@ class EC2Provider:
             Args:
                 region (str): The AWS region to gather data from.
             """
+            if credentials["aws_access_key_id"] is None:
+                regional_ec2 = boto3.client("ec2", region_name=region)
+            else:
+                regional_ec2 = boto3.client(
+                    "ec2",
+                    aws_access_key_id=credentials["aws_access_key_id"],
+                    aws_secret_access_key=credentials["aws_secret_access_key"],
+                    region_name=region,
+                )
             logger.debug(f"Gathering data for region {region}...")
-            regional_ec2 = boto3.client(
-                "ec2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name=region,
-            )
+
 
             # Gather volumes
             paginator = regional_ec2.get_paginator("describe_volumes")
