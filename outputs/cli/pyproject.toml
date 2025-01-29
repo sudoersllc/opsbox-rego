@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-cli-output"
-version = "0.1.2"
+version = "0.2.0"
 description = "Command-line output for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}
