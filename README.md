@@ -15,10 +15,10 @@ To install in UV, simply do the following:
 Packages will be automatically detected and used when installed and *no plugin directory is specified*.
 
 ### Individual Modules
-Once you have installed the necessary dependencies for the plugins in your virtual environment, you can point the main Opsbox program to this directory using the `--plugin_dir` option. Ensure you have installed the prerequisites for Opsbox before proceeding.
+Once you have installed the necessary dependencies for the plugins in your virtual environment, you can point the main Opsbox program to this directory using the `--plugin_dir` option. *Ensure you have installed the prerequisites for the plugins in your environment before proceeding.*
 
 ```sh
-python -m opsbox ... --plugin_dir path/to/this/repository
+uvx opsbox ... --plugin_dir path/to/this/repository
 ```
 
 This will allow Opsbox to load and utilize the plugins contained in this directory.
@@ -54,7 +54,6 @@ This repository contains various types of plugins, each serving a different purp
 - **AWS Plugins**: These plugins offer checks and functionalities specific to AWS services.
 - **Handlers**: These plugins handle various types of operations within Opsbox.
 - **Outputs**: These plugins define different output formats for Opsbox results.
-
 
 ## Conclusion
 
