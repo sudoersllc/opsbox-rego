@@ -27,22 +27,4 @@ Identifies unused EBS volumes that are not attached to any instances, enabling c
 ### Stray Instances Plugin (`stray_instances`)
 Finds EC2 instances not associated with any specific workload or application, reducing costs by terminating unused instances. Provides detailed analysis for efficient resource management.
 
-## Common Configuration
-
-All plugins share the following AWS configuration:
-
-- **aws_access_key_id**: AWS access key ID
-- **aws_secret_access_key**: AWS secret access key
-- **aws_region**: AWS region (optional)
-
-```yaml
-aws_access_key_id: your_access_key_id
-aws_secret_access_key: your_secret_access_key
-aws_region: your_aws_region
-```
-
 ---
-
-To access more info about each check, install mkdocs and run `mkdocs serve` at the root of the package directory
-
-This will pull up a webpage with more complete documentation.

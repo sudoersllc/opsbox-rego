@@ -24,23 +24,3 @@ Detects RDS instances with unutilized storage, offering opportunities to resize 
 Finds outdated RDS snapshots that are no longer needed, providing recommendations to delete them to save on storage costs.
 
 ---
-
-## Common Configuration
-
-All plugins share the following AWS configuration:
-
-- **aws_access_key_id**: AWS access key ID
-- **aws_secret_access_key**: AWS secret access key
-- **aws_region**: AWS region (optional)
-
-```yaml
-aws_access_key_id: your_access_key_id
-aws_secret_access_key: your_secret_access_key
-aws_region: your_aws_region
-```
-
----
-
-To access more info about each check, install `mkdocs` and run `mkdocs serve` at the root of the package directory.
-
-This will pull up a webpage with more complete documentation.

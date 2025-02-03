@@ -24,23 +24,3 @@ Detects IAM users without Multi-Factor Authentication (MFA) enabled to improve a
 Finds IAM API keys that are overdue, ensuring keys are rotated regularly to enhance security.
 
 ---
-
-## Common Configuration
-
-All plugins share the following AWS configuration:
-
-- **aws_access_key_id**: AWS access key ID
-- **aws_secret_access_key**: AWS secret access key
-- **aws_region**: AWS region (optional)
-
-```yaml
-aws_access_key_id: your_access_key_id
-aws_secret_access_key: your_secret_access_key
-aws_region: your_aws_region
-```
-
----
-
-To access more info about each check, install `mkdocs` and run `mkdocs serve` at the root of the package directory.
-
-This will pull up a webpage with more complete documentation.

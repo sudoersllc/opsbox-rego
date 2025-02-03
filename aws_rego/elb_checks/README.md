@@ -18,23 +18,3 @@ Detects load balancers with high error rates, helping identify and address perfo
 
 ### Inactive Load Balancers (`inactive_load_balancers`)
 Finds load balancers that are inactive, offering recommendations to decommission these resources to reduce unnecessary costs.
-
-## Common Configuration
-
-All plugins share the following AWS configuration:
-
-- **aws_access_key_id**: AWS access key ID
-- **aws_secret_access_key**: AWS secret access key
-- **aws_region**: AWS region (optional)
-
-```yaml
-aws_access_key_id: your_access_key_id
-aws_secret_access_key: your_secret_access_key
-aws_region: your_aws_region
-```
-
----
-
-To access more info about each check, install `mkdocs` and run `mkdocs serve` at the root of the package directory.
-
-This will pull up a webpage with more complete documentation.

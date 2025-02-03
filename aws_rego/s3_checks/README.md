@@ -36,7 +36,3 @@ aws_region: your_aws_region
 ```
 
 ---
-
-To access more info about each check, install `mkdocs` and run `mkdocs serve` at the root of the package directory.
-
-This will pull up a webpage with more complete documentation.
