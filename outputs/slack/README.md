@@ -1,24 +1,18 @@
-# opsbox-slack-output Plugin
+# Slack Output Plugin for Opsbox
 
 ## Overview
 
-The `slack_out` Plugin processes and sends results to a specified Slack channel, allowing for easy communication and reporting of findings.
+The SlackOutput Plugin processes and sends results to a specified Slack channel, allowing for easy communication and reporting of findings.
 
-## Key Features
+*This output plugin can be used by adding `slack_out` to your pipeline.*
+
+## Features
 
 - **Slack Integration**: Sends results to a Slack channel.
-- **Customizable Slack Settings**: Allows specifying Slack token and channel.
 
 ## Configuration Parameters
 
-### Slack Configuration
-
-- **slack_token**: The Slack token to use.
-- **slack_channel**: The Slack channel to send the message to.
-
-## Example Configuration
-
-```yaml
-slack_token: your_slack_token
-slack_channel: your_slack_channel
-```
+| Parameter      | Type | Description                                    | Required | Default |
+|----------------|------|------------------------------------------------|----------|---------|
+| slack_token    | str  | The Slack token to use.                        | Yes      | -       |
+| slack_channel  | str  | The Slack channel to send the message to.      | Yes      | -       |

@@ -1,10 +1,13 @@
-# opsbox-cli-output Plugin
+# CLI Output Plugin for Opsbox
 
 ## Overview
 
-The `cli_out` Plugin processes and displays results directly in the command line interface (CLI), providing immediate feedback and insights based on the results of checks.
+The CLIOutput Plugin processes and displays results directly in the command line interface (CLI), providing immediate feedback and insights based on the results of checks.
 
-## Key Features
+*This output plugin can be used by adding `cli_out` to your pipeline.*
+
+
+## Features
 
 - **Immediate Feedback**: Displays results directly in the CLI.
 - **Simple Integration**: Easily integrates with existing workflows.
@@ -12,10 +15,4 @@ The `cli_out` Plugin processes and displays results directly in the command line
 
 ## Configuration Parameters
 
-### CLI Configuration
-
-This plugin does not require any specific configuration parameters.
-
-## Example Configuration
-
-No configuration is needed for the CLIOutput plugin.
+There are no configuration parameters for this plugin.

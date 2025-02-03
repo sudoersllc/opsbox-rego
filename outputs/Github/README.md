@@ -1,12 +1,12 @@
-# opsbox-github-output Plugin
+# Github Output Plugin for Opsbox
 
 ## Overview
 
-The `github_out` Plugin processes and creates GitHub ticket issues based on the results of checks, helping to manage and track cost-saving recommendations and other tasks.
+The GithubOutput Plugin processes and creates GitHub ticket issues based on the results of checks, helping to manage and track cost-saving recommendations and other tasks.
 
-***Description creation requires LLM***
+*This output plugin can be used by adding `github_out` to your pipeline.*
 
-## Key Features
+## Features
 
 - **GitHub Integration**: Fetches and processes data from GitHub.
 - **Issue Creation**: Creates detailed GitHub issues based on the provided results.
@@ -14,21 +14,12 @@ The `github_out` Plugin processes and creates GitHub ticket issues based on the 
 
 ## Configuration Parameters
 
-### GitHub Configuration
+| Parameter            | Type    | Description                                           | Required | Default |
+|----------------------|---------|-------------------------------------------------------|----------|---------|
+| github_token         | str     | The token for the GitHub user.                        | Yes      | -       |
+| repo_owner           | str     | The owner of the repository.                          | Yes      | -       |
+| repo_name            | str     | The name of the repository.                           | Yes      | -       |
+| labels               | str\|None | The labels to apply to the issue.                     | No       | None    |
+| create_description   | bool    | Whether to create a description instead of an issue.  | No       | False   |
 
-- **github_token**: The token for the GitHub user.
-- **repo_owner**: The owner of the repository.
-- **repo_name**: The name of the repository.
-- **labels**: The labels to apply to the issue (optional).
-- **create_description**: Whether to create a description instead of an issue (default: false).
-
-
-## Example Configuration
-
-```yaml
-github_token: your_github_token
-repo_owner: your_repo_owner
-repo_name: your_repo_name
-labels: your_labels
-create_description: false
-```
+***Description creation requires LLM***

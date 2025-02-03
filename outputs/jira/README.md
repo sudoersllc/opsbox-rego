@@ -1,32 +1,23 @@
-# opsbox-jira-output Plugin
+# Jira Output Plugin for Opsbox
 
 ## Overview
 
-The `jira_out` Plugin processes and creates Jira issues based on the results of checks, helping to manage and track cost-saving recommendations and other tasks.
+The JiraOutput Plugin processes and creates Jira issues based on the results of checks, helping to manage and track cost-saving recommendations and other tasks.
 
-***Requires LLM***
+*This output plugin can be used by adding `jira_out` to your pipeline.*
 
-## Key Features
+## Features
 
 - **Jira Integration**: Fetches and processes data from Jira.
 - **Issue Creation**: Creates detailed Jira issues based on the provided results.
-- **Customizable Project Key**: Allows specifying the Jira project to create issues in.
 
 ## Configuration Parameters
 
-### Jira Configuration
+| Parameter         | Type | Description                                      | Required | Default |
+|-------------------|------|--------------------------------------------------|----------|---------|
+| JIRA_USERNAME     | str  | The URL of the Jira instance.                    | Yes      | -       |
+| JIRA_EMAIL        | str  | The email to authenticate to Jira with.          | Yes      | -       |
+| JIRA_API_TOKEN    | str  | The API key to authenticate to Jira with.        | Yes      | -       |
+| JIRA_PROJECT_KEY  | str  | The Jira project to create issues in.            | Yes      | -       |
 
-- **jira_url**: The URL of the Jira instance.
-- **jira_email**: The email to authenticate to Jira with.
-- **jira_api_token**: The API key to authenticate to Jira with.
-- **jira_project_key**: The Jira project to create issues in.
-
-
-## Example Configuration
-
-```yaml
-jira_url: your_jira_url
-jira_email: your_jira_email
-jira_api_token: your_jira_api_token
-jira_project_key: your_jira_project_key
-```
+***Requires LLM***
