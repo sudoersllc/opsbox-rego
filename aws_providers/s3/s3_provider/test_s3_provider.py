@@ -10,7 +10,7 @@ from loguru import logger
 @mock_aws
 def test_s3_provider_gather_data(json_output=False):
     """Test of the S3 provider gather_data method.
-    
+
     Args:
         json_output (bool, optional): If True, the test will output the JSON result to a file. Defaults to False.
             File will be saved to ./s3_test_data.json.
@@ -24,15 +24,26 @@ def test_s3_provider_gather_data(json_output=False):
     s3_client = boto3.client("s3", region_name=aws_region)
 
     # Create mock S3 buckets with LocationConstraint
-    s3_client.create_bucket(Bucket="test-bucket-1", CreateBucketConfiguration={"LocationConstraint": aws_region})
-    s3_client.create_bucket(Bucket="test-bucket-2", CreateBucketConfiguration={"LocationConstraint": aws_region})
+    s3_client.create_bucket(
+        Bucket="test-bucket-1",
+        CreateBucketConfiguration={"LocationConstraint": aws_region},
+    )
+    s3_client.create_bucket(
+        Bucket="test-bucket-2",
+        CreateBucketConfiguration={"LocationConstraint": aws_region},
+    )
 
     # Add mock objects to bucket 1
     s3_client.put_object(Bucket="test-bucket-1", Key="test-object-1", Body="content1")
     s3_client.put_object(Bucket="test-bucket-1", Key="test-object-2", Body="content2")
 
     # Add mock objects to bucket 2
-    s3_client.put_object(Bucket="test-bucket-2", Key="test-object-3", Body="content3", StorageClass="GLACIER")
+    s3_client.put_object(
+        Bucket="test-bucket-2",
+        Key="test-object-3",
+        Body="content3",
+        StorageClass="GLACIER",
+    )
 
     # Instantiate provider and set credentials
     provider = S3Provider()

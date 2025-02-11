@@ -5,16 +5,17 @@ from opsbox import Result
 from pydantic import BaseModel
 from loguru import logger
 
+
 # ruff: noqa: S101
 @mock_aws
 def test_rds_provider_gather_data(json_output=False):
     """Test of the RDS provider gather_data method.
-    
+
     Args:
         json_output (bool, optional): If True, the test will output the JSON result to a file. Defaults to False.
             File will be saved to ./rds_test_data.json.
     """
-    
+
     # Mock AWS credentials (moto uses dummy credentials)
     aws_access_key_id = "fake_access_key"
     aws_secret_access_key = "fake_secret_key"  # noqa: S105

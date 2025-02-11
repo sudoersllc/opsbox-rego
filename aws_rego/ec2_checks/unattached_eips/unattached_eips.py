@@ -27,10 +27,12 @@ class UnattachedEips:
 {eips}"""
 
         if findings:
-            formatted = template.format(eips=eips_yaml) if eips else "No unattached EIPs"
+            formatted = (
+                template.format(eips=eips_yaml) if eips else "No unattached EIPs"
+            )
         else:
             formatted = "No unattached EIPs found."
-            
+
         item = Result(
             relates_to="ec2",
             result_name="unattached_eips",

@@ -18,6 +18,7 @@ class UnusedPoliciesConfig(BaseModel):
         ),
     ]
 
+
 class UnusedIAMPolicies:
     """Plugin for identifying IAM policies with zero attachments."""
 
@@ -45,7 +46,9 @@ class UnusedIAMPolicies:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["iam_unused_attachment_threshold"] = self.conf["iam_unused_attachment_threshold"]
+        data.details["input"]["iam_unused_attachment_threshold"] = self.conf[
+            "iam_unused_attachment_threshold"
+        ]
         return data
 
     @hookimpl

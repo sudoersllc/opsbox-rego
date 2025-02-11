@@ -8,8 +8,15 @@ from pydantic import BaseModel, Field
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+
 class HighELBErrorRateConfig(BaseModel):
-    elb_error_rate_threshold: Annotated[int, Field(default = 0, description="# of errors needed to consider an ELB to have a high error rate.")]
+    elb_error_rate_threshold: Annotated[
+        int,
+        Field(
+            default=0,
+            description="# of errors needed to consider an ELB to have a high error rate.",
+        ),
+    ]
 
 
 class HighErrorRate:
@@ -28,7 +35,7 @@ class HighErrorRate:
         Args:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
-        
+
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -47,16 +54,25 @@ class HighErrorRate:
                 load_balancers = findings
             for lb in load_balancers:
                 logger.debug(f"Processing load balancer: {lb}")
-                if isinstance(lb, dict) and "name" in lb and "type" in lb and "error_rate" in lb:
-                    lb_obj = {lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}}
+                if (
+                    isinstance(lb, dict)
+                    and "name" in lb
+                    and "type" in lb
+                    and "error_rate" in lb
+                ):
+                    lb_obj = {
+                        lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
+                    }
                     high_error_rate_load_balancers.append(lb_obj)
                 else:
                     logger.error(f"Invalid load balancer data: {lb}")
-        
+
             template = """The following ELBs have a high error rate: \n
             {load_balancers}"""
             try:
-                load_balancers_yaml = yaml.dump(high_error_rate_load_balancers, default_flow_style=False)
+                load_balancers_yaml = yaml.dump(
+                    high_error_rate_load_balancers, default_flow_style=False
+                )
             except Exception as e:
                 logger.error(f"Error formatting load balancer details: {e}")
 
@@ -76,7 +92,7 @@ class HighErrorRate:
                 result_description="High Error Rate Load Balancers",
                 details=data.details,
                 formatted="No ELBs with high error rates found.",
-           )
+            )
 
     @hookimpl
     def inject_data(self, data: "Result") -> "Result":
@@ -88,7 +104,7 @@ class HighErrorRate:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["elb_error_rate_threshold"] = self.conf["elb_error_rate_threshold"]
+        data.details["input"]["elb_error_rate_threshold"] = self.conf[
+            "elb_error_rate_threshold"
+        ]
         return data
-        
-

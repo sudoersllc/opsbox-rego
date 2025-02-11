@@ -3,6 +3,7 @@
 import os
 import pathlib
 
+
 def test_no_healthy_targets(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
     rego_policy = os.path.join(current_dir, "no_healthy_targets.rego")
@@ -20,7 +21,7 @@ def test_no_healthy_targets(rego_process):
         "SecurityGroups",
         "State",
         "Type",
-        "VpcId"
+        "VpcId",
     ]
 
     result = rego_process(rego_policy, rego_input, "data.aws.elb.no_healthy_targets")

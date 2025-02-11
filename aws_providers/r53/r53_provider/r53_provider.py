@@ -20,9 +20,20 @@ class Route53Provider:
         class Route53Config(BaseModel):
             """Configuration for the AWS Route 53 plugin."""
 
-            aws_access_key_id: Annotated[str, Field(..., description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str, Field(..., description="AWS secret access key", required=True)]
-            aws_region: Annotated[str | None, Field(description="AWS region", required=False, default=None)]
+            aws_access_key_id: Annotated[
+                str,
+                Field(description="AWS access key ID", required=False, default=None),
+            ]
+            aws_secret_access_key: Annotated[
+                str,
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
+            ]
+            aws_region: Annotated[
+                str | None,
+                Field(description="AWS region", required=False, default=None),
+            ]
 
         return Route53Config
 
@@ -51,7 +62,10 @@ class Route53Provider:
                 aws_secret_access_key=credentials["aws_secret_access_key"],
                 region_name="us-west-1",
             )
-            regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+            regions = [
+                region["RegionName"]
+                for region in region_client.describe_regions()["Regions"]
+            ]
             logger.info(f"Regions: {regions}")
         else:
             regions = credentials["aws_region"].split(",")
@@ -64,13 +78,16 @@ class Route53Provider:
 
         def fetch_route53_data():
             try:
-                if credentials["aws_access_key_id"] is None or credentials["aws_secret_access_key"] is None:
+                if (
+                    credentials["aws_access_key_id"] is None
+                    or credentials["aws_secret_access_key"] is None
+                ):
                     route53 = boto3.client("route53")
                 else:
                     route53 = boto3.client(
                         "route53",
                         aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"]
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
                     )
             except Exception as e:
                 logger.error(f"Error creating Route 53 client: {e}")
@@ -120,10 +137,16 @@ class Route53Provider:
                         {
                             "id": check["Id"],
                             "type": check["HealthCheckConfig"]["Type"],
-                            "ip_address": check["HealthCheckConfig"].get("IPAddress", ""),
+                            "ip_address": check["HealthCheckConfig"].get(
+                                "IPAddress", ""
+                            ),
                             "port": check["HealthCheckConfig"].get("Port", None),
-                            "resource_path": check["HealthCheckConfig"].get("ResourcePath", ""),
-                            "failure_threshold": check["HealthCheckConfig"].get("FailureThreshold", 3),
+                            "resource_path": check["HealthCheckConfig"].get(
+                                "ResourcePath", ""
+                            ),
+                            "failure_threshold": check["HealthCheckConfig"].get(
+                                "FailureThreshold", 3
+                            ),
                         }
                     )
 

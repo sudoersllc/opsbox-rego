@@ -18,6 +18,7 @@ class EC2IdleInstancesConfig(BaseModel):
         ),
     ]
 
+
 class IdleInstances:
     """Plugin for identifying idle EC2 instances."""
 
@@ -45,7 +46,9 @@ class IdleInstances:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["ec2_cpu_idle_threshold"] = self.conf["ec2_cpu_idle_threshold"]
+        data.details["input"]["ec2_cpu_idle_threshold"] = self.conf[
+            "ec2_cpu_idle_threshold"
+        ]
         return data
 
     @hookimpl

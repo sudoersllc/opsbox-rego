@@ -23,7 +23,9 @@ class CLIOutput:
         """
         console.rule("CLI output")
         resultant_plugins = [item.result_name for item in results]
-        console.print(f"\n[bold green]You have {len(results)} results from the following plugins:[/bold green] [red]{resultant_plugins}[/red]\n")
+        console.print(
+            f"\n[bold green]You have {len(results)} results from the following plugins:[/bold green] [red]{resultant_plugins}[/red]\n"
+        )
         for result in results:
             console.rule(f"[bold cyan]{result.result_name}[/bold cyan]")
             console.print(Pretty(result.details))

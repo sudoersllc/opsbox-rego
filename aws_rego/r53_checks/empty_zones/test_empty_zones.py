@@ -12,6 +12,8 @@ def test_unused_policies(rego_process):
     rego_input = os.path.join(current_dir.parent, "r53_test_data.json")
 
     needed_keys = ["id", "name", "private_zone", "record_count"]
-    result = rego_process(rego_policy, rego_input, "data.aws.cost.unused_policies", ["empty_hosted_zones"])
+    result = rego_process(
+        rego_policy, rego_input, "data.aws.cost.unused_policies", ["empty_hosted_zones"]
+    )
     for key in needed_keys:
         assert key in result["empty_hosted_zones"][0]

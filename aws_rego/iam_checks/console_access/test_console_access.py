@@ -33,7 +33,6 @@ def test_console_access(rego_process):
         "password_last_used",
         "password_next_rotation",
         "user",
-        "user_creation_time"
+        "user_creation_time",
     ]
     rego_process(rego_policy, rego_input, "data.aws.cost.console_access", needed_keys)
-

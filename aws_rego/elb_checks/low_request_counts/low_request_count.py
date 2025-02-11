@@ -10,15 +10,23 @@ hookimpl = HookimplMarker("opsbox")
 
 
 class ELBLowRequestsConfig(BaseModel):
-    elb_low_requests_threshold: Annotated[int, Field(default = 0, description="# of requests below which to consider an ELB to have low request counts. Default = 100.")]
+    elb_low_requests_threshold: Annotated[
+        int,
+        Field(
+            default=0,
+            description="# of requests below which to consider an ELB to have low request counts. Default = 100.",
+        ),
+    ]
+
 
 class LowRequestCount:
     """Plugin for identifying ELBs with low request counts."""
+
     @hookimpl
     def grab_config(self) -> type[BaseModel]:
         """Return the plugin's configuration pydantic model.
         These should be things your plugin needs/wants to function.
-        
+
         Returns:
             type[BaseModel]: The configuration model for the plugin."""
         return ELBLowRequestsConfig
@@ -41,7 +49,9 @@ class LowRequestCount:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["elb_low_requests_threshold"] = self.conf["elb_low_requests_threshold"]
+        data.details["input"]["elb_low_requests_threshold"] = self.conf[
+            "elb_low_requests_threshold"
+        ]
         return data
 
     @hookimpl
@@ -60,7 +70,7 @@ class LowRequestCount:
             )
 
         inactive_load_balancers = []
-        
+
         # Assuming findings is a list of ELB dictionaries
         for lb in findings:
             inactive_load_balancers.append(lb)
@@ -69,7 +79,9 @@ class LowRequestCount:
 
 {load_balancers}"""
 
-        formatted_load_balancers = yaml.dump(inactive_load_balancers, default_flow_style=False)
+        formatted_load_balancers = yaml.dump(
+            inactive_load_balancers, default_flow_style=False
+        )
 
         item = Result(
             relates_to="elb",
