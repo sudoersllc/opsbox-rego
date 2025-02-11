@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class SlackOutput:
     """
-    Plugin for sending results to Slack.
+    Plugin for sending results to a Slack channel.
     """
     def __init__(self):
         pass
@@ -26,9 +26,9 @@ class SlackOutput:
         Return the plugin's configuration
         """
         class SlackConfig(BaseModel):
-            """Configuration for the email output."""
-            slack_token: Annotated[str, Field(description="The Slack token to use.", required=True)]
-            slack_channel: Annotated[str, Field(description="The Slack channel to send the message to.", required=True)]
+            """Configuration for the slack output."""
+            slack_token: Annotated[str, Field(description="The Slack token to use.")]
+            slack_channel: Annotated[str, Field(description="The Slack channel to send the message to.")]
 
         return SlackConfig
 
