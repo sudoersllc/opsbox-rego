@@ -124,7 +124,7 @@ class JiraOutput:
         Writes the check results to Jira.
 
         Args:
-            results (list[FormattedResult]): The formatted results from the checks.
+            results (list[Result]): The formatted results from the checks.
         """
 
         logger.info("Writing results to Jira")
@@ -140,7 +140,7 @@ class JiraOutput:
         Generates a list of Epics and Tasks to be created in Jira.
 
         Args:
-            data (list[FormattedResult]): The formatted results from the checks.
+            data (list[Result]): The formatted results from the checks.
 
         Returns:
             SolutionsPlan: The list of Epics and Tasks to be created in Jira.
@@ -340,7 +340,7 @@ Given the findings below, create a solutions plan for Jira:
             summary (str): The summary of the task.
             description (str): The description of the task.
             epic_link (str): The epic link for the task.
-            details (FormattedResult): The details to be attached to the task.
+            details (Result): The details to be attached to the task.
 
         Returns:
             None
@@ -391,7 +391,7 @@ Given the findings below, create a solutions plan for Jira:
 
         Args:
             issue_key (str): The key of the Jira issue to attach details to.
-            details (FormattedResult): The details to be attached.
+            details (Result): The details to be attached.
 
         Returns:
             None
