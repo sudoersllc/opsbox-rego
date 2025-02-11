@@ -23,12 +23,12 @@ class EmailOutput:
         class EmailConfig(BaseModel):
             """Configuration for the email output."""
 
-            smtp_username: Annotated[str, Field(description="The username for the SMTP server.", required=True)]
-            smtp_password: Annotated[str, Field(description="The password for the SMTP server.", required=True)]
-            smtp_server: Annotated[str, Field(description="The SMTP server to use.", required=True)]
-            smtp_port: Annotated[str, Field(description="The port to use for the SMTP server.", required=True)]
+            smtp_username: Annotated[str, Field(description="The username for the SMTP server.")]
+            smtp_password: Annotated[str, Field(description="The password for the SMTP server.")]
+            smtp_server: Annotated[str, Field(description="The SMTP server to use.")]
+            smtp_port: Annotated[int, Field(description="The port to use for the SMTP server.")]
             receiver_email_list: Annotated[
-                str, Field(description="A comma-separated list of email addresses to send the email to.", required=True)
+                str, Field(description="A comma-separated list of email addresses to send the email to.")
             ]
 
         return EmailConfig
