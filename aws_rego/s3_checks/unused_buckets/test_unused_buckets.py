@@ -17,7 +17,9 @@ def test_unused_buckets(rego_process):
     with open(test_data, "r") as file:
         data = json.load(file)
         if "s3_unused_bucket_date_threshold" not in data:
-            data["s3_unused_bucket_date_threshold"] = int((datetime.datetime.now() - datetime.timedelta(days=10)).timestamp())
+            data["s3_unused_bucket_date_threshold"] = int(
+                (datetime.datetime.now() - datetime.timedelta(days=10)).timestamp()
+            )
             write = True
 
     # overwrite the file
@@ -29,7 +31,9 @@ def test_unused_buckets(rego_process):
     rego_input = os.path.join(current_dir.parent.parent, "s3_test_data.json")
 
     needed_keys = ["last_modified", "name", "storage_class"]
-    result = rego_process(rego_policy, rego_input, "data.aws.cost.unused_buckets", ["unused_buckets"])
+    result = rego_process(
+        rego_policy, rego_input, "data.aws.cost.unused_buckets", ["unused_buckets"]
+    )
     for x in result["unused_buckets"]:
         for key in needed_keys:
             assert key in x, f"Key {key} not found in {x}"

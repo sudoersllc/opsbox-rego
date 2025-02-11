@@ -57,7 +57,6 @@ class CWAvailableMetrics:
                 details={},
                 formatted=f"Error activating the plugin: {e}",
             )
-            
 
     @hookimpl
     def set_data(self, model: dict):
@@ -76,7 +75,10 @@ class CWAvailableMetrics:
 
         # Use ThreadPoolExecutor for multithreading
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(self._fetch_page, page): page for page in paginator.paginate()}
+            futures = {
+                executor.submit(self._fetch_page, page): page
+                for page in paginator.paginate()
+            }
             for future in as_completed(futures):
                 page_result = future.result()
                 metric_list.extend(page_result)

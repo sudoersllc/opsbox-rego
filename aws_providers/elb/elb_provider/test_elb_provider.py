@@ -5,6 +5,7 @@ from opsbox import Result
 from pydantic import BaseModel
 from loguru import logger
 
+
 # ruff: noqa: S101
 @mock_aws
 def test_elb_provider_gather_data(json_output=False):
@@ -25,7 +26,9 @@ def test_elb_provider_gather_data(json_output=False):
     vpc_response = ec2_client.create_vpc(CidrBlock="10.0.0.0/16")
     vpc_id = vpc_response["Vpc"]["VpcId"]
 
-    subnet_response = ec2_client.create_subnet(VpcId=vpc_id, CidrBlock="10.0.1.0/24", AvailabilityZone=aws_region + "a")
+    subnet_response = ec2_client.create_subnet(
+        VpcId=vpc_id, CidrBlock="10.0.1.0/24", AvailabilityZone=aws_region + "a"
+    )
     subnet_id = subnet_response["Subnet"]["SubnetId"]
 
     # Create mock Classic Load Balancer

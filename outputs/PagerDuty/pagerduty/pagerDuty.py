@@ -1,4 +1,3 @@
-
 from pluggy import HookimplMarker
 from pydantic import BaseModel, Field
 from loguru import logger
@@ -14,10 +13,12 @@ from typing import Annotated
 
 hookimpl = HookimplMarker("opsbox")
 
+
 class PagerDutyOutput:
     """
     Plugin for sending results to Pager
     """
+
     def __init__(self):
         pass
 
@@ -26,15 +27,23 @@ class PagerDutyOutput:
         """
         Return the plugin's configuration
         """
+
         class PagerDutyConfig(BaseModel):
             """Configuration for the email output."""
-            routing_key: Annotated[str, Field(description="The routing_key to use.", required=True)]
-            create_description: Annotated[bool, 
-            Field(description="Whether to create a description instead of an issue.", required=False, default=False)]
+
+            routing_key: Annotated[
+                str, Field(description="The routing_key to use.", required=True)
+            ]
+            create_description: Annotated[
+                bool,
+                Field(
+                    description="Whether to create a description instead of an issue.",
+                    required=False,
+                    default=False,
+                ),
+            ]
+
         return PagerDutyConfig
-
-    
-
 
     @hookimpl
     def set_data(self, model: BaseModel):
@@ -45,7 +54,7 @@ class PagerDutyOutput:
         self.credentials = model.model_dump()
 
     @hookimpl
-    def proccess_results(self,  results: list["Result"]):
+    def proccess_results(self, results: list["Result"]):
         """
         Send the results to Slack.
 
@@ -54,12 +63,12 @@ class PagerDutyOutput:
         """
 
         try:
-            appconfig = AppConfig() 
+            appconfig = AppConfig()
             for result in results:
                 body = ""
 
                 credentials = self.credentials
-                
+
                 if credentials["create_description"]:
                     if appconfig.embed_model is None:
                         templ: str = """    
@@ -91,9 +100,13 @@ class PagerDutyOutput:
                         logger.success(body)
                     else:
                         docs: Document = []
-                        docs.append(Document(text=result.formatted, id=result.result_name))
+                        docs.append(
+                            Document(text=result.formatted, id=result.result_name)
+                        )
 
-                        index = VectorStoreIndex.from_documents(docs, embed_model=appconfig.embed_model)
+                        index = VectorStoreIndex.from_documents(
+                            docs, embed_model=appconfig.embed_model
+                        )
 
                         # Query the index for detailed GitHub issue descriptions
                         github_query: str = """
@@ -123,7 +136,9 @@ class PagerDutyOutput:
                         logger.debug("Building the vector store index...")
                         query_engine = index.as_query_engine(llm=appconfig.llm)
                         response = query_engine.query(github_query)
-                        body = str(response)  # Convert response to a string if necessary
+                        body = str(
+                            response
+                        )  # Convert response to a string if necessary
                         # Remove unwanted parts
                         body = body.replace("```json", "").replace("```", "").strip()
 
@@ -133,38 +148,40 @@ class PagerDutyOutput:
                         # Now access the 'payload' key
                         payload = body_dict["payload"]
 
-
                 else:
                     body = result.formatted
             data = {
                 "payload": {
                     "summary": payload["summary"],
                     "severity": payload["severity"],
-                    "source": payload["source"]
+                    "source": payload["source"],
                 },
                 "routing_key": self.model.routing_key,  # Make sure routing_key is set correctly
-                "event_action": "trigger"
+                "event_action": "trigger",
             }
 
-            headers = {
-                "Content-Type": "application/json"
-            }
+            headers = {"Content-Type": "application/json"}
 
             # Send the POST request
-            response = requests.post("https://events.pagerduty.com/v2/enqueue", 
-                                     data=json.dumps(data), headers=headers, timeout=15)
+            response = requests.post(
+                "https://events.pagerduty.com/v2/enqueue",
+                data=json.dumps(data),
+                headers=headers,
+                timeout=15,
+            )
 
             # Check the response
             if response.status_code == 202:
                 print("Incident triggered successfully!")
             else:
-                print(f"Failed to trigger incident. Status code: {response.status_code}, Response: {response.text}")
-
+                print(
+                    f"Failed to trigger incident. Status code: {response.status_code}, Response: {response.text}"
+                )
 
         except Exception as e:
             logger.error(f"Error sending Pagerduty: {e}")
             logger.error("Check your Pagerduty configuration and try again.")
-            #log the line number of the error in the code
+            # log the line number of the error in the code
             logger.error(f"Error on line {e.__traceback__.tb_lineno}")
             return
         logger.success("Results sent via Pagerduty!")

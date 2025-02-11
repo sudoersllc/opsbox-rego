@@ -20,7 +20,9 @@ def test_object_last_modified(rego_process):
     with open(test_data, "r") as file:
         data = json.load(file)
         if "s3_last_modified_date_threshold" not in data:
-            data["s3_last_modified_date_threshold"] = int((datetime.datetime.now() - datetime.timedelta(days=10)).timestamp())
+            data["s3_last_modified_date_threshold"] = int(
+                (datetime.datetime.now() - datetime.timedelta(days=10)).timestamp()
+            )
             write = True
 
     # overwrite the file
@@ -28,7 +30,11 @@ def test_object_last_modified(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-
-    needed_keys = ["percentage_standard_and_old","standard_and_old_objects", "total_objects"]
-    rego_process(rego_policy, rego_input, "data.aws.cost.object_last_modified", needed_keys)
-
+    needed_keys = [
+        "percentage_standard_and_old",
+        "standard_and_old_objects",
+        "total_objects",
+    ]
+    rego_process(
+        rego_policy, rego_input, "data.aws.cost.object_last_modified", needed_keys
+    )

@@ -17,7 +17,7 @@ def test_route53_provider_gather_data(json_output=False):
     """
     # Mock AWS credentials (moto uses dummy credentials)
     aws_access_key_id = "fake_access_key"
-    aws_secret_access_key = "fake_secret_key" # noqa: S105
+    aws_secret_access_key = "fake_secret_key"  # noqa: S105
     aws_region = "us-west-1"
 
     # Create mock EC2 client for region discovery
@@ -39,8 +39,24 @@ def test_route53_provider_gather_data(json_output=False):
         HostedZoneId=zone_id,
         ChangeBatch={
             "Changes": [
-                {"Action": "CREATE", "ResourceRecordSet": {"Name": "www.example.com.", "Type": "A", "TTL": 300, "ResourceRecords": [{"Value": "192.0.2.1"}]}},
-                {"Action": "CREATE", "ResourceRecordSet": {"Name": "api.example.com.", "Type": "CNAME", "TTL": 300, "ResourceRecords": [{"Value": "www.example.com."}]}},
+                {
+                    "Action": "CREATE",
+                    "ResourceRecordSet": {
+                        "Name": "www.example.com.",
+                        "Type": "A",
+                        "TTL": 300,
+                        "ResourceRecords": [{"Value": "192.0.2.1"}],
+                    },
+                },
+                {
+                    "Action": "CREATE",
+                    "ResourceRecordSet": {
+                        "Name": "api.example.com.",
+                        "Type": "CNAME",
+                        "TTL": 300,
+                        "ResourceRecords": [{"Value": "www.example.com."}],
+                    },
+                },
             ]
         },
     )
