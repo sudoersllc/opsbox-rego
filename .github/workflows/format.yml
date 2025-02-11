@@ -1,0 +1,46 @@
+name: Format Code with Ruff
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+    - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff to format code
+        run: ruff format .
+
+      - name: Check for git differences
+        id: git_diff
+        run: |
+          git diff --exit-code || echo "has_changes=true" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        if: env.has_changes == 'true' && !contains(github.event.head_commit.message, 'Format code with Ruff')
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Format code with Ruff"
+          
