@@ -22,7 +22,7 @@ class EmptyZones:
 
         # Directly get empty hosted zones from the Rego result
         empty_zones = details.get("empty_hosted_zones", [])
-        
+
         # Format the empty zones list into YAML for better readability
         try:
             empty_zones_yaml = yaml.dump(empty_zones, default_flow_style=False)
@@ -35,7 +35,7 @@ class EmptyZones:
         
 {empty_zones}"""
         logger.info(empty_zones_yaml)
-        
+
         # Generate the result with formatted output
         if empty_zones:
             return Result(

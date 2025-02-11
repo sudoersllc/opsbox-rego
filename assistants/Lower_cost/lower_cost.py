@@ -10,8 +10,10 @@ if TYPE_CHECKING:
 
 from loguru import logger
 
+
 class LowerCost:
     """A plugin to generate recommendations for lowering costs on AWS EC2 instances."""
+
     def __init__(self):
         pass
 
@@ -25,11 +27,14 @@ class LowerCost:
         Returns:
             OAICostConfig: Configuration for the OpenAI Cost
         """
+
         class LowerCostConfig(BaseModel):
             """Configuration for the AWS EC2 plugin."""
+
             aws_access_key_id: str = Field(..., description="AWS access key ID")
             aws_secret_access_key: str = Field(..., description="AWS secret access key")
             aws_region: str = Field(..., description="AWS region")
+
         return LowerCostConfig
 
     def activate(self) -> None:
@@ -45,7 +50,9 @@ class LowerCost:
         data = self.generate_recommendations(data)
         return data
 
-    def generate_recommendations(self, data: list["FormattedResult"]) ->list["FormattedResult"]:
+    def generate_recommendations(
+        self, data: list["FormattedResult"]
+    ) -> list["FormattedResult"]:
         """
         Generate recommendations for lowering costs on AWS EC2 instances.
         Args:
@@ -179,15 +186,14 @@ class LowerCost:
             "inf1.xlarge": "inf1.medium",
             "inf1.2xlarge": "inf1.xlarge",
             "inf1.6xlarge": "inf1.2xlarge",
-            "inf1.24xlarge": "inf1.6xlarge"
+            "inf1.24xlarge": "inf1.6xlarge",
         }
-
 
         pricing_client = boto3.client(
             "pricing",
             aws_access_key_id=self.config.aws_access_key_id,
             aws_secret_access_key=self.config.aws_secret_access_key,
-            region_name=self.config.aws_region
+            region_name=self.config.aws_region,
         )
 
         instance_data = []
@@ -213,36 +219,57 @@ class LowerCost:
                         response = pricing_client.get_products(
                             ServiceCode="AmazonEC2",
                             Filters=[
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "instanceType", "Value": instance_type},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "location", "Value": location_name},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "operatingSystem", "Value": operating_system},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "tenancy", "Value": tenancy},
-
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "instanceType",
+                                    "Value": instance_type,
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "location",
+                                    "Value": location_name,
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "operatingSystem",
+                                    "Value": operating_system,
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "tenancy",
+                                    "Value": tenancy,
+                                },
                             ],
-                            MaxResults=1
+                            MaxResults=1,
                         )
 
-                        #get lower cost instance type
+                        # get lower cost instance type
                         lower_response = pricing_client.get_products(
                             ServiceCode="AmazonEC2",
                             Filters=[
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "instanceType", "Value": aws_instance_downgrade_map[instance_type]},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "location", "Value": location_name},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "operatingSystem", "Value": operating_system},
-                                {"Type": "TERM_MATCH", "Field": 
-                                 "tenancy", "Value": tenancy},
-
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "instanceType",
+                                    "Value": aws_instance_downgrade_map[instance_type],
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "location",
+                                    "Value": location_name,
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "operatingSystem",
+                                    "Value": operating_system,
+                                },
+                                {
+                                    "Type": "TERM_MATCH",
+                                    "Field": "tenancy",
+                                    "Value": tenancy,
+                                },
                             ],
-                            MaxResults=1
+                            MaxResults=1,
                         )
-
 
                         if not response["PriceList"]:
                             logger.error(
@@ -250,7 +277,9 @@ class LowerCost:
                             )
                             continue
 
-                        price_list = response["PriceList"][0]  # Just pick the first result to avoid multiple appends
+                        price_list = response["PriceList"][
+                            0
+                        ]  # Just pick the first result to avoid multiple appends
                         parsed_item = json.loads(price_list)
                         terms = parsed_item.get("terms", {})
 
@@ -261,32 +290,50 @@ class LowerCost:
                                 price_dimensions = term_data.get("priceDimensions", {})
                                 for dimension_data in price_dimensions.values():
                                     description = dimension_data.get("description")
-                                    price_per_unit = dimension_data["pricePerUnit"].get("USD")
+                                    price_per_unit = dimension_data["pricePerUnit"].get(
+                                        "USD"
+                                    )
                                     unit = dimension_data.get("unit")
 
-                                    #get lower cost data
+                                    # get lower cost data
                                     lower_price_list = lower_response["PriceList"][0]
                                     lower_parsed_item = json.loads(lower_price_list)
                                     lower_terms = lower_parsed_item.get("terms", {})
-                                    lower_on_demand_terms = lower_terms.get("OnDemand", {})
-                                    for lower_term_data in lower_on_demand_terms.values():
-                                        lower_price_dimensions = lower_term_data.get("priceDimensions", {})
-                                        for lower_dimension_data in lower_price_dimensions.values():
-                                            lower_description = lower_dimension_data.get("description")
-                                            lower_price_per_unit = lower_dimension_data["pricePerUnit"].get("USD")
-                                            lower_unit = lower_dimension_data.get("unit")
+                                    lower_on_demand_terms = lower_terms.get(
+                                        "OnDemand", {}
+                                    )
+                                    for (
+                                        lower_term_data
+                                    ) in lower_on_demand_terms.values():
+                                        lower_price_dimensions = lower_term_data.get(
+                                            "priceDimensions", {}
+                                        )
+                                        for (
+                                            lower_dimension_data
+                                        ) in lower_price_dimensions.values():
+                                            lower_description = (
+                                                lower_dimension_data.get("description")
+                                            )
+                                            lower_price_per_unit = lower_dimension_data[
+                                                "pricePerUnit"
+                                            ].get("USD")
+                                            lower_unit = lower_dimension_data.get(
+                                                "unit"
+                                            )
 
                                     orginal_instance = {
-                                        "instance": yaml.dump(instance, default_flow_style=False),
+                                        "instance": yaml.dump(
+                                            instance, default_flow_style=False
+                                        ),
                                         "description": description,
                                         "price_per_unit": price_per_unit,
-                                        "unit": unit
+                                        "unit": unit,
                                     }
 
                                     lower_instance = {
                                         "description": lower_description,
                                         "price_per_unit": lower_price_per_unit,
-                                        "unit": lower_unit
+                                        "unit": lower_unit,
                                     }
 
                                     # create a reable message for the user
@@ -297,11 +344,13 @@ class LowerCost:
                                         f"You can save money by using {aws_instance_downgrade_map[instance_type]} "
                                         f"which is priced at {lower_price_per_unit} per {lower_unit}."
                                     )
-                                    # check if price per unit and lower price per unit are 
+                                    # check if price per unit and lower price per unit are
                                     # "Hrs" and if so calculate the monthly savings
                                     if unit == "Hrs" and lower_unit == "Hrs":
-                                        #both price per unit and lower price per unit  are strin
-                                        price_diff = price_per_unit - lower_price_per_unit
+                                        # both price per unit and lower price per unit  are strin
+                                        price_diff = (
+                                            price_per_unit - lower_price_per_unit
+                                        )
                                         price_monthly = price_diff * 730
 
                                         message = (
@@ -314,11 +363,10 @@ class LowerCost:
                                     data = {
                                         "orginal_instance": orginal_instance,
                                         "lower_instance": lower_instance,
-                                        "message": message
+                                        "message": message,
                                     }
-               
-                                    instance_data.append(data)
 
+                                    instance_data.append(data)
 
                                     # Break after appending the first valid price
                                     break
@@ -326,14 +374,14 @@ class LowerCost:
                     except Exception as e:
                         logger.error(f"Failed to retrieve pricing data: {e}")
             try:
-                formatted_data =  [{
-                    "module_name": "ec2",
-                    "check_name": "lower_cost",
-                    "formatted": yaml.dump(instance_data, default_flow_style=False)
-                    }]
+                formatted_data = [
+                    {
+                        "module_name": "ec2",
+                        "check_name": "lower_cost",
+                        "formatted": yaml.dump(instance_data, default_flow_style=False),
+                    }
+                ]
                 return formatted_data
 
             except Exception as e:
                 logger.error(f"Error formatting instance details: {e}")
-                    
-                    

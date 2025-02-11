@@ -5,6 +5,7 @@ import pathlib
 
 # ruff: noqa: S101
 
+
 def test_idle_instances(rego_process):
     """Test for idle instances rego policy"""
     # Load rego policy
@@ -17,7 +18,10 @@ def test_idle_instances(rego_process):
     with open(test_data, "r") as file:
         data = json.load(file)
         if "ec2_snapshot_old_threshold" not in data:
-            data["ec2_snapshot_old_threshold"] = int((datetime.datetime.now() - datetime.timedelta(days=10)).timestamp() * 1e9)
+            data["ec2_snapshot_old_threshold"] = int(
+                (datetime.datetime.now() - datetime.timedelta(days=10)).timestamp()
+                * 1e9
+            )
             write = True
 
     # overwrite the file
@@ -28,9 +32,22 @@ def test_idle_instances(rego_process):
     rego_policy = os.path.join(current_dir, "ec2_old_snapshots.rego")
     rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
 
-    needed_keys = ["progress", "region", "snapshot_id", "start_time", "state", "tags", "volume_id"]
-    result = rego_process(rego_policy, rego_input, "aws_rego.ec2_checks.ec2_old_snapshots.ec2_old_snapshots", ["ec2_old_snapshots"])
+    needed_keys = [
+        "progress",
+        "region",
+        "snapshot_id",
+        "start_time",
+        "state",
+        "tags",
+        "volume_id",
+    ]
+    result = rego_process(
+        rego_policy,
+        rego_input,
+        "aws_rego.ec2_checks.ec2_old_snapshots.ec2_old_snapshots",
+        ["ec2_old_snapshots"],
+    )
 
     for x in result["ec2_old_snapshots"]:
         for key in needed_keys:
-            assert key in x, f"Key {key} not found in {x}"  
+            assert key in x, f"Key {key} not found in {x}"

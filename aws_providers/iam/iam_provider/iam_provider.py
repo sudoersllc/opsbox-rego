@@ -20,9 +20,20 @@ class IAMProvider:
         class IAMConfig(BaseModel):
             """Configuration for the AWS IAM plugin."""
 
-            aws_access_key_id: Annotated[str, Field(description="AWS access key ID", required=False,default=None)]
-            aws_secret_access_key: Annotated[str, Field(description="AWS secret access key", required=False,default=None)]
-            aws_region: Annotated[str | None, Field(description="AWS region", required=False, default=None)]
+            aws_access_key_id: Annotated[
+                str,
+                Field(description="AWS access key ID", required=False, default=None),
+            ]
+            aws_secret_access_key: Annotated[
+                str,
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
+            ]
+            aws_region: Annotated[
+                str | None,
+                Field(description="AWS region", required=False, default=None),
+            ]
 
         return IAMConfig
 
@@ -46,7 +57,7 @@ class IAMProvider:
 
         # Use the specified region or default to "us-west-1"
         region = credentials["aws_region"] or "us-west-1"
-        
+
         if credentials["aws_access_key_id"] is None:
             # Use the instance profile credentials
             iam_client = boto3.client("iam", region_name=region)
@@ -67,7 +78,6 @@ class IAMProvider:
                     formatted="Error creating IAM client.",
                     details={},
                 )
-                
 
         # Prepare structured data containers
         iam_users = []
@@ -81,40 +91,62 @@ class IAMProvider:
             for page in paginator.paginate():
                 # Collect IAM users
                 for user in page.get("UserDetailList", []):
-                    iam_users.append({
-                        "user_name": user["UserName"],
-                        "user_id": user.get("UserId"),
-                        "arn": user.get("Arn"),
-                        "create_date": user.get("CreateDate", "").isoformat() if user.get("CreateDate") else None,
-                        "attached_policies": user.get("AttachedManagedPolicies", []),
-                    })
+                    iam_users.append(
+                        {
+                            "user_name": user["UserName"],
+                            "user_id": user.get("UserId"),
+                            "arn": user.get("Arn"),
+                            "create_date": user.get("CreateDate", "").isoformat()
+                            if user.get("CreateDate")
+                            else None,
+                            "attached_policies": user.get(
+                                "AttachedManagedPolicies", []
+                            ),
+                        }
+                    )
 
                 # Collect IAM roles
                 for role in page.get("RoleDetailList", []):
-                    iam_roles.append({
-                        "role_name": role["RoleName"],
-                        "role_id": role.get("RoleId"),
-                        "arn": role.get("Arn"),
-                        "create_date": role.get("CreateDate", "").isoformat() if role.get("CreateDate") else None,
-                        "attached_policies": role.get("AttachedManagedPolicies", []),
-                    })
+                    iam_roles.append(
+                        {
+                            "role_name": role["RoleName"],
+                            "role_id": role.get("RoleId"),
+                            "arn": role.get("Arn"),
+                            "create_date": role.get("CreateDate", "").isoformat()
+                            if role.get("CreateDate")
+                            else None,
+                            "attached_policies": role.get(
+                                "AttachedManagedPolicies", []
+                            ),
+                        }
+                    )
 
                 # Collect IAM policies
                 for policy in page.get("Policies", []):
-                    iam_policies.append({
-                        "policy_name": policy["PolicyName"],
-                        "policy_id": policy.get("PolicyId"),
-                        "arn": policy.get("Arn"),
-                        "attachment_count": policy.get("AttachmentCount"),
-                        "create_date": policy.get("CreateDate", "").isoformat() if policy.get("CreateDate") else None,
-                    })
+                    iam_policies.append(
+                        {
+                            "policy_name": policy["PolicyName"],
+                            "policy_id": policy.get("PolicyId"),
+                            "arn": policy.get("Arn"),
+                            "attachment_count": policy.get("AttachmentCount"),
+                            "create_date": policy.get("CreateDate", "").isoformat()
+                            if policy.get("CreateDate")
+                            else None,
+                        }
+                    )
 
             # Get credential report
             logger.info("Fetching credential report...")
             report_response = iam_client.get_credential_report()
             credential_report_csv = report_response["Content"].decode("utf-8")
             credential_report = [
-                {key: value for key, value in zip(credential_report_csv.splitlines()[0].split(","), line.split(","))}
+                {
+                    key: value
+                    for key, value in zip(
+                        credential_report_csv.splitlines()[0].split(","),
+                        line.split(","),
+                    )
+                }
                 for line in credential_report_csv.splitlines()[1:]
             ]
 
@@ -127,14 +159,14 @@ class IAMProvider:
         # Structure the final output
         rego_ready_data = {
             "input": {
-            "iam_users": iam_users,
-            "iam_roles": iam_roles,
-            "iam_policies": iam_policies,
-            "credential_report": credential_report_data,
+                "iam_users": iam_users,
+                "iam_roles": iam_roles,
+                "iam_policies": iam_policies,
+                "credential_report": credential_report_data,
             }
         }
 
-        #export iam data to json file
+        # export iam data to json file
         with open("iam_data.json", "w") as f:
             json.dump(rego_ready_data, f)
         logger.success("IAM data successfully gathered and structured.")

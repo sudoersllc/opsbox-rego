@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 from loguru import logger
 
 
-
 # Define a hookimpl (implementation of the contract)
 hookspec = HookspecMarker("opsbox")
 
@@ -67,7 +66,9 @@ class GeneralHandler:
         return AssistantSpec, OutputSpec, ProviderSpec, InputSpec
 
     @hookimpl
-    def process_plugin(self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry") -> Any:
+    def process_plugin(
+        self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry"
+    ) -> Any:
         """Process the plugin."""
         logger.debug(f"GeneralHandler processing plugin {plugin.name}")
         if plugin.type == "input":

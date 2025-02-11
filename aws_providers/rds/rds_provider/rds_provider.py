@@ -30,10 +30,19 @@ class RDSProvider:
         class RDSConfig(BaseModel):
             """Configuration for the AWS RDS plugin."""
 
-            aws_access_key_id: Annotated[str,Field(description="AWS access key ID", required=False, default=None)]
-            aws_secret_access_key: Annotated[str,Field(description="AWS secret access key", required=False, default=None)]
+            aws_access_key_id: Annotated[
+                str,
+                Field(description="AWS access key ID", required=False, default=None),
+            ]
+            aws_secret_access_key: Annotated[
+                str,
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
+            ]
             aws_region: Annotated[
-                str | None, Field(description="AWS-Region", required=False, default=None)
+                str | None,
+                Field(description="AWS-Region", required=False, default=None),
             ]
 
         return RDSConfig
@@ -99,7 +108,9 @@ class RDSProvider:
                         {
                             "SnapshotIdentifier": snapshot["DBSnapshotIdentifier"],
                             "InstanceIdentifier": snapshot["DBInstanceIdentifier"],
-                            "SnapshotCreateTime": snapshot["SnapshotCreateTime"].isoformat(),
+                            "SnapshotCreateTime": snapshot[
+                                "SnapshotCreateTime"
+                            ].isoformat(),
                             "AllocatedStorage": snapshot["AllocatedStorage"],
                             "StorageType": snapshot["StorageType"],
                         }
@@ -107,7 +118,11 @@ class RDSProvider:
             return snapshots
 
         def get_cloudwatch_metric(
-            instance_id: str, metric_name: str, statistic: str, period: int, cloudwatch_client: boto3.client
+            instance_id: str,
+            metric_name: str,
+            statistic: str,
+            period: int,
+            cloudwatch_client: boto3.client,
         ):
             """Retrieve CloudWatch metrics for a given instance."""
             end_time = datetime.now()
@@ -124,7 +139,11 @@ class RDSProvider:
             )
 
             datapoints = response["Datapoints"]
-            return sum(datapoint[statistic] for datapoint in datapoints) / len(datapoints) if datapoints else 0
+            return (
+                sum(datapoint[statistic] for datapoint in datapoints) / len(datapoints)
+                if datapoints
+                else 0
+            )
 
         def get_storage_utilization(instance_id, cloudwatch_client, allocated_storage):
             """Calculate the storage utilization for a given instance."""
@@ -137,12 +156,7 @@ class RDSProvider:
 
         # Initialize boto3 clients for RDS and CloudWatch
 
-
-
-
         def process_region(region):
-
-
             if self.credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 rds_client = boto3.client("rds", region_name=region)
@@ -163,9 +177,7 @@ class RDSProvider:
                 )
             instances = get_rds_instances(rds_client)
             snapshots.append(get_rds_snapshots(rds_client))
-        # Retrieve RDS instances
-
-            
+            # Retrieve RDS instances
 
             # Use a ThreadPoolExecutor to gather metrics concurrently
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -207,8 +219,6 @@ class RDSProvider:
                     instance["StorageUtilization"] = futures[i * 3 + 2].result()
                     instance_data.append(instance)
 
-
-
         credentials = self.credentials
 
         if credentials["aws_region"] is None:
@@ -216,11 +226,14 @@ class RDSProvider:
 
             # Use the specified region or default to "us-west-1"
             region = credentials["aws_region"] or "us-west-1"
-            
+
             if credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 region_client = boto3.client("ec2", region_name=region)
-                regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+                regions = [
+                    region["RegionName"]
+                    for region in region_client.describe_regions()["Regions"]
+                ]
             else:
                 try:
                     region_client = boto3.client(
@@ -229,7 +242,10 @@ class RDSProvider:
                         aws_secret_access_key=credentials["aws_secret_access_key"],
                         region_name=region,
                     )
-                    regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+                    regions = [
+                        region["RegionName"]
+                        for region in region_client.describe_regions()["Regions"]
+                    ]
 
                 except Exception as e:
                     logger.error(f"Error creating IAM client: {e}")
@@ -248,7 +264,6 @@ class RDSProvider:
         instance_data = []  # List to store instances
         snapshots = []  # List to store snapshots
 
-
         for region in regions:
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
@@ -257,7 +272,6 @@ class RDSProvider:
         # Wait for all threads to complete
         for region_thread in region_threads:
             region_thread.join()
-
 
         rego_ready_data = {
             "input": {
@@ -273,5 +287,8 @@ class RDSProvider:
             details=rego_ready_data,
             formatted="",
         )
-        logger.success("Successfully gathered data for RDS instances.", extra = {"output_data": rego_ready_data})
+        logger.success(
+            "Successfully gathered data for RDS instances.",
+            extra={"output_data": rego_ready_data},
+        )
         return item

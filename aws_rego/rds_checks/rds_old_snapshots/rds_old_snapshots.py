@@ -19,6 +19,7 @@ class RDSOldSnapshotsConfig(BaseModel):
         ),
     ]
 
+
 class RDSOldSnapshots:
     """Plugin for identifying old RDS instances."""
 

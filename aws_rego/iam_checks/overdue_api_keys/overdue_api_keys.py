@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+
 class OverdueAPIKeysConfig(BaseModel):
     iam_overdue_key_date_threshold: Annotated[
         datetime,
@@ -17,6 +18,7 @@ class OverdueAPIKeysConfig(BaseModel):
             description="How long ago a key was last used for it to be considered overdue. Default is 90 days.",
         ),
     ]
+
 
 class OverdueAPIKeysIAM:
     """Plugin for identifying IAM keys that are overdue for rotation."""
@@ -58,10 +60,9 @@ class OverdueAPIKeysIAM:
         """
         details = data.details
 
-
         # Directly get unused policies from the Rego result
         unused_policies = details.get("overdue_api_keys", [])
-        
+
         # Format the unused policies list into YAML for better readability
         try:
             unused_policies_yaml = yaml.dump(unused_policies, default_flow_style=False)
@@ -74,7 +75,7 @@ class OverdueAPIKeysIAM:
         
 {unused_policies}"""
         logger.info(unused_policies_yaml)
-        
+
         # Generate the result with formatted output
         if unused_policies:
             return Result(

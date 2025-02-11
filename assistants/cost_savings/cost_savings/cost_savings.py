@@ -67,9 +67,13 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
         class cost_savingsConfig(BaseModel):
             """Configuration for the AWS Cloudwatch Metrics plugin."""
 
-            arrigator: bool = Field(..., description="Whether to aggregate the data and generate one response.")
+            arrigator: bool = Field(
+                ...,
+                description="Whether to aggregate the data and generate one response.",
+            )
             discard_prior: bool = Field(
-                False, description="Whether to discard the data before and leave only cost saving data."
+                False,
+                description="Whether to discard the data before and leave only cost saving data.",
             )
 
         return cost_savingsConfig
@@ -95,14 +99,18 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
             appconfig = AppConfig()
             if appconfig.embed_model is not None:
                 if credentials["arrigator"]:  # for aggregation
-                    logger.trace("Generating recommendations for all items with vector index")
+                    logger.trace(
+                        "Generating recommendations for all items with vector index"
+                    )
                     # Combine the text of all documents into one
                     divider = "\n-------------------\n"  # This is your divider line, customize as needed
                     combined_text = divider.join([item.formatted for item in data])
                     combined_doc = Document(text=combined_text)
 
                     # Create an index with this single combined document
-                    index = VectorStoreIndex.from_documents([combined_doc], embed_model=appconfig.embed_model)
+                    index = VectorStoreIndex.from_documents(
+                        [combined_doc], embed_model=appconfig.embed_model
+                    )
                     query_engine = index.as_query_engine(llm=appconfig.llm)
 
                     # Perform a single query across the combined document
@@ -135,9 +143,13 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
                 else:
                     transformed_recs = []
                     for item in data:
-                        logger.trace(f"Generating recommendations for {item.result_name} with vector index")
+                        logger.trace(
+                            f"Generating recommendations for {item.result_name} with vector index"
+                        )
                         doc = Document(text=item.formatted)
-                        index = VectorStoreIndex.from_documents([doc], embed_model=appconfig.embed_model)
+                        index = VectorStoreIndex.from_documents(
+                            [doc], embed_model=appconfig.embed_model
+                        )
                         query_engine = index.as_query_engine(llm=appconfig.llm)
                         response = query_engine.query(self.query)
                         item.formatted = str(response)
@@ -147,7 +159,9 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
 
             else:  # no vector index
                 if credentials["arrigator"]:
-                    logger.trace("Generating recommendations for all items without vector index")
+                    logger.trace(
+                        "Generating recommendations for all items without vector index"
+                    )
                     # Combine the text of all documents into one
                     divider = "\n-------------------\n"
                     combined_text = divider.join([item.formatted for item in data])
@@ -179,7 +193,9 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
                 else:
                     result_list = []
                     for item in data:
-                        logger.trace(f"Generating recommendations for {item.result_name} without vector index")
+                        logger.trace(
+                            f"Generating recommendations for {item.result_name} without vector index"
+                        )
                         response = appconfig.llm.complete(item.formatted + self.query)
                         result = Result(
                             relates_to=f"cost_savings_{item.result_name}",
