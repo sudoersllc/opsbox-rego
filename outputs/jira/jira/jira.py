@@ -84,18 +84,12 @@ class JiraOutput:
         class JiraConfig(BaseModel):
             """Configuration for the Jira output."""
 
-            JIRA_USERNAME: Annotated[str, Field(description="The URL of the Jira instance.", required=True)]
-            JIRA_EMAIL: Annotated[str, Field(description="The email to authenticate to Jira with.", required=True)]
+            JIRA_USERNAME: Annotated[str, Field(description="The URL of the Jira instance.")]
+            JIRA_EMAIL: Annotated[str, Field(description="The email to authenticate to Jira with.")]
             JIRA_API_TOKEN: Annotated[
-                str, Field(description="The api key to authenticate to Jira with.", required=True)
+                str, Field(description="The api key to authenticate to Jira with.")
             ]
-            JIRA_PROJECT_KEY: Annotated[str, Field(description="The Jira project to create issues in.", required=True)]
-            # jira_ticket_assistant: Annotated[
-            #     str, Field(description="The open assistant to use to generate Jira tickets.", required=True)
-            # ]
-            # jira_ticket_vector_store_id: Annotated[
-            #     str, Field(description="The vector store ID to use for the Jira ticket assistant.", required=True)
-            # ]
+            JIRA_PROJECT_KEY: Annotated[str, Field(description="The Jira project to create issues in.")]
             pass
 
         return JiraConfig
@@ -203,7 +197,8 @@ Given the findings below, create a solutions plan for Jira:
                 verbose=True,
                 llm=AppConfig().llm,
             )
-            llm_response = program(document=str(text=data.formatted))
+            llm_response = program(document=str(data.formatted))
+            return llm_response
         else:
             docs: Document = []
             docs.append(Document(text=data.formatted, id=data.result_name))
