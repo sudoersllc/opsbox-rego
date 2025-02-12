@@ -34,14 +34,12 @@ class S3Provider:
 
             aws_access_key_id: Annotated[
                 str,
-                Field(
-                    ..., description="AWS access key ID", required=False, default=None
+                Field(description="AWS access key ID", required=False, default=None
                 ),
             ]
             aws_secret_access_key: Annotated[
                 str,
                 Field(
-                    ...,
                     description="AWS secret access key",
                     required=False,
                     default=None,
