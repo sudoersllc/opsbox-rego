@@ -24,20 +24,25 @@ class RDSProvider:
     @hookimpl
     def grab_config(self):
         """Return the plugin's configuration."""
+
         class RDSConfig(BaseModel):
             """Configuration for the AWS RDS plugin."""
+
             aws_access_key_id: Annotated[
                 str,
                 Field(description="AWS access key ID", required=False, default=None),
             ]
             aws_secret_access_key: Annotated[
                 str,
-                Field(description="AWS secret access key", required=False, default=None),
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
             ]
             aws_region: Annotated[
                 str | None,
                 Field(description="AWS-Region", required=False, default=None),
             ]
+
         return RDSConfig
 
     @hookimpl
@@ -87,14 +92,22 @@ class RDSProvider:
                         {
                             "SnapshotIdentifier": snapshot["DBSnapshotIdentifier"],
                             "InstanceIdentifier": snapshot["DBInstanceIdentifier"],
-                            "SnapshotCreateTime": snapshot["SnapshotCreateTime"].isoformat(),
+                            "SnapshotCreateTime": snapshot[
+                                "SnapshotCreateTime"
+                            ].isoformat(),
                             "AllocatedStorage": snapshot["AllocatedStorage"],
                             "StorageType": snapshot["StorageType"],
                         }
                     )
             return snapshots
 
-        def get_cloudwatch_metric(instance_id: str, metric_name: str, statistic: str, period: int, cloudwatch_client: boto3.client):
+        def get_cloudwatch_metric(
+            instance_id: str,
+            metric_name: str,
+            statistic: str,
+            period: int,
+            cloudwatch_client: boto3.client,
+        ):
             """Retrieve CloudWatch metrics for a given instance."""
             end_time = datetime.now()
             start_time = end_time - timedelta(days=7)
@@ -117,14 +130,16 @@ class RDSProvider:
 
         def get_storage_utilization(instance_id, cloudwatch_client, allocated_storage):
             """Calculate the storage utilization for a given instance."""
-            avg_free_storage = get_cloudwatch_metric(instance_id, "FreeStorageSpace", "Average", 86400, cloudwatch_client)
+            avg_free_storage = get_cloudwatch_metric(
+                instance_id, "FreeStorageSpace", "Average", 86400, cloudwatch_client
+            )
             avg_free_storage_gb = avg_free_storage / (1024**3)  # Convert bytes to GB
             used_storage_gb = allocated_storage - avg_free_storage_gb
             return round((used_storage_gb / allocated_storage) * 100)
 
         # Shared data structures and a lock for thread safety.
         instance_data = []  # List to store instance details across regions.
-        snapshots = []      # List to store snapshots across regions.
+        snapshots = []  # List to store snapshots across regions.
         data_lock = threading.Lock()
 
         credentials = self.credentials
@@ -138,7 +153,10 @@ class RDSProvider:
             if credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 region_client = boto3.client("ec2", region_name=region)
-                regions = [region_info["RegionName"] for region_info in region_client.describe_regions()["Regions"]]
+                regions = [
+                    region_info["RegionName"]
+                    for region_info in region_client.describe_regions()["Regions"]
+                ]
             else:
                 try:
                     region_client = boto3.client(
@@ -147,7 +165,10 @@ class RDSProvider:
                         aws_secret_access_key=credentials["aws_secret_access_key"],
                         region_name=region,
                     )
-                    regions = [region_info["RegionName"] for region_info in region_client.describe_regions()["Regions"]]
+                    regions = [
+                        region_info["RegionName"]
+                        for region_info in region_client.describe_regions()["Regions"]
+                    ]
                 except Exception as e:
                     logger.error(f"Error creating IAM client: {e}")
                     return Result(

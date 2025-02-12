@@ -92,13 +92,16 @@ class EC2Provider:
                 instance_tags (str, optional): Key-value tag pairs for instances. Defaults to None.
                 eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
             """
+
             aws_access_key_id: Annotated[
                 str,
                 Field(description="AWS access key ID", required=False, default=None),
             ]
             aws_secret_access_key: Annotated[
                 str,
-                Field(description="AWS secret access key", required=False, default=None),
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
             ]
             aws_region: Annotated[
                 str | None,
@@ -227,16 +230,20 @@ class EC2Provider:
                     volume_filters.append({"Name": f"tag:{key}", "Values": [value]})
             for page in paginator.paginate(Filters=volume_filters):
                 for volume in page["Volumes"]:
-                    vol_tags = {tag["Key"]: tag["Value"] for tag in volume.get("Tags", [])}
+                    vol_tags = {
+                        tag["Key"]: tag["Value"] for tag in volume.get("Tags", [])
+                    }
                     with data_lock:
-                        all_volumes.append({
-                            "volume_id": volume["VolumeId"],
-                            "state": volume["State"],
-                            "size": volume["Size"],
-                            "create_time": volume["CreateTime"].isoformat(),
-                            "region": region,
-                            "tags": vol_tags,
-                        })
+                        all_volumes.append(
+                            {
+                                "volume_id": volume["VolumeId"],
+                                "state": volume["State"],
+                                "size": volume["Size"],
+                                "create_time": volume["CreateTime"].isoformat(),
+                                "region": region,
+                                "tags": vol_tags,
+                            }
+                        )
 
             # Create instance filters if tags are provided
             instance_filters = []
@@ -260,7 +267,9 @@ class EC2Provider:
                     virtualization_type = instance.get("VirtualizationType", "hvm")
                     ebs_optimized = instance.get("EbsOptimized", False)
                     processor = instance.get("ProcessorInfo", "Unknown")
-                    inst_tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
+                    inst_tags = {
+                        tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])
+                    }
 
                     # Get CPU utilization for the last 7 days
                     end_time = datetime.utcnow()
@@ -281,22 +290,26 @@ class EC2Provider:
                         Statistics=["Average"],
                     )
                     avg_cpu_utilization = (
-                        sum(dp["Average"] for dp in response["Datapoints"]) / len(response["Datapoints"])
-                        if response["Datapoints"] else 0.0
+                        sum(dp["Average"] for dp in response["Datapoints"])
+                        / len(response["Datapoints"])
+                        if response["Datapoints"]
+                        else 0.0
                     )
                     with data_lock:
-                        all_instances.append({
-                            "instance_id": instance_id,
-                            "state": state,
-                            "avg_cpu_utilization": avg_cpu_utilization,
-                            "region": region,
-                            "instance_type": instance_type,
-                            "tenancy": tenancy,
-                            "virtualization_type": virtualization_type,
-                            "ebs_optimized": ebs_optimized,
-                            "processor": processor,
-                            "tags": inst_tags,
-                        })
+                        all_instances.append(
+                            {
+                                "instance_id": instance_id,
+                                "state": state,
+                                "avg_cpu_utilization": avg_cpu_utilization,
+                                "region": region,
+                                "instance_type": instance_type,
+                                "tenancy": tenancy,
+                                "virtualization_type": virtualization_type,
+                                "ebs_optimized": ebs_optimized,
+                                "processor": processor,
+                                "tags": inst_tags,
+                            }
+                        )
 
             # Gather Elastic IPs
             eip_filters = []
@@ -310,12 +323,14 @@ class EC2Provider:
 
             for eip in eips:
                 with data_lock:
-                    all_eips.append({
-                        "public_ip": eip["PublicIp"],
-                        "association_id": eip.get("AssociationId", ""),
-                        "domain": eip["Domain"],
-                        "region": region,
-                    })
+                    all_eips.append(
+                        {
+                            "public_ip": eip["PublicIp"],
+                            "association_id": eip.get("AssociationId", ""),
+                            "domain": eip["Domain"],
+                            "region": region,
+                        }
+                    )
 
             # Gather snapshots
             snapshot_filters = []
@@ -326,17 +341,21 @@ class EC2Provider:
             paginator = regional_ec2.get_paginator("describe_snapshots")
             for page in paginator.paginate(OwnerIds=["self"], Filters=snapshot_filters):
                 for snapshot in page["Snapshots"]:
-                    snap_tags = {tag["Key"]: tag["Value"] for tag in snapshot.get("Tags", [])}
+                    snap_tags = {
+                        tag["Key"]: tag["Value"] for tag in snapshot.get("Tags", [])
+                    }
                     with data_lock:
-                        all_snapshots.append({
-                            "snapshot_id": snapshot["SnapshotId"],
-                            "volume_id": snapshot["VolumeId"],
-                            "state": snapshot["State"],
-                            "start_time": snapshot["StartTime"].isoformat(),
-                            "progress": snapshot.get("Progress", "0%"),
-                            "region": region,
-                            "tags": snap_tags,
-                        })
+                        all_snapshots.append(
+                            {
+                                "snapshot_id": snapshot["SnapshotId"],
+                                "volume_id": snapshot["VolumeId"],
+                                "state": snapshot["State"],
+                                "start_time": snapshot["StartTime"].isoformat(),
+                                "progress": snapshot.get("Progress", "0%"),
+                                "region": region,
+                                "tags": snap_tags,
+                            }
+                        )
 
         # Start threads for each region
         for region in regions:

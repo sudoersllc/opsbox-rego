@@ -1,4 +1,4 @@
-from pluggy import HookimplMarker 
+from pluggy import HookimplMarker
 from pydantic import BaseModel, Field
 import boto3
 from loguru import logger
@@ -16,20 +16,25 @@ class Route53Provider:
     @hookimpl
     def grab_config(self):
         """Return the plugin's configuration."""
+
         class Route53Config(BaseModel):
             """Configuration for the AWS Route 53 plugin."""
+
             aws_access_key_id: Annotated[
                 str,
                 Field(description="AWS access key ID", required=False, default=None),
             ]
             aws_secret_access_key: Annotated[
                 str,
-                Field(description="AWS secret access key", required=False, default=None),
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
             ]
             aws_region: Annotated[
                 str | None,
                 Field(description="AWS region", required=False, default=None),
             ]
+
         return Route53Config
 
     @hookimpl
@@ -106,7 +111,9 @@ class Route53Provider:
                                 "id": zone["Id"],
                                 "name": zone["Name"],
                                 "record_count": zone["ResourceRecordSetCount"],
-                                "private_zone": zone["Config"].get("PrivateZone", False),
+                                "private_zone": zone["Config"].get(
+                                    "PrivateZone", False
+                                ),
                             }
                         )
 
@@ -137,10 +144,16 @@ class Route53Provider:
                             {
                                 "id": check["Id"],
                                 "type": check["HealthCheckConfig"]["Type"],
-                                "ip_address": check["HealthCheckConfig"].get("IPAddress", ""),
+                                "ip_address": check["HealthCheckConfig"].get(
+                                    "IPAddress", ""
+                                ),
                                 "port": check["HealthCheckConfig"].get("Port", None),
-                                "resource_path": check["HealthCheckConfig"].get("ResourcePath", ""),
-                                "failure_threshold": check["HealthCheckConfig"].get("FailureThreshold", 3),
+                                "resource_path": check["HealthCheckConfig"].get(
+                                    "ResourcePath", ""
+                                ),
+                                "failure_threshold": check["HealthCheckConfig"].get(
+                                    "FailureThreshold", 3
+                                ),
                             }
                         )
 
