@@ -28,7 +28,9 @@ class InactiveLoadBalancers:
 {load_balancers}"""
 
             # Format the output using the yaml dump for better display
-            formatted_load_balancers = yaml.dump(inactive_load_balancers, default_flow_style=False)
+            formatted_load_balancers = yaml.dump(
+                inactive_load_balancers, default_flow_style=False
+            )
 
             # Create the result item with the formatted data
             item = Result(
@@ -36,7 +38,7 @@ class InactiveLoadBalancers:
                 result_name="inactive_load_balancers",
                 result_description="Inactive Load Balancers",
                 details=data.details,
-                formatted=template.format(load_balancers=formatted_load_balancers)
+                formatted=template.format(load_balancers=formatted_load_balancers),
             )
 
             return item
@@ -46,6 +48,5 @@ class InactiveLoadBalancers:
                 result_name="inactive_load_balancers",
                 result_description="Inactive Load Balancers",
                 details=data.details,
-                formatted="No inactive ELBs found."
+                formatted="No inactive ELBs found.",
             )
- 
