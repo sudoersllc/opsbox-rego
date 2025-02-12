@@ -63,11 +63,19 @@ class GithubOutput:
                 gist_data = {
                     "description": f"Gist for {result.result_name}",
                     "public": True,
-                    "files": {f"{result.result_name}.txt": {"content": result.formatted}},
+                    "files": {
+                        f"{result.result_name}.txt": {"content": result.formatted}
+                    },
                 }
 
                 gist_response = requests.post(
-                    "https://api.github.com/gists", headers={"Authorization": f"token {self.model.github_token}", "Accept": "application/vnd.github.v3+json"}, json=gist_data, timeout=15
+                    "https://api.github.com/gists",
+                    headers={
+                        "Authorization": f"token {self.model.github_token}",
+                        "Accept": "application/vnd.github.v3+json",
+                    },
+                    json=gist_data,
+                    timeout=15,
                 )
 
                 if gist_response.status_code == 201:
@@ -114,9 +122,13 @@ class GithubOutput:
                         body = llm_response.choices[0].text
                     else:
                         docs: Document = []
-                        docs.append(Document(text=result.formatted, id=result.result_name))
+                        docs.append(
+                            Document(text=result.formatted, id=result.result_name)
+                        )
 
-                        index = VectorStoreIndex.from_documents(docs, embed_model=appconfig.embed_model)
+                        index = VectorStoreIndex.from_documents(
+                            docs, embed_model=appconfig.embed_model
+                        )
 
                         # Query the index for detailed GitHub issue descriptions
                         github_query: str = """
@@ -143,7 +155,9 @@ class GithubOutput:
                     **Output:**
                     - Provide a singular GitHub issue, each with a clear detailed description, to enable the development team to start working on the cost-saving initiatives effectively.
                     """  # noqa: E501
-                        logger.info("Querying the vector store index to create GitHub issue descriptions...")
+                        logger.info(
+                            "Querying the vector store index to create GitHub issue descriptions..."
+                        )
                         query_engine = index.as_query_engine(llm=appconfig.llm)
                         response = query_engine.query(github_query)
                         body = str(response)
@@ -153,9 +167,14 @@ class GithubOutput:
 
                     # Include the Gist URL in the issue body
 
-                issue_labels = self.model.labels.split(",") if self.model.labels else None
+                issue_labels = (
+                    self.model.labels.split(",") if self.model.labels else None
+                )
                 url = f"https://api.github.com/repos/{self.model.repo_owner}/{self.model.repo_name}/issues"
-                headers = {"Authorization": f"token {self.model.github_token}", "Accept": "application/vnd.github.v3+json"}
+                headers = {
+                    "Authorization": f"token {self.model.github_token}",
+                    "Accept": "application/vnd.github.v3+json",
+                }
                 # Get today's date for the title
                 data = {
                     "title": f'OpsBox Optimization Check - {pd.Timestamp.now().strftime("%Y-%m-%d")} - {getattr(result, "result_name", "Unnamed")}',
@@ -164,7 +183,9 @@ class GithubOutput:
                 }
                 response = requests.post(url, headers=headers, json=data, timeout=15)
                 if response.status_code == 201:
-                    logger.success(f'Successfully created issue: {response.json()["html_url"]}')
+                    logger.success(
+                        f"Successfully created issue: {response.json()['html_url']}"
+                    )
                 else:
                     logger.error(f"Failed to create issue: {response.status_code}")
                     logger.error(response.json())

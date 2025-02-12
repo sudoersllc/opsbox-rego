@@ -11,6 +11,7 @@ import json
 # Define a hook implementation marker for the "opsbox" plugin system
 hookimpl = HookimplMarker("opsbox")
 
+
 def tag_string_to_dict(tag_string):
     """Converts a string of key-value pairs to a dictionary."""
     if isinstance(tag_string, str):
@@ -22,9 +23,10 @@ def tag_string_to_dict(tag_string):
             # Handle the error or raise an exception
             raise ValueError("Tags provided are not in a valid JSON format.")
 
+
 def find_aws_credentials() -> tuple[str, str] | None:
     """Find AWS credentials in the default AWS configuration file.
-    
+
     Returns:
         tuple[str, str] | None: A tuple containing the AWS access key and secret access key, or None if not
             found.
@@ -41,9 +43,10 @@ def find_aws_credentials() -> tuple[str, str] | None:
         logger.debug("Default AWS credentials not found.")
         return None
 
+
 def find_default_region() -> str | None:
     """Find the default region in the default AWS configuration file.
-    
+
     Returns:
         str | None: The default region, or None if not found.
     """
@@ -55,7 +58,8 @@ def find_default_region() -> str | None:
     except Exception as _:
         logger.debug("Default AWS region not found.")
         return None
-    
+
+
 class EC2Provider:
     """Plugin for gathering data related to AWS EC2 instances, volumes, and Elastic IPs.
 
@@ -63,6 +67,7 @@ class EC2Provider:
         ec2 (boto3.client): The boto3 client for EC2.
         credentials (dict): A dictionary containing AWS access key, secret access key, and region.
     """
+
     @hookimpl
     def grab_config(self):
         """Define and return the configuration model for the EC2 provider.
@@ -90,21 +95,46 @@ class EC2Provider:
                 eip_tags (str, optional): Key-value tag pairs for Elastic IPs. Defaults to None.
             """
 
-            aws_access_key_id: Annotated[str, Field(description="AWS access key ID", required=False, default=None)]
-            aws_secret_access_key: Annotated[str, Field(description="AWS secret access key", required=False, default=None)]
-            aws_region: Annotated[str |  None, Field(description="AWS region", required=False,default=region)]
+            aws_access_key_id: Annotated[
+                str,
+                Field(description="AWS access key ID", required=False, default=None),
+            ]
+            aws_secret_access_key: Annotated[
+                str,
+                Field(
+                    description="AWS secret access key", required=False, default=None
+                ),
+            ]
+            aws_region: Annotated[
+                str | None,
+                Field(description="AWS region", required=False, default=region),
+            ]
             volume_tags: Annotated[
-                str | None, Field(description="Key-value tag pairs for volumes", required=False, default=None)
+                str | None,
+                Field(
+                    description="Key-value tag pairs for volumes",
+                    required=False,
+                    default=None,
+                ),
             ]
             instance_tags: Annotated[
-                str | None, Field(description="Key-value tag pairs for instances", required=False, default=None)
+                str | None,
+                Field(
+                    description="Key-value tag pairs for instances",
+                    required=False,
+                    default=None,
+                ),
             ]
             eip_tags: Annotated[
-                str | None, Field(description="Key-value tag pairs for Elastic IPs", required=False, default=None)
+                str | None,
+                Field(
+                    description="Key-value tag pairs for Elastic IPs",
+                    required=False,
+                    default=None,
+                ),
             ]
 
         return EC2Config
-                
 
     @hookimpl
     def activate(self) -> None:
@@ -128,17 +158,18 @@ class EC2Provider:
         Returns:
             Result: A formatted result containing the gathered data.
         """
-        logger.info("Gathering data for AWS EC2 instances, volumes, snapshots, and Elastic IPs...")
+        logger.info(
+            "Gathering data for AWS EC2 instances, volumes, snapshots, and Elastic IPs..."
+        )
         credentials = self.credentials
 
-        
         if credentials["aws_region"] is None:
             logger.info("Gathering data for IAM...")
             credentials = self.credentials
 
             # Use the specified region or default to "us-west-1"
             region = credentials["aws_region"] or "us-west-1"
-            
+
             if credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 region_client = boto3.client("ec2", region_name=region)
@@ -150,7 +181,10 @@ class EC2Provider:
                         aws_secret_access_key=credentials["aws_secret_access_key"],
                         region_name=region,
                     )
-                    regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+                    regions = [
+                        region["RegionName"]
+                        for region in region_client.describe_regions()["Regions"]
+                    ]
 
                 except Exception as e:
                     logger.error(f"Error creating IAM client: {e}")
@@ -190,7 +224,6 @@ class EC2Provider:
                 )
             logger.debug(f"Gathering data for region {region}...")
 
-
             # Gather volumes
             paginator = regional_ec2.get_paginator("describe_volumes")
             volume_filters = [{"Name": "status", "Values": ["available"]}]
@@ -220,7 +253,11 @@ class EC2Provider:
                     instance_filters.append({"Name": f"tag:{key}", "Values": [value]})
 
             # Gather instances
-            instances = regional_ec2.describe_instances(Filters=instance_filters) if instance_filters else regional_ec2.describe_instances()
+            instances = (
+                regional_ec2.describe_instances(Filters=instance_filters)
+                if instance_filters
+                else regional_ec2.describe_instances()
+            )
 
             # Format and gather cpu utilization data
             for reservation in instances["Reservations"]:
@@ -232,7 +269,9 @@ class EC2Provider:
                     virtualization_type = instance.get("VirtualizationType", "hvm")
                     ebs_optimized = instance.get("EbsOptimized", False)
                     processor = instance.get("ProcessorInfo", "Unknown")
-                    tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
+                    tags = {
+                        tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])
+                    }
 
                     # Get CPU utilization for the last 7 days
                     end_time = datetime.utcnow()
@@ -254,7 +293,12 @@ class EC2Provider:
                         Period=3600,
                         Statistics=["Average"],
                     )
-                    avg_cpu_utilization = sum(dp["Average"] for dp in response["Datapoints"]) / len(response["Datapoints"]) if response["Datapoints"] else 0.0
+                    avg_cpu_utilization = (
+                        sum(dp["Average"] for dp in response["Datapoints"])
+                        / len(response["Datapoints"])
+                        if response["Datapoints"]
+                        else 0.0
+                    )
                     all_instances.append(
                         {
                             "instance_id": instance_id,
@@ -303,7 +347,9 @@ class EC2Provider:
             paginator = regional_ec2.get_paginator("describe_snapshots")
             for page in paginator.paginate(OwnerIds=["self"], Filters=snapshot_filters):
                 for snapshot in page["Snapshots"]:
-                    tags = {tag["Key"]: tag["Value"] for tag in snapshot.get("Tags", [])}
+                    tags = {
+                        tag["Key"]: tag["Value"] for tag in snapshot.get("Tags", [])
+                    }
                     all_snapshots.append(
                         {
                             "snapshot_id": snapshot["SnapshotId"],
@@ -351,4 +397,3 @@ class EC2Provider:
             details=rego_ready_data,
         )
         return item
-    

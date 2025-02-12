@@ -49,7 +49,9 @@ class EmailOutput:
 
         logger.info("Sending email with check results")
         msg = MIMEMultipart()
-        logger.info(f"Sending email from {self.model.smtp_username} to {self.model.receiver_email_list}")
+        logger.info(
+            f"Sending email from {self.model.smtp_username} to {self.model.receiver_email_list}"
+        )
         msg["From"] = self.model.smtp_username
         msg["To"] = self.model.receiver_email_list
         try:
@@ -60,11 +62,17 @@ class EmailOutput:
                 server = smtplib.SMTP(self.model.smtp_server, self.model.smtp_port)
                 logger.info("Starting TLS...")
                 server.starttls()
-                logger.info(f"Logging in to {self.model.smtp_server} on port {self.model.smtp_port}")
+                logger.info(
+                    f"Logging in to {self.model.smtp_server} on port {self.model.smtp_port}"
+                )
                 server.login(self.model.smtp_username, self.model.smtp_password)
                 logger.info("Sending email...")
                 text = msg.as_string()
-                server.sendmail(self.model.smtp_username, self.model.receiver_email_list.split(","), text)
+                server.sendmail(
+                    self.model.smtp_username,
+                    self.model.receiver_email_list.split(","),
+                    text,
+                )
                 server.quit()
                 logger.success("Email sent successfully!")
         except Exception as e:

@@ -19,6 +19,7 @@ class EC2OldSnapshotsConfig(BaseModel):
         ),
     ]
 
+
 class EC2OLD:
     """Plugin for identifying idle RDS instances."""
 
@@ -98,7 +99,7 @@ class EC2OLD:
     @hookimpl
     def rego_location(self):
         return "ec2_old_snapshots.rego"
-    
+
     @hookimpl
     def this_uses(self):
         return "opsbox_ec2_provider"

@@ -36,7 +36,8 @@ class S3Provider:
             aws_access_key_id: Annotated[str,Field(..., description="AWS access key ID", required=False, default=None)]
             aws_secret_access_key: Annotated[str,Field(..., description="AWS secret access key", required=False, default=None)]
             aws_region: Annotated[
-                str | None, Field(description="AWS-Region", required=False, default=None)
+                str | None,
+                Field(description="AWS-Region", required=False, default=None),
             ]
             object_count_threshold: Annotated[str, Field(description="Object count threshold", required=False, default=30)]
             bucket_count_threshold: Annotated[str, Field(description="Bucket count threshold", required=False, default=100)]
@@ -91,13 +92,17 @@ class S3Provider:
                 region_name="us-west-1",
             )
 
-            regions = [region["RegionName"] for region in region_client.describe_regions()["Regions"]]
+            regions = [
+                region["RegionName"]
+                for region in region_client.describe_regions()["Regions"]
+            ]
             logger.info(f"Regions: {regions}")
 
         else:
             regions = credentials["aws_region"].split(",")
 
         region_threads = []  # List to store threads
+
         def process_region(region):
 
 
@@ -130,7 +135,9 @@ class S3Provider:
                 most_recent_last_modified = None
                 processed_buckets += 1
                 try:
-                    paginator = s3_client.get_paginator("list_objects_v2")  # Paginate through bucket objects
+                    paginator = s3_client.get_paginator(
+                        "list_objects_v2"
+                    )  # Paginate through bucket objects
                     bucket_storage_classes = set()
                     object_counter = 0
                     for page in paginator.paginate(Bucket=bucket_name):
@@ -144,14 +151,19 @@ class S3Provider:
                             object_details = {
                                 "Key": obj["Key"],
                                 "LastModified": obj["LastModified"].timestamp(),
-                                "StorageClass": obj.get("StorageClass", "STANDARD"),  
+                                "StorageClass": obj.get("StorageClass", "STANDARD"),
                                 # Default to STANDARD if not provided
                             }
                             bucket_storage_classes.add(object_details["StorageClass"])
                             # Update the most recent last modified date
-                            if most_recent_last_modified is None or obj["LastModified"] > most_recent_last_modified:
+                            if (
+                                most_recent_last_modified is None
+                                or obj["LastModified"] > most_recent_last_modified
+                            ):
                                 most_recent_last_modified = obj["LastModified"]
-                                bucket_details["LastModified"] = obj["LastModified"].timestamp()
+                                bucket_details["LastModified"] = obj[
+                                    "LastModified"
+                                ].timestamp()
                             logger.debug(
                                 f"Added object {obj['Key']} with storage class {object_details['StorageClass']} to data, last modified: {obj['LastModified']}"  # noqa: E501
                             )
@@ -163,13 +175,17 @@ class S3Provider:
 
                     # If bucket has mixed storage classes, you can decide on a policy (e.g., prioritize non-standard classes)  # noqa: E501
                     inferred_storage_class = (
-                        bucket_storage_classes.pop() if len(bucket_storage_classes) == 1 else "MIXED"
+                        bucket_storage_classes.pop()
+                        if len(bucket_storage_classes) == 1
+                        else "MIXED"
                     )
                     for bucket in all_buckets:
                         if bucket["BucketName"] == bucket_name:
                             bucket["StorageClass"] = inferred_storage_class
                     if processed_buckets >= bucket_count_threshold:
-                        logger.warning("Reached bucket count threshold, skipping remaining buckets")
+                        logger.warning(
+                            "Reached bucket count threshold, skipping remaining buckets"
+                        )
                         return
 
                 except Exception as e:
@@ -186,8 +202,6 @@ class S3Provider:
             for thread in threads:
                 thread.join()
 
-        
-        
         for region in regions:
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)

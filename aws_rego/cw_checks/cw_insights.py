@@ -30,7 +30,9 @@ class MetricsSubmodel(BaseModel):
 class MetricsOutput(BaseModel):
     """Output model to give recommendations for analyzing Cloudwatch metrics for cost savings."""
 
-    metrics_to_analyze: list[MetricsSubmodel] = Field(..., description="The metrics to analyze for cost savings.")
+    metrics_to_analyze: list[MetricsSubmodel] = Field(
+        ..., description="The metrics to analyze for cost savings."
+    )
 
 
 class Config(BaseModel):
@@ -58,7 +60,9 @@ class CWMetricInsights:
 
         # setup OpenAI models
         llm = OpenAI(model="gpt-4o", api_key=self.config.oai_key, temperature=0.1)
-        embedding = OpenAIEmbedding(model="text-embedding-3-small", api_key=self.config.oai_key)
+        embedding = OpenAIEmbedding(
+            model="text-embedding-3-small", api_key=self.config.oai_key
+        )
 
         Settings.llm = llm
         Settings.embed_model = embedding
@@ -83,7 +87,9 @@ class CWMetricInsights:
         Returns:
             str: The formatted result."""
 
-        wanted_result = [result for result in data if result.result_name == "cw_available_metrics"][0]
+        wanted_result = [
+            result for result in data if result.result_name == "cw_available_metrics"
+        ][0]
         metrics_list = wanted_result.details.get("metrics", [])
 
         with open("metrics_list.json", "w") as f:
@@ -110,7 +116,9 @@ class CWMetricInsights:
 {metrics}
 """
 
-        document = template.format(metrics=yaml.dump(yaml_formatted, default_flow_style=False))
+        document = template.format(
+            metrics=yaml.dump(yaml_formatted, default_flow_style=False)
+        )
 
         logger.info("Selecting Clouwatch metrics to analyze for cost savings...")
         metrics_query = """What cloudwatch metrics should I analyze to gain insights into our deployments?
@@ -172,7 +180,10 @@ Include a chain-of-thought with reasoning."""
                 values = response["Values"]
 
                 # Zipping and creating a list of dictionaries
-                zipped_data = [{"timestamp": ts.isoformat(), "value": val} for ts, val in zip(timestamps, values)]
+                zipped_data = [
+                    {"timestamp": ts.isoformat(), "value": val}
+                    for ts, val in zip(timestamps, values)
+                ]
             except Exception as _:
                 logger.warning(
                     f"Cloudwatch metric {metric.MetricName} in namespace {metric.Namespace} has no data available."
@@ -183,14 +194,20 @@ Include a chain-of-thought with reasoning."""
                 f"in namespace {metric.Namespace}: \n{yaml.dump(zipped_data, default_flow_style=False)}"
             )
             doc = Document(
-                text=new_result, metadata={"metric_name": metric.MetricName, "metric_namespace": metric.Namespace}
+                text=new_result,
+                metadata={
+                    "metric_name": metric.MetricName,
+                    "metric_namespace": metric.Namespace,
+                },
             )
             transformed_data.append(doc)
 
         logger.info("Synthesizing insights...")
         logger.debug("Building the vector store index...")
 
-        index = VectorStoreIndex.from_documents(transformed_data, embed_model=Settings.embed_model)
+        index = VectorStoreIndex.from_documents(
+            transformed_data, embed_model=Settings.embed_model
+        )
         query_engine = index.as_query_engine(llm=Settings.llm)
         logger.debug("Querying the vector store index...")
 

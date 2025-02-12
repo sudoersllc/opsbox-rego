@@ -46,7 +46,9 @@ class EpicTicket(BaseModel):
     summary: str = Field(..., description="The summary of the epic")
     description: str = Field(..., description="The description of the epic")
     epic_name: str = Field(..., description="The name of the Epic")
-    tasks: list[TaskTicket] = Field([], description="The tasks to be included in the Epic")
+    tasks: list[TaskTicket] = Field(
+        [], description="The tasks to be included in the Epic"
+    )
 
 
 class SolutionsPlan(BaseModel):
@@ -99,7 +101,9 @@ class JiraOutput:
     def activate(self):
         """Activate the plugin."""
         # jira identity token
-        credentials = f"{self.model.JIRA_EMAIL}:{self.model.JIRA_API_TOKEN}".encode("utf-8")
+        credentials = f"{self.model.JIRA_EMAIL}:{self.model.JIRA_API_TOKEN}".encode(
+            "utf-8"
+        )
         base64_credentials = base64.b64encode(credentials).decode("utf-8")
 
         self.auth_headers = {
@@ -109,7 +113,9 @@ class JiraOutput:
 
         # get the epic link field id
         response = requests.get(
-            f"{self.model.jira_url}/field/search?type=custom&query=Epic%20Link", headers=self.auth_headers, timeout=10
+            f"{self.model.jira_url}/field/search?type=custom&query=Epic%20Link",
+            headers=self.auth_headers,
+            timeout=10,
         )
         self.epic_link_field_id = response.json()["values"][0]["id"]
 
@@ -147,7 +153,9 @@ class JiraOutput:
         """
 
         # Create a vector store index from the input
-        logger.info(f"Generating a solutions plan for Jira for check {data.result_name}")
+        logger.info(
+            f"Generating a solutions plan for Jira for check {data.result_name}"
+        )
         logger.debug("Creating a vector store index from the input data...")
 
         if AppConfig().embed_model is None:
@@ -203,7 +211,9 @@ Given the findings below, create a solutions plan for Jira:
             docs: Document = []
             docs.append(Document(text=data.formatted, id=data.result_name))
 
-            index = VectorStoreIndex.from_documents(docs, embed_model=AppConfig().embed_model)
+            index = VectorStoreIndex.from_documents(
+                docs, embed_model=AppConfig().embed_model
+            )
 
             # query the index for epics and tasks
             aggregate_query: str = """
@@ -321,7 +331,9 @@ Given the findings below, create a solutions plan for Jira:
         )
 
         # Make the request to create the Epic
-        response = requests.post(f"{url}/issue", headers=headers, data=payload, timeout=req_timeout)
+        response = requests.post(
+            f"{url}/issue", headers=headers, data=payload, timeout=req_timeout
+        )
 
         # Check if the request was successful
         if response.status_code != 201:
@@ -332,7 +344,9 @@ Given the findings below, create a solutions plan for Jira:
             return epic_id
 
     @logger.catch(reraise=True)
-    def _create_task(self, summary: str, description: str, epic_link: str, details: "Result"):
+    def _create_task(
+        self, summary: str, description: str, epic_link: str, details: "Result"
+    ):
         """
         Create a Jira task with the given parameters.
 
@@ -372,7 +386,9 @@ Given the findings below, create a solutions plan for Jira:
             }
         )
 
-        response = requests.post(f"{url}/issue", headers=headers, data=payload, timeout=req_timeout)
+        response = requests.post(
+            f"{url}/issue", headers=headers, data=payload, timeout=req_timeout
+        )
         if response.status_code == 201:
             issue_key = response.json()["key"]
             logger.success(f"Task created: {response.json().get('key')}")
@@ -418,11 +434,18 @@ Given the findings below, create a solutions plan for Jira:
         files = {"file": (f"{details.result_name}", reader)}
 
         response = requests.post(
-            f"{self.model.jira_url}/issue/{issue_key}/attachments", headers=headers, files=files, timeout=req_timeout
+            f"{self.model.jira_url}/issue/{issue_key}/attachments",
+            headers=headers,
+            files=files,
+            timeout=req_timeout,
         )
         reader.close()
         if response.status_code != 200:
             if response.text:
-                raise requests.HTTPError(f"Error attaching details to issue: {response.text}")
+                raise requests.HTTPError(
+                    f"Error attaching details to issue: {response.text}"
+                )
             else:
-                raise requests.HTTPError(f"Error attaching details to issue: {response.status_code}")
+                raise requests.HTTPError(
+                    f"Error attaching details to issue: {response.status_code}"
+                )

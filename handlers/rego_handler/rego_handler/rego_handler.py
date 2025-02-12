@@ -152,7 +152,10 @@ class RegoHandler:
         # apply data injection
         with contextlib.suppress(AttributeError):
             input_data = plugin.plugin_obj.inject_data(input_data)
-            logger.debug(f"Data injected for plugin {plugin.name}.", extra={"after_inject": input_data})
+            logger.debug(
+                f"Data injected for plugin {plugin.name}.",
+                extra={"after_inject": input_data},
+            )
         # apply check
         if self.config.opa_url is not None:
             result = self.execute_check_online(
@@ -259,7 +262,9 @@ class RegoHandler:
                 timeout=default_timeout,
             )
 
-            logger.trace(f"Policy {info['rego_file']} uploaded to OPA server {base_url} with response code {resp.status_code}")
+            logger.trace(
+                f"Policy {info['rego_file']} uploaded to OPA server {base_url} with response code {resp.status_code}"
+            )
 
             # check for success
             if resp.status_code != 200:
@@ -284,7 +289,9 @@ class RegoHandler:
             logger.error(f"Policy removal failed: {resp.text}")
             raise Exception(f"Policy removal failed: {resp.text}")
         else:
-            logger.success(f"Policy {info['rego_file']} removed from the server successfully.")
+            logger.success(
+                f"Policy {info['rego_file']} removed from the server successfully."
+            )
 
     def execute_check_in_subproc(
         self, data: "Result", plugin: PluginInfo, rego_file_path: str
@@ -348,7 +355,10 @@ class RegoHandler:
                 decision = {}
                 result_details = []
 
-            logger.success(f"OPA eval successfully executed for {check['rego_file']}.", extra={"result": decision})
+            logger.success(
+                f"OPA eval successfully executed for {check['rego_file']}.",
+                extra={"result": decision},
+            )
 
         except subprocess.CalledProcessError as e:
             logger.error(f"OPA eval failed: {e}")
@@ -405,7 +415,9 @@ class RegoHandler:
         Returns:
             list[Result]: The results of the checks.
         """
-        logger.info(f"Applying check {plugin.name} using OPA server located at {base_url}.")
+        logger.info(
+            f"Applying check {plugin.name} using OPA server located at {base_url}."
+        )
         with self._upload_temp_policy(
             plugin, rego_file_path, base_url
         ) as _:  # upload policy to OPA server
@@ -419,19 +431,24 @@ class RegoHandler:
             package_name_path = package_name.replace(".", "/")
             opa_url = f"{base_url}/v1/data/{package_name_path}"
 
-
             # Query OPA server
             response = requests.post(opa_url, json=data, timeout=default_timeout)
             response_data = response.json()
 
             # Log Results
-            logger.trace(f"OPA response from post to {opa_url} returned code {response.status_code}")
+            logger.trace(
+                f"OPA response from post to {opa_url} returned code {response.status_code}"
+            )
 
             if response.status_code != 200:
-                logger.error(f"OPA server did not return a 200 status code, instead it returned {response.status_code}.", extra={"response": response_data})
+                logger.error(
+                    f"OPA server did not return a 200 status code, instead it returned {response.status_code}.",
+                    extra={"response": response_data},
+                )
             else:
                 logger.success(
-                    f"OPA successfully queried for check {check['rego_file']}.", extra={"response": response_data}
+                    f"OPA successfully queried for check {check['rego_file']}.",
+                    extra={"response": response_data},
                 )
 
             decision = response_data.get("result", False)

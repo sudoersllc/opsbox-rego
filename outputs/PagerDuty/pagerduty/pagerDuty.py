@@ -14,10 +14,12 @@ from typing import Annotated
 hookimpl = HookimplMarker("opsbox")
 
 
+
 class PagerDutyOutput:
     """
     Plugin for sending results to PagerDuty
     """
+
 
     def __init__(self):
         pass
@@ -27,6 +29,7 @@ class PagerDutyOutput:
         """
         Return the plugin's configuration
         """
+
 
         class PagerDutyConfig(BaseModel):
             """Configuration for the PagerDuty output."""
