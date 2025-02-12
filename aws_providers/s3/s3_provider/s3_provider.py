@@ -33,11 +33,14 @@ class S3Provider:
         class S3Config(BaseModel):
             """Configuration for the AWS S3 plugin."""
 
-            aws_access_key_id: Annotated[str,Field(default = None, description="AWS access key ID", required=True)]
-            aws_secret_access_key: Annotated[str,Field(default = None, description="AWS secret access key", required=True)]
+            aws_access_key_id: Annotated[str,Field(..., description="AWS access key ID", required=False, default=None)]
+            aws_secret_access_key: Annotated[str,Field(..., description="AWS secret access key", required=False, default=None)]
             aws_region: Annotated[
                 str | None, Field(description="AWS-Region", required=False, default=None)
             ]
+            object_count_threshold: Annotated[str, Field(description="Object count threshold", required=False, default=30)]
+            bucket_count_threshold: Annotated[str, Field(description="Bucket count threshold", required=False, default=100)]
+
 
         return S3Config
 
@@ -72,10 +75,11 @@ class S3Provider:
 
         all_buckets = []  # List to store bucket details
         all_objects = []  # List to store object details
-        object_count_threshold = 30  # Threshold for object count per bucket
-        bucket_count_threshold = 100  # Threshold for bucket count
+
         processed_buckets = 0  # Counter for processed buckets
         credentials = self.credentials
+        object_count_threshold = credentials["object_count_threshold"]  # Threshold for object count
+        bucket_count_threshold = credentials["bucket_count_threshold"]  # Threshold for bucket count
 
         logger.info(credentials["aws_region"])
 
@@ -96,12 +100,16 @@ class S3Provider:
         region_threads = []  # List to store threads
         def process_region(region):
 
-            s3_client = boto3.client(
-                "s3",
-                aws_access_key_id=self.credentials["aws_access_key_id"],
-                aws_secret_access_key=self.credentials["aws_secret_access_key"],
-                region_name=region,
-            )
+
+            if credentials["aws_access_key_id"] is None:
+                s3_client = boto3.client("s3", region_name=region)
+            else:
+                s3_client = boto3.client(
+                    "s3",
+                    aws_access_key_id=self.credentials["aws_access_key_id"],
+                    aws_secret_access_key=self.credentials["aws_secret_access_key"],
+                    region_name=region,
+                )
 
             response = s3_client.list_buckets()  # List all buckets
             logger.trace(f"List of buckets: {response}")
