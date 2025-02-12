@@ -30,8 +30,11 @@ class SlackOutput:
 
         class SlackConfig(BaseModel):
             """Configuration for the slack output."""
+
             slack_token: Annotated[str, Field(description="The Slack token to use.")]
-            slack_channel: Annotated[str, Field(description="The Slack channel to send the message to.")]
+            slack_channel: Annotated[
+                str, Field(description="The Slack channel to send the message to.")
+            ]
 
         return SlackConfig
 

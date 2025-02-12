@@ -10,7 +10,6 @@ import json
 hookimpl = HookimplMarker("opsbox")
 
 
-
 class JSONFileOutput:
     """
     Plugin for writing results to JSON files.

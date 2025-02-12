@@ -2,9 +2,10 @@ import requests
 from pydantic import BaseModel
 from loguru import logger
 
-from .azure.azure import AzureOutput, AppConfig # type: ignore
+from .azure.azure import AzureOutput, AppConfig  # type: ignore
 from llama_index.core import VectorStoreIndex
 from llama_index.core.program import LLMTextCompletionProgram
+
 
 def test_grab_config():
     """
@@ -68,7 +69,7 @@ def test_proccess_results_success(tmp_path, monkeypatch):
     # Create a dummy check result.
     result = {
         "check_name": "test_check",
-        "formatted": "This is a test formatted result."
+        "formatted": "This is a test formatted result.",
     }
 
     # Change working directory to a temporary path so files are created there.
@@ -124,10 +125,7 @@ def test_proccess_results_attachment_failure(tmp_path, monkeypatch, capsys):
     )
     azure.set_data(config_instance)
 
-    result = {
-        "check_name": "fail_check",
-        "formatted": "Failure test result."
-    }
+    result = {"check_name": "fail_check", "formatted": "Failure test result."}
 
     monkeypatch.chdir(tmp_path)
 
@@ -176,10 +174,7 @@ def test_proccess_results_exception(tmp_path, monkeypatch):
     )
     azure.set_data(config_instance)
 
-    result = {
-        "check_name": "exception_check",
-        "formatted": "Exception test result."
-    }
+    result = {"check_name": "exception_check", "formatted": "Exception test result."}
 
     monkeypatch.chdir(tmp_path)
 
@@ -225,10 +220,7 @@ def test_proccess_results_create_description_none(tmp_path, monkeypatch):
     )
     azure.set_data(config_instance)
 
-    result = {
-        "check_name": "desc_none",
-        "formatted": "Description test result."
-    }
+    result = {"check_name": "desc_none", "formatted": "Description test result."}
 
     monkeypatch.chdir(tmp_path)
 
@@ -239,7 +231,9 @@ def test_proccess_results_create_description_none(tmp_path, monkeypatch):
                 # In the real code, the program would generate a description.
                 # Here, we do nothing.
                 return "dummy response"
+
         return DummyProgram()
+
     monkeypatch.setattr(LLMTextCompletionProgram, "from_defaults", fake_from_defaults)
 
     # Monkeypatch requests.post (for attachment and work item creation).
@@ -292,17 +286,13 @@ def test_proccess_results_create_description_with_embed(tmp_path, monkeypatch):
     )
     azure.set_data(config_instance)
 
-    result = {
-        "check_name": "desc_embed",
-        "formatted": "Embed test result."
-    }
+    result = {"check_name": "desc_embed", "formatted": "Embed test result."}
 
     monkeypatch.chdir(tmp_path)
 
     conf = AppConfig()
     conf.embed_model = "dummy_model"
     conf.llm = "None"
-    
 
     # Monkeypatch VectorStoreIndex.from_documents to return a dummy index.
     class DummyIndex:
@@ -311,8 +301,12 @@ def test_proccess_results_create_description_with_embed(tmp_path, monkeypatch):
                 def query(self, query_text):
                     # Simulate a generated description.
                     return "Detailed description generated"
+
             return DummyQueryEngine()
-    monkeypatch.setattr(VectorStoreIndex, "from_documents", lambda docs, embed_model: DummyIndex())
+
+    monkeypatch.setattr(
+        VectorStoreIndex, "from_documents", lambda docs, embed_model: DummyIndex()
+    )
 
     # Monkeypatch requests.post as in other tests.
     class DummyResponse:

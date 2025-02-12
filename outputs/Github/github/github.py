@@ -28,13 +28,23 @@ class GithubOutput:
         class EmailConfig(BaseModel):
             """Configuration for the github output."""
 
-            github_token: Annotated[str, Field(description="The token for the github user.")]
-            repo_owner: Annotated[str, Field(description="The owner of the repository.")]
+            github_token: Annotated[
+                str, Field(description="The token for the github user.")
+            ]
+            repo_owner: Annotated[
+                str, Field(description="The owner of the repository.")
+            ]
             repo_name: Annotated[str, Field(description="The name of the repository.")]
-            labels: Annotated[str | None, Field(description="The labels to apply to the issue.", default=None)]
+            labels: Annotated[
+                str | None,
+                Field(description="The labels to apply to the issue.", default=None),
+            ]
             create_description: Annotated[
                 bool,
-                Field(description="Whether to create a description instead of an issue.", default=False),
+                Field(
+                    description="Whether to create a description instead of an issue.",
+                    default=False,
+                ),
             ]
 
         return EmailConfig
@@ -177,7 +187,7 @@ class GithubOutput:
                 }
                 # Get today's date for the title
                 data = {
-                    "title": f'OpsBox Optimization Check - {pd.Timestamp.now().strftime("%Y-%m-%d")} - {getattr(result, "result_name", "Unnamed")}',
+                    "title": f"OpsBox Optimization Check - {pd.Timestamp.now().strftime('%Y-%m-%d')} - {getattr(result, 'result_name', 'Unnamed')}",
                     "body": body,
                     "labels": issue_labels or [],
                 }

@@ -28,8 +28,11 @@ class TextFileOutput:
             """Configuration for the CLI output."""
 
             output_folder: Annotated[
-                str | None, 
-                Field(default="./findings/", description="The folder to output the results to.")
+                str | None,
+                Field(
+                    default="./findings/",
+                    description="The folder to output the results to.",
+                ),
             ]
             pass
 

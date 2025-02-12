@@ -13,7 +13,6 @@ from opsbox import AppConfig, Result
 from typing import Annotated
 
 
-
 hookimpl = HookimplMarker("opsbox")
 
 
@@ -33,13 +32,34 @@ class AzureOutput:
 
         class AzureDevOpsConfig(BaseModel):
             """Configuration for the Azure DevOps output."""
-            azure_devops_token: Annotated[str, Field(description="The personal access token for Azure DevOps.")]
-            azure_devops_organization: Annotated[str, Field(description="The name of the Azure DevOps organization.")]
-            azure_devops_project: Annotated[str, Field(description="The name of the Azure DevOps project.")]
-            azure_devops_username: Annotated[str, Field(description="The username for Azure DevOps.")]
-            azure_devops_priority: Annotated[int, Field(description="The priority of the work item.", default=4)]
-            tags: Annotated[str | None, Field(description="The tags to apply to the work item.", default=None)]
-            create_description: Annotated[bool, Field(description="Whether to create a description instead of an issue.", default=False)]
+
+            azure_devops_token: Annotated[
+                str, Field(description="The personal access token for Azure DevOps.")
+            ]
+            azure_devops_organization: Annotated[
+                str, Field(description="The name of the Azure DevOps organization.")
+            ]
+            azure_devops_project: Annotated[
+                str, Field(description="The name of the Azure DevOps project.")
+            ]
+            azure_devops_username: Annotated[
+                str, Field(description="The username for Azure DevOps.")
+            ]
+            azure_devops_priority: Annotated[
+                int, Field(description="The priority of the work item.", default=4)
+            ]
+            tags: Annotated[
+                str | None,
+                Field(description="The tags to apply to the work item.", default=None),
+            ]
+            create_description: Annotated[
+                bool,
+                Field(
+                    description="Whether to create a description instead of an issue.",
+                    default=False,
+                ),
+            ]
+
         return AzureDevOpsConfig
 
     @hookimpl

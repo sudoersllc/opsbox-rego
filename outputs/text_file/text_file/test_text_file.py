@@ -4,9 +4,10 @@ import tempfile
 import shutil
 from pydantic import BaseModel
 from opsbox import Result
-from .text_file.text_file import TextFileOutput # type: ignore
+from .text_file.text_file import TextFileOutput  # type: ignore
 import logging
 from loguru import logger
+
 
 @pytest.fixture
 def loguru_caplog(caplog):
@@ -19,42 +20,51 @@ def loguru_caplog(caplog):
 
     # Add handler to propagate Loguru logs to standard logging
     logger.add(PropagateHandler(), level="DEBUG")
-    
+
     yield caplog  # Provide normal caplog usage
 
     # Clean up
     logger.remove()
 
+
 @pytest.fixture
 def text_plugin():
     return TextFileOutput()
+
 
 def test_grab_config(text_plugin):
     conf_cls = text_plugin.grab_config()
     conf = conf_cls()
     assert conf.output_folder == "./findings/"
 
+
 def test_activate_creates_folder(text_plugin):
     temp_dir = tempfile.mkdtemp()
     try:
+
         class MockModel(BaseModel):
             output_folder: str = temp_dir
+
         text_plugin.set_data(MockModel())
         text_plugin.activate()
         assert os.path.exists(temp_dir)
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
+
 def test_set_data(text_plugin):
     class MockModel(BaseModel):
         output_folder: str = "fake_folder"
+
     model = MockModel()
     text_plugin.set_data(model)
     assert text_plugin.model == model
 
+
 def test_proccess_results_success(text_plugin):
     temp_dir = tempfile.mkdtemp()
     try:
+
         class MockModel(BaseModel):
             output_folder: str = temp_dir
 
@@ -64,15 +74,15 @@ def test_proccess_results_success(text_plugin):
                 relates_to="case1",
                 result_name="res1",
                 result_description="description1",
-                details={"foo":"bar"},
-                formatted="some formatted text"
+                details={"foo": "bar"},
+                formatted="some formatted text",
             ),
             Result(
                 relates_to="case2",
                 result_name="res2",
                 result_description="description2",
-                details={"baz":123},
-                formatted="other formatted text"
+                details={"baz": 123},
+                formatted="other formatted text",
             ),
         ]
         text_plugin.proccess_results(results)

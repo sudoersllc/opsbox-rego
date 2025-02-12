@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from slack_sdk.errors import SlackApiError
 from loguru import logger
 from opsbox import Result
-from .slack.slack import SlackOutput # type: ignore
+from .slack.slack import SlackOutput  # type: ignore
 import logging
 
 

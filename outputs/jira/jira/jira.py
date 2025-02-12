@@ -86,12 +86,18 @@ class JiraOutput:
         class JiraConfig(BaseModel):
             """Configuration for the Jira output."""
 
-            JIRA_USERNAME: Annotated[str, Field(description="The URL of the Jira instance.")]
-            JIRA_EMAIL: Annotated[str, Field(description="The email to authenticate to Jira with.")]
+            JIRA_USERNAME: Annotated[
+                str, Field(description="The URL of the Jira instance.")
+            ]
+            JIRA_EMAIL: Annotated[
+                str, Field(description="The email to authenticate to Jira with.")
+            ]
             JIRA_API_TOKEN: Annotated[
                 str, Field(description="The api key to authenticate to Jira with.")
             ]
-            JIRA_PROJECT_KEY: Annotated[str, Field(description="The Jira project to create issues in.")]
+            JIRA_PROJECT_KEY: Annotated[
+                str, Field(description="The Jira project to create issues in.")
+            ]
             pass
 
         return JiraConfig
