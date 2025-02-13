@@ -87,33 +87,17 @@ class JiraOutput:
             """Configuration for the Jira output."""
 
             JIRA_USERNAME: Annotated[
-                str, Field(description="The URL of the Jira instance.", required=True)
+                str, Field(description="The URL of the Jira instance.")
             ]
             JIRA_EMAIL: Annotated[
-                str,
-                Field(
-                    description="The email to authenticate to Jira with.", required=True
-                ),
+                str, Field(description="The email to authenticate to Jira with.")
             ]
             JIRA_API_TOKEN: Annotated[
-                str,
-                Field(
-                    description="The api key to authenticate to Jira with.",
-                    required=True,
-                ),
+                str, Field(description="The api key to authenticate to Jira with.")
             ]
             JIRA_PROJECT_KEY: Annotated[
-                str,
-                Field(
-                    description="The Jira project to create issues in.", required=True
-                ),
+                str, Field(description="The Jira project to create issues in.")
             ]
-            # jira_ticket_assistant: Annotated[
-            #     str, Field(description="The open assistant to use to generate Jira tickets.", required=True)
-            # ]
-            # jira_ticket_vector_store_id: Annotated[
-            #     str, Field(description="The vector store ID to use for the Jira ticket assistant.", required=True)
-            # ]
             pass
 
         return JiraConfig
@@ -152,7 +136,7 @@ class JiraOutput:
         Writes the check results to Jira.
 
         Args:
-            results (list[FormattedResult]): The formatted results from the checks.
+            results (list[Result]): The formatted results from the checks.
         """
 
         logger.info("Writing results to Jira")
@@ -168,7 +152,7 @@ class JiraOutput:
         Generates a list of Epics and Tasks to be created in Jira.
 
         Args:
-            data (list[FormattedResult]): The formatted results from the checks.
+            data (list[Result]): The formatted results from the checks.
 
         Returns:
             SolutionsPlan: The list of Epics and Tasks to be created in Jira.
@@ -227,7 +211,8 @@ Given the findings below, create a solutions plan for Jira:
                 verbose=True,
                 llm=AppConfig().llm,
             )
-            llm_response = program(document=str(text=data.formatted))
+            llm_response = program(document=str(data.formatted))
+            return llm_response
         else:
             docs: Document = []
             docs.append(Document(text=data.formatted, id=data.result_name))
@@ -375,7 +360,7 @@ Given the findings below, create a solutions plan for Jira:
             summary (str): The summary of the task.
             description (str): The description of the task.
             epic_link (str): The epic link for the task.
-            details (FormattedResult): The details to be attached to the task.
+            details (Result): The details to be attached to the task.
 
         Returns:
             None
@@ -428,7 +413,7 @@ Given the findings below, create a solutions plan for Jira:
 
         Args:
             issue_key (str): The key of the Jira issue to attach details to.
-            details (FormattedResult): The details to be attached.
+            details (Result): The details to be attached.
 
         Returns:
             None

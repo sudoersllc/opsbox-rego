@@ -16,7 +16,7 @@ hookimpl = HookimplMarker("opsbox")
 
 class PagerDutyOutput:
     """
-    Plugin for sending results to Pager
+    Plugin for sending results to PagerDuty
     """
 
     def __init__(self):
@@ -29,17 +29,21 @@ class PagerDutyOutput:
         """
 
         class PagerDutyConfig(BaseModel):
-            """Configuration for the email output."""
+            """Configuration for the PagerDuty output."""
 
-            routing_key: Annotated[
-                str, Field(description="The routing_key to use.", required=True)
-            ]
+            routing_key: Annotated[str, Field(description="The routing_key to use.")]
             create_description: Annotated[
                 bool,
                 Field(
-                    description="Whether to create a description instead of an issue.",
-                    required=False,
+                    description="Whether to create a description for pagerduty or just use the raw input as the payload.",
                     default=False,
+                ),
+            ]
+            manual_severity: Annotated[
+                str | None,
+                Field(
+                    description="The severity of the incident created.",
+                    default="medium",
                 ),
             ]
 
@@ -56,7 +60,7 @@ class PagerDutyOutput:
     @hookimpl
     def proccess_results(self, results: list["Result"]):
         """
-        Send the results to Slack.
+        Send the results to PagerDuty.
 
         Args:
             results (list[FormattedResult]): The formatted results from the checks.
@@ -64,13 +68,15 @@ class PagerDutyOutput:
 
         try:
             appconfig = AppConfig()
+            credentials = self.credentials
             for result in results:
                 body = ""
 
-                credentials = self.credentials
-
                 if credentials["create_description"]:
-                    if appconfig.embed_model is None:
+                    # Create a description for the PagerDuty incident
+                    if (
+                        appconfig.embed_model is None
+                    ):  # shove it all in if no embed model
                         templ: str = """    
                         Objective:
                         You are a meticulous PagerDuty incident creation assistant tasked with generating detailed PagerDuty payloads based on the cost savings recommendations provided to you in your vector store. Your goal is to create one payload per cost-saving recommendation, ensuring that the incident is clear, actionable, and concise for immediate attention.
@@ -95,10 +101,20 @@ class PagerDutyOutput:
                             prompt_template_str=templ,
                             verbose=True,
                         )
-                        llm_response = program(document=str(text=result.formatted))
+                        llm_response = program(document=str(result.formatted))
                         body = llm_response
                         logger.success(body)
-                    else:
+
+                        # Remove unwanted parts
+                        body = body.replace("```json", "").replace("```", "").strip()
+
+                        # Convert the string to a dictionary
+                        body_dict = json.loads(body)  # Now body_dict is a dictionary
+
+                        # Now access the 'payload' key
+                        payload = body_dict["payload"]
+
+                    else:  # use the embed model and query a simple vector store
                         docs: Document = []
                         docs.append(
                             Document(text=result.formatted, id=result.result_name)
@@ -148,8 +164,17 @@ class PagerDutyOutput:
                         # Now access the 'payload' key
                         payload = body_dict["payload"]
 
-                else:
+                else:  # just use the raw input as the payload
                     body = result.formatted
+                    payload = {
+                        "summary": body,
+                        "severity": credentials["manual_severity"],
+                        "source": f"{result.relates_to}",
+                    }
+                    if credentials["manual_severity"]:
+                        payload["severity"] = credentials["manual_severity"]
+
+            # Create the payload
             data = {
                 "payload": {
                     "summary": payload["summary"],
