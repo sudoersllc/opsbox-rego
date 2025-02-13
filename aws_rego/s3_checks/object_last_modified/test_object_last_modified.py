@@ -11,12 +11,12 @@ def test_object_last_modified(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     rego_policy = os.path.join(current_dir, "object_last_modified.rego")
-    rego_input = os.path.join(current_dir.parent.parent, "s3_test_data.json")
+    rego_input = os.path.join(current_dir.parent, "s3_test_data.json")
 
     # if test key does not exist in the result, the test will fail.
     # we need to add s3_last_modified_date_threshold to the json file.
     write: bool = False
-    test_data = os.path.join(current_dir.parent.parent, "s3_test_data.json")
+    test_data = os.path.join(current_dir.parent, "s3_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
         if "s3_last_modified_date_threshold" not in data:
