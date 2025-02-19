@@ -420,15 +420,15 @@ class ExecLocal(RegoExecution):
         platform_tuple = (platform.system().lower(), platform.machine().lower())
         logger.trace(f"User's platform: {platform_tuple}")
         match (platform.system().lower(), platform.machine().lower()):
-            case ("linux", "amd64"):
+            case ("linux", "amd64") | ("linux", "x86_64"):
                 url = f"{base_url}/opa_linux_amd64_static"
-            case ("linux", "aarch64"), :
+            case ("linux", "aarch64"):
                 url = f"{base_url}/opa_linux_arm64_static"
             case ("darwin", "arm64"):
                 url = f"{base_url}/opa_darwin_arm64_static"
-            case ("darwin", "amd64"):
+            case ("darwin", "amd64") | ("darwin", "x86_64"):
                 url = f"{base_url}/opa_darwin_amd64_static"
-            case ("windows", "amd64"):
+            case ("windows", "amd64") | ("windows", "x86_64"):
                 url = f"{base_url}/opa_windows_amd64.exe"
             case _:
                 raise RuntimeError("OS or architecture not supported by OPA.")
