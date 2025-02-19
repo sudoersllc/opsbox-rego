@@ -444,7 +444,7 @@ class ExecLocal(RegoExecution):
                     f.write(chunk)
 
         # download the binary
-        binary_fp = current_dir / url.split("/")[-1]
+        binary_fp = current_dir / "opa"
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
             with open(binary_fp, 'wb') as f:
@@ -461,7 +461,6 @@ class ExecLocal(RegoExecution):
         
         # make the binary executable
         if platform.system().lower() != "windows":
-            os.rename(binary_fp, current_dir / "opa")
             os.chmod(binary_fp, 0o755)
         else:
             os.rename(binary_fp, current_dir / "opa.exe")
