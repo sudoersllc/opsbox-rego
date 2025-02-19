@@ -12,3 +12,4 @@ wheels/
 # OPA executable
 opa.exe
 opa
+*.sha256
