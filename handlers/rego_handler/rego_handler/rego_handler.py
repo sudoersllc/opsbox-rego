@@ -117,7 +117,7 @@ class RegoHandler:
 
         Returns:
             list[Result]: The results of the plugin."""
-        
+
         # grab rego info from plugin
         rego_info: RegoInfo = plugin.extra["rego"]
         rego_file_path = Path(plugin.toml_path).parent / rego_info["rego_file"]
@@ -160,15 +160,13 @@ class RegoHandler:
                 extra={"after_inject": input_data},
             )
         # apply check
-        result = self.exec_obj.execute_check(
-                input_data, plugin, rego_file_path
-            )
+        result = self.exec_obj.execute_check(input_data, plugin, rego_file_path)
 
         # format results
         result = plugin.plugin_obj.report_findings(result)
         return result
 
-    
+
 def extract_package_name(file_path):
     """
     Extracts the package name from a Rego file.
@@ -195,6 +193,7 @@ def extract_package_name(file_path):
 
 class RegoExecution:
     """An Abstract Base Class for executing Rego checks."""
+
     def extract_package_name(self, file_path):
         """
         Extracts the package name from a Rego file.
@@ -217,7 +216,7 @@ class RegoExecution:
                 if match:
                     return match.group(1)
         raise ValueError(f"Package name not found in {file_path}")
-    
+
     def check_opa_existence(self, base_url: str | None) -> None:
         """Check if OPA is reachable.
 
@@ -225,23 +224,26 @@ class RegoExecution:
             RuntimeError: If OPA is not reachable.
         """
         raise NotImplementedError()
-    
-    def execute_check(self, data: "Result", plugin: "PluginInfo", rego_file_path: str) -> list["Result"]:
+
+    def execute_check(
+        self, data: "Result", plugin: "PluginInfo", rego_file_path: str
+    ) -> list["Result"]:
         """Applies a registered check to the given data using the Open Policy Agent (OPA).
-        
+
         Args:
             data (Result): The data to apply the check to.
             plugin (PluginInfo): The plugin to apply the check from.
             rego_file_path (str): The path to the Rego file.
-        
+
         Returns:
             list[Result]: The results of the check.
         """
         raise NotImplementedError()
-    
+
+
 class ExecOnline(RegoExecution):
     """A class for executing Rego checks using an online OPA server.
-    
+
     Attributes:
         base_url (str): The base URL of the OPA server."""
 
@@ -261,10 +263,8 @@ class ExecOnline(RegoExecution):
                 self.base_url = base_url
         except Exception as e:
             logger.exception(e)
-            raise RuntimeError(
-                f"OPA server {base_url} not found or reachable!"
-            ) from e
-        
+            raise RuntimeError(f"OPA server {base_url} not found or reachable!") from e
+
     @contextmanager
     @logger.catch(reraise=True)
     def _upload_temp_policy(self, plugin: PluginInfo, rego_path: Path, base_url: str):
@@ -325,15 +325,17 @@ class ExecOnline(RegoExecution):
             logger.success(
                 f"Policy {info['rego_file']} removed from the server successfully."
             )
-        
-    def execute_check(self, data: "Result", plugin: "PluginInfo", rego_file_path: str) -> list["Result"]:
+
+    def execute_check(
+        self, data: "Result", plugin: "PluginInfo", rego_file_path: str
+    ) -> list["Result"]:
         """Applies a registered check to the given data using the Open Policy Agent (OPA) server.
-        
+
         Args:
             data (Result): The data to apply the check to.
             plugin (PluginInfo): The plugin to apply the check from.
             rego_file_path (str): The path to the Rego file.
-        
+
         Returns:
             list[Result]: The results of the check.
         """
@@ -386,14 +388,15 @@ class ExecOnline(RegoExecution):
                 formatted="",  # This will be filled in later
             )
 
-            return result        
+            return result
+
 
 class ExecLocal(RegoExecution):
     """A class for executing Rego checks using the OPA CLI.
-    
+
     Attributes:
         opa_fp (Path): The path to the OPA binary."""
-    
+
     def check_opa_existence(self, base_url: None) -> None:
         """Check if OPA is reachable locally.
 
@@ -412,7 +415,7 @@ class ExecLocal(RegoExecution):
             return
         else:
             logger.info("Downloading OPA binary to the file directory.")
-        
+
         # we want to fix to a specific version
         base_url = "https://openpolicyagent.org/downloads/v1.1.0"
 
@@ -432,15 +435,15 @@ class ExecLocal(RegoExecution):
                 url = f"{base_url}/opa_windows_amd64.exe"
             case _:
                 raise RuntimeError("OS or architecture not supported by OPA.")
-            
+
         checksum_url = f"{url}.sha256"
 
         # download the checksum
         checksum_fp = current_dir / "opa.sha256"
         with requests.get(checksum_url, stream=True) as r:
             r.raise_for_status()
-            with open(checksum_fp, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192): 
+            with open(checksum_fp, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
         # download the binary
@@ -451,22 +454,22 @@ class ExecLocal(RegoExecution):
 
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
-            with open(binary_fp, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192): 
+            with open(binary_fp, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
         # check the checksum
-        with open(checksum_fp, 'r') as f:
+        with open(checksum_fp, "r") as f:
             checksum = f.read().split()[0]
-        with open(binary_fp, 'rb') as f:
+        with open(binary_fp, "rb") as f:
             binary = f.read()
         if hashlib.sha256(binary).hexdigest() != checksum:
             raise RuntimeError("Checksum does not match.")
-        
+
         # make the binary executable
         if platform.system().lower() != "windows":
             os.chmod(binary_fp, 0o755)
-        
+
         # check for subproccess existence
         try:
             subprocess.run(
@@ -478,7 +481,7 @@ class ExecLocal(RegoExecution):
         except Exception as e:
             logger.exception(e)
             raise RuntimeError("OPA subprocess not found or not installed!") from e
-        
+
     def execute_check(
         self, data: "Result", plugin: PluginInfo, rego_file_path: str
     ) -> list["Result"]:
@@ -580,6 +583,3 @@ class ExecLocal(RegoExecution):
         )
 
         return result
-
-
-    
