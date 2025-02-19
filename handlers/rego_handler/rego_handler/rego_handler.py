@@ -444,7 +444,11 @@ class ExecLocal(RegoExecution):
                     f.write(chunk)
 
         # download the binary
-        binary_fp = current_dir / "opa"
+        if platform.system().lower() != "windows":
+            binary_fp = current_dir / "opa"
+        else:
+            binary_fp = current_dir / "opa.exe"
+
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
             with open(binary_fp, 'wb') as f:
@@ -462,8 +466,6 @@ class ExecLocal(RegoExecution):
         # make the binary executable
         if platform.system().lower() != "windows":
             os.chmod(binary_fp, 0o755)
-        else:
-            os.rename(binary_fp, current_dir / "opa.exe")
         
         # check for subproccess existence
         try:
