@@ -1,98 +1,311 @@
+import argparse
 import os
+from pathlib import Path
+from itertools import chain
 import shutil
 import subprocess
-from tqdm import tqdm
-import argparse
-from loguru import logger
 import sys
+import pathspec
+from rich.console import Console
+from rich.progress import Progress
+from rich.panel import Panel
+from rich.layout import Layout
+from rich.live import Live
+from io import StringIO
 
+# Create a console object to use for logging and measuring the size of the main panel.
+console = Console()
 
-def find_projects_with_pyproject(base_dir: str) -> list:
-    """Find all subdirectories containing a pyproject.toml file before hitting the first one and stop traversing subdirectories of those directories.
+screen = True
 
-    Args:
-        base_dir (str): The directory to start searching for projects with pyproject.toml files.
+class ProjectDiscoverer:
+    def __init__(self, root_directory: str | Path, layout: Layout, only_subdirs: bool = True):
+        """Initialize the ProjectDiscoverer object.
+        
+        Args:
+            root_directory (str | Path): The root directory to search for projects in.
+            layout (Layout): The layout object to use for updating the screen.
+            only_subdirs (bool): Whether to only search subdirectories for projects. Defaults to True.
+        """
+        self.root_directory = Path(root_directory)
+        self.only_subdirs = only_subdirs
+        self.spec = self.load_gitignore()
+        self.layout = layout
 
-    Returns:
-        A list of directories containing pyproject.toml files.
-    """
-    projects = []
+    def find_projects(self) -> list[Path]:
+        """Find all projects in the root directory and return a list of their paths.
 
-    def traverse_directory(directory):
-        for root, dirs, files in os.walk(directory):
-            if "pyproject.toml" in files:
-                projects.append(root)
-                # Stop traversing subdirectories of this directory
-                dirs.clear()
-                continue
-
-    traverse_directory(base_dir)
-    return projects
-
-
-def build_project(project_dir: str):
-    """Run `uv build` in the specified project directory.
-
-    Args:
-        project_dir (str): The directory to run `uv build` in.
-    """
-    try:
-        subprocess.run(
-            ["uv", "build"],
-            cwd=project_dir,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
+        Returns:
+            list[Path]: A list of paths to the projects.
+        """
+        self.layout["header"].update(
+            Panel("Finding projects...", title="[bold blue]Project Discovery[/]", border_style="blue")
         )
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to build project in {project_dir}: {e.stderr.decode().strip()}")
+        subdirs = []
+        buffer = StringIO()
 
+        # glob for all subdirectories or just the root directory
+        if self.only_subdirs:
+            glob = self.root_directory.glob('**/*/pyproject.toml')
+        else:
+            glob = self.root_directory.glob('**/pyproject.toml')
 
-def collect_dist_files(projects: list[str], common_dist_dir: str):
-    """Copy dist files from each project into a common dist directory.
+        with Live(self.layout, refresh_per_second=4, screen=screen):
+            for path in glob:
+                subdirs.append(path)
+                buffer.write(f"{str(path)}\n")
+                self.layout["main"].update(
+                    Panel(buffer.getvalue(), title="[bold green]Projects Found[/]", border_style="green")
+                )
 
-    Args:
-        projects (list[str]): A list of directories containing dist files.
-        common_dist_dir (str): The directory to copy dist files to.
-    """
-    if not os.path.exists(common_dist_dir):
-        os.makedirs(common_dist_dir)
+        # filter out ignored subdirectories
+        subdirs = [path for path in subdirs if not self.spec.match_file(str(path))]
+        subdirs = [path.parent for path in subdirs]
+        return subdirs
 
-    for project in projects:
-        dist_dir = os.path.join(project, "dist")
-        if os.path.exists(dist_dir):
-            for file_name in os.listdir(dist_dir):
-                source_file = os.path.join(dist_dir, file_name)
-                destination_file = os.path.join(common_dist_dir, file_name)
+    def load_gitignore(self, gitignore_path: str = '.gitignore') -> pathspec.PathSpec:
+        """Load the .gitignore file and return a PathSpec object.
+        
+        Args:
+            gitignore_path (str): The path to the .gitignore file. Defaults to '.gitignore'.
+            
+        Returns:
+            PathSpec: A PathSpec object that can be used to match files.
+        """
+        if os.path.exists(gitignore_path):
+            with open(gitignore_path, 'r') as f:
+                # This creates a PathSpec from the lines in the file.
+                spec = pathspec.PathSpec.from_lines('gitwildmatch', f)
+        else:
+            spec = pathspec.PathSpec.from_lines('gitwildmatch', [])
+        return spec
+    
+class ProjectBuilder:
+    def __init__(self, project_paths: list[Path], layout: Layout):
+        self.project_paths = project_paths
+        self.layout = layout
+        self._check_uv_exists()
 
-                # Avoid copying the same file to itself
-                if os.path.abspath(source_file) != os.path.abspath(destination_file):
-                    shutil.copy2(source_file, destination_file)  # Overwrites if exists
+    def _check_uv_exists(self):
+        """Check if uv is installed on the system."""
+        if not shutil.which('uv'):
+            # Print a nice message to the console and exit if uv is not installed.
+            self.layout["main"].update(
+                Panel("uv is not installed. Please install it.", title="[red]Error[/red]", border_style="red")
+            )
+            sys.exit(1)
+        else:
+            self.layout["main"].update(
+                Panel("uv is installed.", title="[green]Success[/green]", border_style="green")
+            )
 
+    def _move_dists(self, destination: str | Path):
+        """Move the dist files to the destination directory.
 
-def clean_dist_files(projects: list[str], common_dist_dir: str):
-    """Clean dist. files and folders from subdir dist directories.
+        Args:
+            destination (str | Path): The path to the destination directory.
+        """
+        projects = self.project_paths
 
-    Args:
-        projects (list[str]): A list of directories containing dist files.
-        common_dist_dir (str): The directory to clean dist files from.
-    """
-    for project in projects:
-        dist_dir = os.path.join(project, "dist")
-        if os.path.exists(dist_dir):
-            shutil.rmtree(dist_dir, ignore_errors=True)
+        # Setup progress bar panel
+        progress_bar = Progress()
+        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        self.layout["header"].update(progress_panel)
 
-    if os.path.exists(common_dist_dir):
-        shutil.rmtree(common_dist_dir, ignore_errors=True)
+        # Setup main panel for moving files
+        self.layout["main"].update(
+            Panel("Copying dist files...", title="[bold magenta]Copying Dist Files[/]", border_style="magenta")
+        )
 
+        # Setup dist paths
+        dists = list(chain.from_iterable([list(project.glob('dist/*')) for project in projects]))
+        dists = [dist for dist in dists if '.git' not in str(dist)]
 
+        # Move dist files
+        with Live(self.layout, refresh_per_second=4, screen=screen):
+            out_lines = []
+            task = progress_bar.add_task("[cyan]Copying dist files...", total=len(dists))
+            for dist in dists:
+                destination_path = Path(destination) / dist.name
+                if destination_path.exists():
+                    destination_path.unlink()  # Remove the existing file
+                shutil.move(dist, destination_path)
+
+                # Update output lines and main panel
+                out_lines.insert(0, f"[green]>[/green] Copied {dist} to {destination_path}\n")
+                self.layout["main"].update(
+                    Panel("".join(out_lines), title="[bold green]Copying Dist Files[/]", border_style="green")
+                )
+                progress_bar.update(task, advance=1)
+                out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
+                out_lines[0] = f"[dim]{out_lines[0]}[/dim]"
+
+    def _clean_dists(self, destination: str | Path):
+        """Clean the dist files in the projects and the destination directory.
+        
+        Args:
+            destination (str | Path): The path to the destination directory.
+        """
+        projects = self.project_paths
+
+        # Setup dist paths for cleaning
+        dists = list(chain.from_iterable([list(project.glob('dist/*')) for project in projects]))
+        dists = dists + list(Path(destination).glob('*'))
+        dists = [dist for dist in dists if '.git' not in str(dist)]
+
+        # Setup progress bar panel
+        progress_bar = Progress()
+        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        self.layout["header"].update(progress_panel)
+
+        # Setup main panel for cleaning dists
+        self.layout["main"].update(
+            Panel("Cleaning dist files...", title="[bold red]Cleaning Dist Files[/]", border_style="red")
+        )
+
+        # Clean dist files
+        with Live(self.layout, refresh_per_second=4, screen=screen):
+            out_lines = []
+            task = progress_bar.add_task("[cyan]Cleaning dist files...", total=len(dists))
+            for dist in dists:
+                try:
+                    if dist.is_dir():
+                        shutil.rmtree(dist)
+                    else:
+                        dist.unlink()
+                except Exception as e:
+                    out_lines.insert(0, f"[red]> Failed to remove {dist}: {e}[/red]\n")
+                    self.layout["main"].update(
+                        Panel("".join(out_lines), title="[red]Failed to Clean Dist Files[/red]", border_style="red")
+                    )
+                    self.layout["header"].update(
+                        Panel("Failed to clean dist files", title="[red]Major Error[/red]", border_style="red")
+                    )
+                    sys.exit(1)
+                out_lines.insert(0, f"[green]>[/green] Removed {dist}\n")
+                self.layout["main"].update(
+                    Panel("".join(out_lines), title="[bold red]Cleaning Dist Files[/]", border_style="red")
+                )
+                progress_bar.update(task, advance=1)
+                out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
+                out_lines[0] = f"[dim]{out_lines[0]}[/dim]"
+
+    def _clean_venvs(self):
+        """Clean the virtual environments in the projects."""
+        projects = self.project_paths
+
+        # Setup paths for virtual environments
+        venvs = list(chain.from_iterable([list(project.glob('.venv')) for project in projects]))
+
+        # Setup progress bar panel
+        progress_bar = Progress()
+        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        self.layout["header"].update(progress_panel)
+
+        # Setup main panel for cleaning venvs
+        self.layout["main"].update(
+            Panel("Cleaning venv files...", title="[bold red]Cleaning Virtual Environments[/]", border_style="red")
+        )
+
+        # Clean venv files
+        with Live(self.layout, refresh_per_second=4, screen=screen):
+            out_lines = []
+            task = progress_bar.add_task("[cyan]Cleaning venv files...", total=len(venvs))
+            for venv in venvs:
+                try:
+                    shutil.rmtree(venv)
+                except Exception as e:
+                    out_lines.insert(0, f"[red]> Failed to remove {venv}: {e}[/red]\n")
+                    self.layout["main"].update(
+                        Panel("".join(out_lines), title="[red]Failed to Clean Virtual Environments[/red]", border_style="red")
+                    )
+                    self.layout["header"].update(
+                        Panel("Failed to clean venv files", title="[red]Major Error[/red]", border_style="red")
+                    )
+                    sys.exit(1)
+                out_lines.insert(0, f"[green]>[/green] Removed {venv}\n")
+                self.layout["main"].update(
+                    Panel("".join(out_lines), title="[bold red]Cleaning Virtual Environments[/]", border_style="red")
+                )
+                progress_bar.update(task, advance=1)
+                out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
+                out_lines[0] = f"[dim]{out_lines[0]}[/dim]"
+
+    def _proccess_build(self):
+        """Build the projects and update the progress bar and main panel."""
+        projects = self.project_paths
+
+        # Setup progress bar panel
+        progress_bar = Progress()
+        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+
+        # Build projects
+        with Live(self.layout, refresh_per_second=4, screen=screen):
+            task = progress_bar.add_task("[cyan]Building projects...", total=len(projects))
+            for project in projects:
+                self.layout["header"].update(progress_panel)
+                process = subprocess.Popen(
+                    ["uv", "build"],
+                    cwd=project,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                    
+                output_lines = []
+                while True:
+                    line = process.stderr.readline()
+                    if not line and process.poll() is not None:
+                        break
+                    if line:
+                        output_lines.insert(0, line)
+                        # Add a green marker to the current line.
+                        output_lines[0] = f"[green]>[/green] {output_lines[0]}"
+                        self.layout["main"].update(
+                            Panel("".join(output_lines), title=f"Build Output for [yellow]{project}[/yellow]", border_style="yellow")
+                        )
+
+                        # Update the line to a dim style for previous messages.
+                        output_lines[0] = output_lines[0].replace("[green]>[/green]", "")
+                        output_lines[0] = f"[dim]{output_lines[0]}[/dim]"
+
+                if process.returncode != 0:
+                    err_msg = process.stderr.read()
+                    self.layout["header"].update(
+                        Panel("Build failure!", title="[red]Major Error[/red]", border_style="red")
+                    )
+                    self.layout["main"].update(
+                        Panel(f"Build failed: {err_msg.strip()}", title=f"[red]Build Failure for[/red] [yellow]{project}[/yellow]", border_style="red")
+                    )
+                    sys.exit(process.returncode)
+            
+                progress_bar.update(task, advance=1)
+
+    def build(self, dist_dir: str = './dist', clean: bool = True):
+        """Build the projects and move the dist files to the target directory.
+
+        Args:
+            dist_dir (str): The directory to move the dist files to. Defaults to './dist'.
+            clean (bool): Whether to clean the dist directory before collecting dist files. Defaults to True.
+        """
+        # Clean dist files and virtual environments if requested.
+        if clean:
+            self._clean_dists(dist_dir)
+            self._clean_venvs()
+
+        # Build projects
+        self._proccess_build()
+
+        # Move built dist files to the target directory.
+        self._move_dists(dist_dir)
+        
 def add_args():
     """Add arguments to the argument parser."""
     parser = argparse.ArgumentParser(
         description="Build projects and collect dist files."
     )
     parser.add_argument(
-        "--build-dir",
+        "--scan-dir",
         type=str,
         default=os.getcwd(),
         help="The directory to look for projects to build.",
@@ -100,6 +313,7 @@ def add_args():
     parser.add_argument(
         "--clean",
         action="store_true",
+        default=False,
         help="Clean the dist directory before collecting dist files.",
     )
     parser.add_argument(
@@ -109,72 +323,31 @@ def add_args():
         help="The directory to collect dist files in.",
     )
     parser.add_argument(
-        "--verbose",
+        "--no-screen",
         action="store_true",
-        help="Enable verbose logging.",
+        help="Disable screen mode for the progress bars.",
     )
     return parser
 
-
 def main():
-    # setup logger
-    logger.remove()
+    # Setup console and layout.
+    layout = Layout()
+    layout.split(
+        Layout(name="header", size=3),
+        Layout(name="main"),
+    )
+
     args = add_args().parse_args()  # Parse arguments
+    global screen # Use the global screen variable
+    screen = not args.no_screen # Set the screen variable to the opposite of the no-screen argument.
 
-    if args.verbose:
-        logger.add(
-            sink=sys.stdout,
-            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-            level="DEBUG",
-        )
-    else:
-        logger.add(
-            sink=sys.stdout,
-            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-            level="INFO",
-        )
+    # Discover projects.
+    pd = ProjectDiscoverer(args.scan_dir, layout, (True if args.scan_dir != os.getcwd() else False))
+    projects = pd.find_projects()
 
-    # Set the base directory and common dist directory
-    base_dir = args.build_dir
-    common_dist_dir = args.dist_dir
+    # Build projects.
+    builder = ProjectBuilder(projects, layout)
+    builder.build(args.dist_dir, args.clean)
 
-    logger.debug(f"Base directory: {base_dir}")
-    logger.debug(f"Common dist directory: {common_dist_dir}")
-
-    # Gather subdirectories of the base directory
-    subdirs = [
-        os.path.join(base_dir, name)
-        for name in os.listdir(base_dir)
-        if os.path.isdir(os.path.join(base_dir, name))
-    ]
-
-    # Find projects with pyproject.toml in subdirectories
-    projects = []
-    for subdir in subdirs:
-        logger.debug(f"Finding projects with pyproject.toml in {subdir}")
-        items = find_projects_with_pyproject(subdir)
-        logger.info(f"Found {len(items)} projects with pyproject.toml in {subdir}")
-        projects.extend(items)
-
-    if len(projects) == 0:
-        logger.critical(f"No projects with pyproject.toml found in {base_dir}")
-        return
-
-    # Clean dist files before collecting
-    if args.clean:
-        logger.info("Cleaning dist files...")
-        clean_dist_files(projects, common_dist_dir)
-
-    # Build projects and collect dist files
-    logger.info("Starting build process...")
-    for project in tqdm(projects, desc="Building Project", unit="project"):
-        build_project(project)
-
-    logger.info("Collecting dist files...")
-    collect_dist_files(projects, common_dist_dir)
-
-    logger.success(f"All dist files collected in {common_dist_dir}")
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
