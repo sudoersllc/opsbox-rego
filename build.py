@@ -18,10 +18,13 @@ console = Console()
 
 screen = True
 
+
 class ProjectDiscoverer:
-    def __init__(self, root_directory: str | Path, layout: Layout, only_subdirs: bool = True):
+    def __init__(
+        self, root_directory: str | Path, layout: Layout, only_subdirs: bool = True
+    ):
         """Initialize the ProjectDiscoverer object.
-        
+
         Args:
             root_directory (str | Path): The root directory to search for projects in.
             layout (Layout): The layout object to use for updating the screen.
@@ -39,23 +42,31 @@ class ProjectDiscoverer:
             list[Path]: A list of paths to the projects.
         """
         self.layout["header"].update(
-            Panel("Finding projects...", title="[bold blue]Project Discovery[/]", border_style="blue")
+            Panel(
+                "Finding projects...",
+                title="[bold blue]Project Discovery[/]",
+                border_style="blue",
+            )
         )
         subdirs = []
         buffer = StringIO()
 
         # glob for all subdirectories or just the root directory
         if self.only_subdirs:
-            glob = self.root_directory.glob('**/*/pyproject.toml')
+            glob = self.root_directory.glob("**/*/pyproject.toml")
         else:
-            glob = self.root_directory.glob('**/pyproject.toml')
+            glob = self.root_directory.glob("**/pyproject.toml")
 
         with Live(self.layout, refresh_per_second=4, screen=screen):
             for path in glob:
                 subdirs.append(path)
                 buffer.write(f"{str(path)}\n")
                 self.layout["main"].update(
-                    Panel(buffer.getvalue(), title="[bold green]Projects Found[/]", border_style="green")
+                    Panel(
+                        buffer.getvalue(),
+                        title="[bold green]Projects Found[/]",
+                        border_style="green",
+                    )
                 )
 
         # filter out ignored subdirectories
@@ -63,23 +74,24 @@ class ProjectDiscoverer:
         subdirs = [path.parent for path in subdirs]
         return subdirs
 
-    def load_gitignore(self, gitignore_path: str = '.gitignore') -> pathspec.PathSpec:
+    def load_gitignore(self, gitignore_path: str = ".gitignore") -> pathspec.PathSpec:
         """Load the .gitignore file and return a PathSpec object.
-        
+
         Args:
             gitignore_path (str): The path to the .gitignore file. Defaults to '.gitignore'.
-            
+
         Returns:
             PathSpec: A PathSpec object that can be used to match files.
         """
         if os.path.exists(gitignore_path):
-            with open(gitignore_path, 'r') as f:
+            with open(gitignore_path, "r") as f:
                 # This creates a PathSpec from the lines in the file.
-                spec = pathspec.PathSpec.from_lines('gitwildmatch', f)
+                spec = pathspec.PathSpec.from_lines("gitwildmatch", f)
         else:
-            spec = pathspec.PathSpec.from_lines('gitwildmatch', [])
+            spec = pathspec.PathSpec.from_lines("gitwildmatch", [])
         return spec
-    
+
+
 class ProjectBuilder:
     def __init__(self, project_paths: list[Path], layout: Layout):
         self.project_paths = project_paths
@@ -88,15 +100,23 @@ class ProjectBuilder:
 
     def _check_uv_exists(self):
         """Check if uv is installed on the system."""
-        if not shutil.which('uv'):
+        if not shutil.which("uv"):
             # Print a nice message to the console and exit if uv is not installed.
             self.layout["main"].update(
-                Panel("uv is not installed. Please install it.", title="[red]Error[/red]", border_style="red")
+                Panel(
+                    "uv is not installed. Please install it.",
+                    title="[red]Error[/red]",
+                    border_style="red",
+                )
             )
             sys.exit(1)
         else:
             self.layout["main"].update(
-                Panel("uv is installed.", title="[green]Success[/green]", border_style="green")
+                Panel(
+                    "uv is installed.",
+                    title="[green]Success[/green]",
+                    border_style="green",
+                )
             )
 
     def _move_dists(self, destination: str | Path):
@@ -109,22 +129,32 @@ class ProjectBuilder:
 
         # Setup progress bar panel
         progress_bar = Progress()
-        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        progress_panel = Panel(
+            progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan"
+        )
         self.layout["header"].update(progress_panel)
 
         # Setup main panel for moving files
         self.layout["main"].update(
-            Panel("Copying dist files...", title="[bold magenta]Copying Dist Files[/]", border_style="magenta")
+            Panel(
+                "Copying dist files...",
+                title="[bold magenta]Copying Dist Files[/]",
+                border_style="magenta",
+            )
         )
 
         # Setup dist paths
-        dists = list(chain.from_iterable([list(project.glob('dist/*')) for project in projects]))
-        dists = [dist for dist in dists if '.git' not in str(dist)]
+        dists = list(
+            chain.from_iterable([list(project.glob("dist/*")) for project in projects])
+        )
+        dists = [dist for dist in dists if ".git" not in str(dist)]
 
         # Move dist files
         with Live(self.layout, refresh_per_second=4, screen=screen):
             out_lines = []
-            task = progress_bar.add_task("[cyan]Copying dist files...", total=len(dists))
+            task = progress_bar.add_task(
+                "[cyan]Copying dist files...", total=len(dists)
+            )
             for dist in dists:
                 destination_path = Path(destination) / dist.name
                 if destination_path.exists():
@@ -132,9 +162,15 @@ class ProjectBuilder:
                 shutil.move(dist, destination_path)
 
                 # Update output lines and main panel
-                out_lines.insert(0, f"[green]>[/green] Copied {dist} to {destination_path}\n")
+                out_lines.insert(
+                    0, f"[green]>[/green] Copied {dist} to {destination_path}\n"
+                )
                 self.layout["main"].update(
-                    Panel("".join(out_lines), title="[bold green]Copying Dist Files[/]", border_style="green")
+                    Panel(
+                        "".join(out_lines),
+                        title="[bold green]Copying Dist Files[/]",
+                        border_style="green",
+                    )
                 )
                 progress_bar.update(task, advance=1)
                 out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
@@ -142,31 +178,41 @@ class ProjectBuilder:
 
     def _clean_dists(self, destination: str | Path):
         """Clean the dist files in the projects and the destination directory.
-        
+
         Args:
             destination (str | Path): The path to the destination directory.
         """
         projects = self.project_paths
 
         # Setup dist paths for cleaning
-        dists = list(chain.from_iterable([list(project.glob('dist/*')) for project in projects]))
-        dists = dists + list(Path(destination).glob('*'))
-        dists = [dist for dist in dists if '.git' not in str(dist)]
+        dists = list(
+            chain.from_iterable([list(project.glob("dist/*")) for project in projects])
+        )
+        dists = dists + list(Path(destination).glob("*"))
+        dists = [dist for dist in dists if ".git" not in str(dist)]
 
         # Setup progress bar panel
         progress_bar = Progress()
-        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        progress_panel = Panel(
+            progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan"
+        )
         self.layout["header"].update(progress_panel)
 
         # Setup main panel for cleaning dists
         self.layout["main"].update(
-            Panel("Cleaning dist files...", title="[bold red]Cleaning Dist Files[/]", border_style="red")
+            Panel(
+                "Cleaning dist files...",
+                title="[bold red]Cleaning Dist Files[/]",
+                border_style="red",
+            )
         )
 
         # Clean dist files
         with Live(self.layout, refresh_per_second=4, screen=screen):
             out_lines = []
-            task = progress_bar.add_task("[cyan]Cleaning dist files...", total=len(dists))
+            task = progress_bar.add_task(
+                "[cyan]Cleaning dist files...", total=len(dists)
+            )
             for dist in dists:
                 try:
                     if dist.is_dir():
@@ -176,15 +222,27 @@ class ProjectBuilder:
                 except Exception as e:
                     out_lines.insert(0, f"[red]> Failed to remove {dist}: {e}[/red]\n")
                     self.layout["main"].update(
-                        Panel("".join(out_lines), title="[red]Failed to Clean Dist Files[/red]", border_style="red")
+                        Panel(
+                            "".join(out_lines),
+                            title="[red]Failed to Clean Dist Files[/red]",
+                            border_style="red",
+                        )
                     )
                     self.layout["header"].update(
-                        Panel("Failed to clean dist files", title="[red]Major Error[/red]", border_style="red")
+                        Panel(
+                            "Failed to clean dist files",
+                            title="[red]Major Error[/red]",
+                            border_style="red",
+                        )
                     )
                     sys.exit(1)
                 out_lines.insert(0, f"[green]>[/green] Removed {dist}\n")
                 self.layout["main"].update(
-                    Panel("".join(out_lines), title="[bold red]Cleaning Dist Files[/]", border_style="red")
+                    Panel(
+                        "".join(out_lines),
+                        title="[bold red]Cleaning Dist Files[/]",
+                        border_style="red",
+                    )
                 )
                 progress_bar.update(task, advance=1)
                 out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
@@ -195,37 +253,59 @@ class ProjectBuilder:
         projects = self.project_paths
 
         # Setup paths for virtual environments
-        venvs = list(chain.from_iterable([list(project.glob('.venv')) for project in projects]))
+        venvs = list(
+            chain.from_iterable([list(project.glob(".venv")) for project in projects])
+        )
 
         # Setup progress bar panel
         progress_bar = Progress()
-        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        progress_panel = Panel(
+            progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan"
+        )
         self.layout["header"].update(progress_panel)
 
         # Setup main panel for cleaning venvs
         self.layout["main"].update(
-            Panel("Cleaning venv files...", title="[bold red]Cleaning Virtual Environments[/]", border_style="red")
+            Panel(
+                "Cleaning venv files...",
+                title="[bold red]Cleaning Virtual Environments[/]",
+                border_style="red",
+            )
         )
 
         # Clean venv files
         with Live(self.layout, refresh_per_second=4, screen=screen):
             out_lines = []
-            task = progress_bar.add_task("[cyan]Cleaning venv files...", total=len(venvs))
+            task = progress_bar.add_task(
+                "[cyan]Cleaning venv files...", total=len(venvs)
+            )
             for venv in venvs:
                 try:
                     shutil.rmtree(venv)
                 except Exception as e:
                     out_lines.insert(0, f"[red]> Failed to remove {venv}: {e}[/red]\n")
                     self.layout["main"].update(
-                        Panel("".join(out_lines), title="[red]Failed to Clean Virtual Environments[/red]", border_style="red")
+                        Panel(
+                            "".join(out_lines),
+                            title="[red]Failed to Clean Virtual Environments[/red]",
+                            border_style="red",
+                        )
                     )
                     self.layout["header"].update(
-                        Panel("Failed to clean venv files", title="[red]Major Error[/red]", border_style="red")
+                        Panel(
+                            "Failed to clean venv files",
+                            title="[red]Major Error[/red]",
+                            border_style="red",
+                        )
                     )
                     sys.exit(1)
                 out_lines.insert(0, f"[green]>[/green] Removed {venv}\n")
                 self.layout["main"].update(
-                    Panel("".join(out_lines), title="[bold red]Cleaning Virtual Environments[/]", border_style="red")
+                    Panel(
+                        "".join(out_lines),
+                        title="[bold red]Cleaning Virtual Environments[/]",
+                        border_style="red",
+                    )
                 )
                 progress_bar.update(task, advance=1)
                 out_lines[0] = out_lines[0].replace("[green]>[/green]", "")
@@ -237,11 +317,15 @@ class ProjectBuilder:
 
         # Setup progress bar panel
         progress_bar = Progress()
-        progress_panel = Panel(progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan")
+        progress_panel = Panel(
+            progress_bar, title="[bold cyan]Progress[/bold cyan]", border_style="cyan"
+        )
 
         # Build projects
         with Live(self.layout, refresh_per_second=4, screen=screen):
-            task = progress_bar.add_task("[cyan]Building projects...", total=len(projects))
+            task = progress_bar.add_task(
+                "[cyan]Building projects...", total=len(projects)
+            )
             for project in projects:
                 self.layout["header"].update(progress_panel)
                 process = subprocess.Popen(
@@ -249,9 +333,9 @@ class ProjectBuilder:
                     cwd=project,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
                 )
-                    
+
                 output_lines = []
                 while True:
                     line = process.stderr.readline()
@@ -262,26 +346,40 @@ class ProjectBuilder:
                         # Add a green marker to the current line.
                         output_lines[0] = f"[green]>[/green] {output_lines[0]}"
                         self.layout["main"].update(
-                            Panel("".join(output_lines), title=f"Build Output for [yellow]{project}[/yellow]", border_style="yellow")
+                            Panel(
+                                "".join(output_lines),
+                                title=f"Build Output for [yellow]{project}[/yellow]",
+                                border_style="yellow",
+                            )
                         )
 
                         # Update the line to a dim style for previous messages.
-                        output_lines[0] = output_lines[0].replace("[green]>[/green]", "")
+                        output_lines[0] = output_lines[0].replace(
+                            "[green]>[/green]", ""
+                        )
                         output_lines[0] = f"[dim]{output_lines[0]}[/dim]"
 
                 if process.returncode != 0:
                     err_msg = process.stderr.read()
                     self.layout["header"].update(
-                        Panel("Build failure!", title="[red]Major Error[/red]", border_style="red")
+                        Panel(
+                            "Build failure!",
+                            title="[red]Major Error[/red]",
+                            border_style="red",
+                        )
                     )
                     self.layout["main"].update(
-                        Panel(f"Build failed: {err_msg.strip()}", title=f"[red]Build Failure for[/red] [yellow]{project}[/yellow]", border_style="red")
+                        Panel(
+                            f"Build failed: {err_msg.strip()}",
+                            title=f"[red]Build Failure for[/red] [yellow]{project}[/yellow]",
+                            border_style="red",
+                        )
                     )
                     sys.exit(process.returncode)
-            
+
                 progress_bar.update(task, advance=1)
 
-    def build(self, dist_dir: str = './dist', clean: bool = True):
+    def build(self, dist_dir: str = "./dist", clean: bool = True):
         """Build the projects and move the dist files to the target directory.
 
         Args:
@@ -298,7 +396,8 @@ class ProjectBuilder:
 
         # Move built dist files to the target directory.
         self._move_dists(dist_dir)
-        
+
+
 def add_args():
     """Add arguments to the argument parser."""
     parser = argparse.ArgumentParser(
@@ -329,6 +428,7 @@ def add_args():
     )
     return parser
 
+
 def main():
     # Setup console and layout.
     layout = Layout()
@@ -338,16 +438,21 @@ def main():
     )
 
     args = add_args().parse_args()  # Parse arguments
-    global screen # Use the global screen variable
-    screen = not args.no_screen # Set the screen variable to the opposite of the no-screen argument.
+    global screen  # Use the global screen variable
+    screen = (
+        not args.no_screen
+    )  # Set the screen variable to the opposite of the no-screen argument.
 
     # Discover projects.
-    pd = ProjectDiscoverer(args.scan_dir, layout, (True if args.scan_dir != os.getcwd() else False))
+    pd = ProjectDiscoverer(
+        args.scan_dir, layout, (True if args.scan_dir != os.getcwd() else False)
+    )
     projects = pd.find_projects()
 
     # Build projects.
     builder = ProjectBuilder(projects, layout)
     builder.build(args.dist_dir, args.clean)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
