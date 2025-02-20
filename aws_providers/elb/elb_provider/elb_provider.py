@@ -12,7 +12,7 @@ hookimpl = HookimplMarker("opsbox")
 
 
 class elbProvider:
-    """Plugin for gathering data related to AWS S3 (buckets, objects, and storage classes).
+    """Plugin for gathering data related to AWS ELB (Classic, Application, and Network Load Balancers).
 
     Attributes:
         elb_client (boto3.client): The boto3 client for ELB.
@@ -24,7 +24,8 @@ class elbProvider:
         """Return the plugin's configuration.
 
         Returns:
-            ELBConfig: The configuration model for the plugin."""
+            ELBConfig: The configuration model for the plugin.
+        """
 
         class ELBConfig(BaseModel):
             """Configuration for the AWS ELB plugin.
@@ -32,7 +33,8 @@ class elbProvider:
             Attributes:
                 aws_access_key_id (str): AWS access key ID.
                 aws_secret_access_key (str): AWS secret access key.
-                aws_region (str): AWS region."""
+                aws_region (str): AWS region.
+            """
 
             aws_access_key_id: Annotated[
                 str,
@@ -61,7 +63,8 @@ class elbProvider:
         """Set the data for the plugin based on the model.
 
         Args:
-            model (BaseModel): The model containing the data for the plugin."""
+            model (BaseModel): The model containing the data for the plugin.
+        """
         logger.trace("Setting data for ELB plugin...")
         self.credentials = model.model_dump()
 
@@ -76,14 +79,11 @@ class elbProvider:
         credentials = self.credentials
         logger.info(credentials["aws_region"])
 
-        # If no region is provided, get all regions
+        # Determine regions. If no region is provided, try to get all regions.
         if credentials["aws_region"] is None:
             logger.info("Gathering data for IAM...")
-            credentials = self.credentials
-
             # Use the specified region or default to "us-west-1"
             region = credentials["aws_region"] or "us-west-1"
-
             if credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
                 region_client = boto3.client("iam", region_name=region)
@@ -96,10 +96,9 @@ class elbProvider:
                         region_name=region,
                     )
                     regions = [
-                        region["RegionName"]
-                        for region in region_client.describe_regions()["Regions"]
+                        r["RegionName"]
+                        for r in region_client.describe_regions()["Regions"]
                     ]
-
                 except Exception as e:
                     logger.error(f"Error creating IAM client: {e}")
                     return Result(
@@ -109,23 +108,20 @@ class elbProvider:
                         formatted="Error creating IAM client.",
                         details={},
                     )
-
         else:
             regions = credentials["aws_region"].split(",")
 
-        elb_data = []  # List to store load balancer details
-        region_threads = []  # List to store threads
+        elb_data = []  # Shared list to store load balancer details
+        region_threads = []  # List to store region threads
+        data_lock = threading.Lock()  # Lock to protect shared data (elb_data)
 
-        # helper function to process each region
-        def process_region(region):
+        def process_region(region: str):
             """Process the given region and gather data.
 
             Args:
                 region (str): The region to process.
             """
-            credentials = self.credentials
             logger.debug(f"Gathering data for region {region}...")
-
             try:
                 # Initialize boto3 clients with provided credentials
                 if (
@@ -164,15 +160,7 @@ class elbProvider:
             def get_request_count(
                 load_balancer_name: str, namespace: str, dimension_name: str
             ) -> int:
-                """Get the total request count for the given load balancer.
-
-                Args:
-                    load_balancer_name (str): The name of the load balancer.
-                    namespace (str): The namespace for the metric.
-                    dimension_name (str): The dimension name for the metric.
-
-                Returns:
-                    int: The total request count."""
+                """Get the total request count for the given load balancer."""
                 try:
                     metrics = cw_client.get_metric_statistics(
                         Namespace=namespace,
@@ -190,9 +178,7 @@ class elbProvider:
                             f"No request count data for {load_balancer_name}"
                         )
                         return 0
-                    return sum(
-                        [datapoint["Sum"] for datapoint in metrics["Datapoints"]]
-                    )
+                    return sum(datapoint["Sum"] for datapoint in metrics["Datapoints"])
                 except Exception as e:
                     logger.error(
                         f"Error retrieving request count for {load_balancer_name}: {e}"
@@ -202,14 +188,7 @@ class elbProvider:
             def get_classic_load_balancer_instance_health(
                 elb_client, load_balancer_name: str
             ) -> list:
-                """Get the health status of instances behind a classic load balancer.
-
-                Args:
-                    elb_client (boto3.client): The boto3 client for ELB.
-                    load_balancer_name (str): The name of the load balancer.
-
-                Returns:
-                    list: The list of instances and their health status."""
+                """Get the health status of instances behind a classic load balancer."""
                 try:
                     response = elb_client.describe_instance_health(
                         LoadBalancerName=load_balancer_name
@@ -233,15 +212,7 @@ class elbProvider:
             def get_error_rate(
                 load_balancer_name: str, namespace: str, dimension_name: str
             ) -> int:
-                """Get the total error rate for the given load balancer.
-
-                Args:
-                    load_balancer_name (str): The name of the load balancer.
-                    namespace (str): The namespace for the metric.
-                    dimension_name (str): The dimension name for the metric.
-
-                Returns:
-                    int: The total error rate."""
+                """Get the total error rate for the given load balancer."""
                 try:
                     metrics = cw_client.get_metric_statistics(
                         Namespace=namespace,
@@ -257,9 +228,7 @@ class elbProvider:
                     if not metrics["Datapoints"]:
                         logger.warning(f"No error rate data for {load_balancer_name}")
                         return 0
-                    return sum(
-                        [datapoint["Sum"] for datapoint in metrics["Datapoints"]]
-                    )
+                    return sum(datapoint["Sum"] for datapoint in metrics["Datapoints"])
                 except Exception as e:
                     logger.error(
                         f"Error retrieving error rate for {load_balancer_name}: {e}"
@@ -267,10 +236,7 @@ class elbProvider:
                     return 0
 
             def process_classic_load_balancers():
-                """Process Classic Load Balancers and gather data.
-
-                Returns:
-                    list: The list of classic load balancer data."""
+                """Process Classic Load Balancers and gather data."""
                 try:
                     logger.info("Getting classic load balancer info...")
                     response = elb_client.describe_load_balancers()
@@ -291,26 +257,28 @@ class elbProvider:
                             elb_client, lb_name
                         )
 
-                        elb_data.append(
-                            {
-                                "Type": "Classic",
-                                "Name": lb_name,
-                                "RequestCount": request_count,
-                                "ErrorRate": error_rate,
-                                "CreatedTime": lb["CreatedTime"].strftime(
-                                    "%Y-%m-%dT%H:%M:%SZ"
-                                ),
-                                "AvailabilityZones": lb["AvailabilityZones"],
-                                "Instances": [
-                                    instance["InstanceId"]
-                                    for instance in lb["Instances"]
-                                ],
-                                "SecurityGroups": lb["SecurityGroups"],
-                                "Scheme": lb["Scheme"],
-                                "DNSName": lb["DNSName"],
-                                "InstanceHealth": instance_health,  # Include instance health here
-                            }
-                        )
+                        # Append data in a thread-safe manner
+                        with data_lock:
+                            elb_data.append(
+                                {
+                                    "Type": "Classic",
+                                    "Name": lb_name,
+                                    "RequestCount": request_count,
+                                    "ErrorRate": error_rate,
+                                    "CreatedTime": lb["CreatedTime"].strftime(
+                                        "%Y-%m-%dT%H:%M:%SZ"
+                                    ),
+                                    "AvailabilityZones": lb["AvailabilityZones"],
+                                    "Instances": [
+                                        instance["InstanceId"]
+                                        for instance in lb["Instances"]
+                                    ],
+                                    "SecurityGroups": lb["SecurityGroups"],
+                                    "Scheme": lb["Scheme"],
+                                    "DNSName": lb["DNSName"],
+                                    "InstanceHealth": instance_health,
+                                }
+                            )
                     logger.success("Classic load balancer info collected successfully.")
                 except Exception as e:
                     logger.error(f"Error gathering classic load balancer info: {e}")
@@ -318,11 +286,7 @@ class elbProvider:
             def get_alb_nlb_instance_health(
                 elbv2_client, target_group_arn: str
             ) -> list:
-                """Get the health status of instances behind an ALB or NLB.
-
-                Args:
-                    elbv2_client (boto3.client): The boto3 client for ELBv2.
-                    target_group_arn (str): The ARN of the target group."""
+                """Get the health status of instances behind an ALB or NLB."""
                 try:
                     response = elbv2_client.describe_target_health(
                         TargetGroupArn=target_group_arn
@@ -370,34 +334,33 @@ class elbProvider:
 
                         for tg in target_groups["TargetGroups"]:
                             target_group_arn = tg["TargetGroupArn"]
-
-                            # Get instance health
                             instance_health = get_alb_nlb_instance_health(
                                 elbv2_client, target_group_arn
                             )
 
-                            # Format the data
-                            elb_data.append(
-                                {
-                                    "Type": lb["Type"],
-                                    "Name": lb_name,
-                                    "RequestCount": request_count,
-                                    "ErrorRate": error_rate,
-                                    "CreatedTime": lb["CreatedTime"].strftime(
-                                        "%Y-%m-%dT%H:%M:%SZ"
-                                    ),
-                                    "AvailabilityZones": [
-                                        zone["ZoneName"]
-                                        for zone in lb["AvailabilityZones"]
-                                    ],
-                                    "SecurityGroups": lb.get("SecurityGroups", []),
-                                    "Scheme": lb["Scheme"],
-                                    "DNSName": lb["DNSName"],
-                                    "State": lb["State"]["Code"],
-                                    "VpcId": lb["VpcId"],
-                                    "InstanceHealth": instance_health,  # Include instance health here
-                                }
-                            )
+                            # Append data in a thread-safe manner
+                            with data_lock:
+                                elb_data.append(
+                                    {
+                                        "Type": lb["Type"],
+                                        "Name": lb_name,
+                                        "RequestCount": request_count,
+                                        "ErrorRate": error_rate,
+                                        "CreatedTime": lb["CreatedTime"].strftime(
+                                            "%Y-%m-%dT%H:%M:%SZ"
+                                        ),
+                                        "AvailabilityZones": [
+                                            zone["ZoneName"]
+                                            for zone in lb["AvailabilityZones"]
+                                        ],
+                                        "SecurityGroups": lb.get("SecurityGroups", []),
+                                        "Scheme": lb["Scheme"],
+                                        "DNSName": lb["DNSName"],
+                                        "State": lb["State"]["Code"],
+                                        "VpcId": lb["VpcId"],
+                                        "InstanceHealth": instance_health,
+                                    }
+                                )
                     logger.success(
                         "Application and network load balancer info collected successfully."
                     )
@@ -406,31 +369,27 @@ class elbProvider:
                         f"Error gathering application and network load balancer info: {e}"
                     )
 
-            # Process Application and Network Load Balancers
+            # Process Classic and ALB/NLB load balancers concurrently using two threads.
             classic_thread = threading.Thread(target=process_classic_load_balancers)
             alb_nlb_thread = threading.Thread(
                 target=process_application_network_load_balancers
             )
-
-            # Start the threads
             classic_thread.start()
             alb_nlb_thread.start()
-
-            # Wait for the threads to finish
             classic_thread.join()
             alb_nlb_thread.join()
 
-        # Process each region in a separate thread
+        # Process each region in a separate thread.
         for region in regions:
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
 
-        # Wait for all threads to complete
+        # Wait for all region threads to complete.
         for region_thread in region_threads:
             region_thread.join()
 
-        # Prepare the data in a format that can be consumed by Rego
+        # Prepare the data for consumption by Rego.
         rego_ready_data = {"input": {"elbs": elb_data}}
         logger.success("ELB data gathered successfully.")
         logger.trace(f"ELB data: {rego_ready_data}")

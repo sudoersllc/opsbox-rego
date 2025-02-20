@@ -26,30 +26,23 @@ class GithubOutput:
         """Return the plugin's configuration."""
 
         class EmailConfig(BaseModel):
-            """Configuration for the email output."""
+            """Configuration for the github output."""
 
             github_token: Annotated[
-                str, Field(description="The token for the github user.", required=True)
+                str, Field(description="The token for the github user.")
             ]
             repo_owner: Annotated[
-                str, Field(description="The owner of the repository.", required=True)
+                str, Field(description="The owner of the repository.")
             ]
-            repo_name: Annotated[
-                str, Field(description="The name of the repository.", required=True)
-            ]
+            repo_name: Annotated[str, Field(description="The name of the repository.")]
             labels: Annotated[
                 str | None,
-                Field(
-                    description="The labels to apply to the issue.",
-                    required=False,
-                    default=None,
-                ),
+                Field(description="The labels to apply to the issue.", default=None),
             ]
             create_description: Annotated[
                 bool,
                 Field(
                     description="Whether to create a description instead of an issue.",
-                    required=False,
                     default=False,
                 ),
             ]
@@ -135,7 +128,7 @@ class GithubOutput:
                             prompt_template_str=templ,
                             verbose=True,
                         )
-                        llm_response = program(document=str(text=result.formatted))
+                        llm_response = program(document=str(result.formatted))
                         body = llm_response.choices[0].text
                     else:
                         docs: Document = []

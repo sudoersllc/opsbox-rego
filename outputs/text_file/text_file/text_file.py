@@ -32,7 +32,6 @@ class TextFileOutput:
                 Field(
                     default="./findings/",
                     description="The folder to output the results to.",
-                    required=False,
                 ),
             ]
             pass

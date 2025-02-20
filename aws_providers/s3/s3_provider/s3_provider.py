@@ -7,7 +7,6 @@ import threading
 from opsbox import Result
 from typing import Annotated
 
-
 hookimpl = HookimplMarker("opsbox")
 
 
@@ -34,15 +33,30 @@ class S3Provider:
             """Configuration for the AWS S3 plugin."""
 
             aws_access_key_id: Annotated[
-                str, Field(default=None, description="AWS access key ID", required=True)
+                str,
+                Field(description="AWS access key ID", required=False, default=None),
             ]
             aws_secret_access_key: Annotated[
                 str,
-                Field(default=None, description="AWS secret access key", required=True),
+                Field(
+                    description="AWS secret access key",
+                    required=False,
+                    default=None,
+                ),
             ]
             aws_region: Annotated[
                 str | None,
                 Field(description="AWS-Region", required=False, default=None),
+            ]
+            object_count_threshold: Annotated[
+                str,
+                Field(description="Object count threshold", required=False, default=30),
+            ]
+            bucket_count_threshold: Annotated[
+                str,
+                Field(
+                    description="Bucket count threshold", required=False, default=100
+                ),
             ]
 
         return S3Config
@@ -62,30 +76,32 @@ class S3Provider:
         logger.trace("Setting data for S3 plugin...")
         self.credentials = model.model_dump()
 
+    @hookimpl
     def gather_data(self):
         """Gather data related to AWS S3 (buckets, objects, and storage classes).
-        Attributes:
-            credentials: dict: AWS credentials
+
         Returns:
-            dict: A dictionary containing the gathered data
-                "input": {
-                    "objects": list: List of objects in the S3 buckets
-                    "buckets": list: List of S3 buckets
-                    "current_time": int: The current time in seconds since the epoch
-                }
+            Result: A result object containing the gathered data formatted for Rego
         """
         logger.info("Gathering data for S3 plugin...")
 
-        all_buckets = []  # List to store bucket details
-        all_objects = []  # List to store object details
-        object_count_threshold = 30  # Threshold for object count per bucket
-        bucket_count_threshold = 100  # Threshold for bucket count
-        processed_buckets = 0  # Counter for processed buckets
+        all_buckets = []  # Shared list to store bucket details
+        all_objects = []  # Shared list to store object details
+        processed_buckets = 0  # Shared counter for processed buckets
+
+        # Create a lock to protect shared data
+        data_lock = threading.Lock()
+
         credentials = self.credentials
 
-        logger.info(credentials["aws_region"])
+        # Convert thresholds to integers (they may come in as strings)
+        object_count_threshold = int(credentials["object_count_threshold"])
+        bucket_count_threshold = int(credentials["bucket_count_threshold"])
+
+        logger.info(f"Region(s): {credentials['aws_region']}")
 
         if credentials["aws_region"] is None:
+            # If region is not provided, list all available regions
             region_client = boto3.client(
                 "ec2",
                 aws_access_key_id=credentials["aws_access_key_id"],
@@ -98,42 +114,48 @@ class S3Provider:
                 for region in region_client.describe_regions()["Regions"]
             ]
             logger.info(f"Regions: {regions}")
-
         else:
+            # Allow multiple regions (comma-separated)
             regions = credentials["aws_region"].split(",")
 
-        region_threads = []  # List to store threads
+        region_threads = []  # Threads for each region
 
         def process_region(region):
-            s3_client = boto3.client(
-                "s3",
-                aws_access_key_id=self.credentials["aws_access_key_id"],
-                aws_secret_access_key=self.credentials["aws_secret_access_key"],
-                region_name=region,
-            )
+            # Create an S3 client for this region.
+            if credentials["aws_access_key_id"] is None:
+                s3_client = boto3.client("s3", region_name=region)
+            else:
+                s3_client = boto3.client(
+                    "s3",
+                    aws_access_key_id=credentials["aws_access_key_id"],
+                    aws_secret_access_key=credentials["aws_secret_access_key"],
+                    region_name=region,
+                )
 
             response = s3_client.list_buckets()  # List all buckets
-            logger.trace(f"List of buckets: {response}")
-            buckets = response["Buckets"]  # Extract buckets from the response
-            threads = []  # List to store threads
+            logger.trace(f"List of buckets in region {region}: {response}")
+            buckets = response["Buckets"]
+            bucket_threads = []
 
             def process_bucket(bucket):
-                nonlocal processed_buckets  # Access the nonlocal variable processed_buckets
+                nonlocal processed_buckets
                 bucket_name = bucket["Name"]
-
                 bucket_details = {
                     "BucketName": bucket_name,
                     "CreationDate": bucket["CreationDate"].isoformat(),
                     "LastModified": None,
                 }
 
-                all_buckets.append(bucket_details)
+                # Safely check the bucket count and update shared state
+                with data_lock:
+                    if processed_buckets >= bucket_count_threshold:
+                        return
+                    processed_buckets += 1
+                    all_buckets.append(bucket_details)
+
                 most_recent_last_modified = None
-                processed_buckets += 1
                 try:
-                    paginator = s3_client.get_paginator(
-                        "list_objects_v2"
-                    )  # Paginate through bucket objects
+                    paginator = s3_client.get_paginator("list_objects_v2")
                     bucket_storage_classes = set()
                     object_counter = 0
                     for page in paginator.paginate(Bucket=bucket_name):
@@ -143,71 +165,76 @@ class S3Provider:
                                     f"Reached object count threshold for bucket {bucket_name}, skipping remaining objects"
                                 )
                                 break
-                            # Extract object details
+                            # Gather object details
                             object_details = {
                                 "Key": obj["Key"],
                                 "LastModified": obj["LastModified"].timestamp(),
                                 "StorageClass": obj.get("StorageClass", "STANDARD"),
-                                # Default to STANDARD if not provided
                             }
                             bucket_storage_classes.add(object_details["StorageClass"])
-                            # Update the most recent last modified date
                             if (
                                 most_recent_last_modified is None
                                 or obj["LastModified"] > most_recent_last_modified
                             ):
                                 most_recent_last_modified = obj["LastModified"]
-                                bucket_details["LastModified"] = obj[
-                                    "LastModified"
-                                ].timestamp()
+                                with data_lock:
+                                    bucket_details["LastModified"] = obj[
+                                        "LastModified"
+                                    ].timestamp()
                             logger.debug(
-                                f"Added object {obj['Key']} with storage class {object_details['StorageClass']} to data, last modified: {obj['LastModified']}"  # noqa: E501
+                                f"Added object {obj['Key']} with storage class {object_details['StorageClass']} to data, last modified: {obj['LastModified']}"
                             )
-                            all_objects.append(object_details)
+                            with data_lock:
+                                all_objects.append(object_details)
                             object_counter += 1
 
                         if object_counter >= object_count_threshold:
                             break
 
-                    # If bucket has mixed storage classes, you can decide on a policy (e.g., prioritize non-standard classes)  # noqa: E501
                     inferred_storage_class = (
                         bucket_storage_classes.pop()
                         if len(bucket_storage_classes) == 1
                         else "MIXED"
                     )
-                    for bucket in all_buckets:
-                        if bucket["BucketName"] == bucket_name:
-                            bucket["StorageClass"] = inferred_storage_class
-                    if processed_buckets >= bucket_count_threshold:
-                        logger.warning(
-                            "Reached bucket count threshold, skipping remaining buckets"
-                        )
-                        return
+                    # Update the bucket's storage class in the shared list
+                    with data_lock:
+                        for b in all_buckets:
+                            if b["BucketName"] == bucket_name:
+                                b["StorageClass"] = inferred_storage_class
+
+                    with data_lock:
+                        if processed_buckets >= bucket_count_threshold:
+                            logger.warning(
+                                "Reached bucket count threshold, skipping remaining buckets"
+                            )
+                            return
 
                 except Exception as e:
                     logger.error(f"Error listing objects for bucket {bucket_name}: {e}")
 
-            # Process the buckets in parallel
+            # Process buckets concurrently
             for bucket in buckets:
-                if processed_buckets >= bucket_count_threshold:
-                    break
+                with data_lock:
+                    if processed_buckets >= bucket_count_threshold:
+                        break
                 thread = threading.Thread(target=process_bucket, args=(bucket,))
-                threads.append(thread)
+                bucket_threads.append(thread)
                 thread.start()
 
-            for thread in threads:
+            for thread in bucket_threads:
                 thread.join()
 
+        # Start a thread for each region.
         for region in regions:
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
 
-        # Wait for all threads to complete
+        # Wait for all region threads to finish.
         for region_thread in region_threads:
             region_thread.join()
 
-        # Prepare the data in a format that can be consumed by Rego
+        # Prepare the data in a format that can be consumed by Rego.
         rego_ready_data = {
             "input": {
                 "objects": all_objects,

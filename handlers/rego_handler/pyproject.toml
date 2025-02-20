@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-rego-handler"
-version = "0.2.1"
+version = "0.2.2"
 description = "Handles rego plugins for opsbox"
 readme = "README.md"
 license = {file = "LICENCE.txt"}

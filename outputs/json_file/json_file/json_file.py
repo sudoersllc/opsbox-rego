@@ -12,7 +12,7 @@ hookimpl = HookimplMarker("opsbox")
 
 class JSONFileOutput:
     """
-    Plugin for writing results to text files.
+    Plugin for writing results to JSON files.
     """
 
     def __init__(self):
@@ -32,7 +32,6 @@ class JSONFileOutput:
                 Field(
                     default="./findings/",
                     description="The folder to output the results to.",
-                    required=False,
                 ),
             ]
             pass
@@ -82,11 +81,7 @@ class JSONFileOutput:
             )
 
             try:
-                # Convert the Result object to a dictionary using Pydantic's .dict()
-                result_data = result.dict()
-
-                # Optionally, if you want to exclude None values or use other Pydantic features:
-                # result_data = result.dict(exclude_none=True)
+                result_data = result.model_dump()
 
                 # Write the dictionary to a JSON file with indentation for readability
                 with open(json_file_path, "w", encoding="utf-8") as f:

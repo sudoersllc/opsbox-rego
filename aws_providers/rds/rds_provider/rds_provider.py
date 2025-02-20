@@ -7,9 +7,7 @@ import concurrent.futures
 from typing import Annotated
 import threading
 
-
 from opsbox import Result
-
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
@@ -19,7 +17,7 @@ class RDSProvider:
     """Plugin for gathering data related to AWS RDS instances.
 
     Attributes:
-        S3 (boto3.client): The boto3 client for S3.
+        rds_client (boto3.client): The boto3 client for RDS.
         credentials (dict): A dictionary containing AWS access key, secret access key, and region.
     """
 
@@ -64,21 +62,7 @@ class RDSProvider:
         Gathers data related to AWS RDS instances.
 
         Returns:
-            dict: A dictionary containing the gathered data in the following format:
-                "input": {
-                        "rds_instances": [
-                            {
-                                "InstanceIdentifier": "instance-id",
-                                "InstanceType": "db.t2.micro",
-                                "Region": "us-west-1a",
-                                "AllocatedStorage": 20,
-                                "CPUUtilization": 5.5,
-                                "Connections": 150,
-                                "StorageUtilization": 80
-                            },
-                            ...
-                        ]
-                    }
+            Result: A result object containing the gathered data formatted for Rego.
         """
 
         def get_rds_instances(rds_client: boto3.client):
@@ -137,7 +121,6 @@ class RDSProvider:
                 Period=period,
                 Statistics=[statistic],
             )
-
             datapoints = response["Datapoints"]
             return (
                 sum(datapoint[statistic] for datapoint in datapoints) / len(datapoints)
@@ -154,11 +137,55 @@ class RDSProvider:
             used_storage_gb = allocated_storage - avg_free_storage_gb
             return round((used_storage_gb / allocated_storage) * 100)
 
-        # Initialize boto3 clients for RDS and CloudWatch
+        # Shared data structures and a lock for thread safety.
+        instance_data = []  # List to store instance details across regions.
+        snapshots = []  # List to store snapshots across regions.
+        data_lock = threading.Lock()
+
+        credentials = self.credentials
+
+        # Determine regions to process.
+        if credentials["aws_region"] is None:
+            logger.info("Gathering data for RDS...")
+            # Use the specified region or default to "us-west-1"
+            region = credentials["aws_region"] or "us-west-1"
+
+            if credentials["aws_access_key_id"] is None:
+                # Use the instance profile credentials
+                region_client = boto3.client("ec2", region_name=region)
+                regions = [
+                    region_info["RegionName"]
+                    for region_info in region_client.describe_regions()["Regions"]
+                ]
+            else:
+                try:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=credentials["aws_access_key_id"],
+                        aws_secret_access_key=credentials["aws_secret_access_key"],
+                        region_name=region,
+                    )
+                    regions = [
+                        region_info["RegionName"]
+                        for region_info in region_client.describe_regions()["Regions"]
+                    ]
+                except Exception as e:
+                    logger.error(f"Error creating RDS client: {e}")
+                    return Result(
+                        relates_to="aws_data",
+                        result_name="aws_rds_data",
+                        result_description="Structured RDS data using.",
+                        formatted="Error creating RDS client.",
+                        details={},
+                    )
+        else:
+            regions = credentials["aws_region"].split(",")
+
+        region_threads = []  # List to store threads for each region.
 
         def process_region(region):
             if self.credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
+                # Use the instance profile credentials.
                 rds_client = boto3.client("rds", region_name=region)
                 cloudwatch_client = boto3.client("cloudwatch", region_name=region)
             else:
@@ -168,18 +195,19 @@ class RDSProvider:
                     aws_secret_access_key=self.credentials["aws_secret_access_key"],
                     region_name=region,
                 )
-
                 cloudwatch_client = boto3.client(
                     "cloudwatch",
                     aws_access_key_id=self.credentials["aws_access_key_id"],
                     aws_secret_access_key=self.credentials["aws_secret_access_key"],
                     region_name=region,
                 )
-            instances = get_rds_instances(rds_client)
-            snapshots.append(get_rds_snapshots(rds_client))
-            # Retrieve RDS instances
 
-            # Use a ThreadPoolExecutor to gather metrics concurrently
+            instances = get_rds_instances(rds_client)
+            # Append snapshots safely.
+            with data_lock:
+                snapshots.append(get_rds_snapshots(rds_client))
+
+            # Use a ThreadPoolExecutor to gather CloudWatch metrics concurrently.
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
                 for instance in instances:
@@ -212,64 +240,22 @@ class RDSProvider:
                         )
                     )
 
-                # Collect results and populate instance data
+                # Collect results and populate instance data.
                 for i, instance in enumerate(instances):
                     instance["CPUUtilization"] = futures[i * 3].result()
                     instance["Connections"] = futures[i * 3 + 1].result()
                     instance["StorageUtilization"] = futures[i * 3 + 2].result()
-                    instance_data.append(instance)
+                    # Append to shared instance_data list in a thread-safe manner.
+                    with data_lock:
+                        instance_data.append(instance)
 
-        credentials = self.credentials
-
-        if credentials["aws_region"] is None:
-            logger.info("Gathering data for IAM...")
-
-            # Use the specified region or default to "us-west-1"
-            region = credentials["aws_region"] or "us-west-1"
-
-            if credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("ec2", region_name=region)
-                regions = [
-                    region["RegionName"]
-                    for region in region_client.describe_regions()["Regions"]
-                ]
-            else:
-                try:
-                    region_client = boto3.client(
-                        "ec2",
-                        aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"],
-                        region_name=region,
-                    )
-                    regions = [
-                        region["RegionName"]
-                        for region in region_client.describe_regions()["Regions"]
-                    ]
-
-                except Exception as e:
-                    logger.error(f"Error creating IAM client: {e}")
-                    return Result(
-                        relates_to="aws_data",
-                        result_name="aws_iam_data",
-                        result_description="Structured IAM data using.",
-                        formatted="Error creating IAM client.",
-                        details={},
-                    )
-
-        else:
-            regions = credentials["aws_region"].split(",")
-
-        region_threads = []  # List to store threads
-        instance_data = []  # List to store instances
-        snapshots = []  # List to store snapshots
-
+        # Start a thread for each region.
         for region in regions:
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
 
-        # Wait for all threads to complete
+        # Wait for all region threads to complete.
         for region_thread in region_threads:
             region_thread.join()
 
