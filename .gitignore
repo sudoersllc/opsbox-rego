@@ -12,3 +12,7 @@ wheels/
 # OPA executable
 opa.exe
 opa
+
+# caches
+.pytest_cache
+.ruff_cache

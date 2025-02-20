@@ -34,7 +34,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Build Package with UV
-        run: uv run build.py --build-dir ${{ github.event.inputs.build_subdir }} --verbose
+        run: uv run build.py --scan-dir ${{ github.event.inputs.build_subdir }} --no-screen
 
       - name: Publish Package to PyPI
         if: ${{ github.event.inputs.skip_publish != 'true' }}
