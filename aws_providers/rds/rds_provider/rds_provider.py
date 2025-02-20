@@ -146,7 +146,7 @@ class RDSProvider:
 
         # Determine regions to process.
         if credentials["aws_region"] is None:
-            logger.info("Gathering data for IAM...")
+            logger.info("Gathering data for RDS...")
             # Use the specified region or default to "us-west-1"
             region = credentials["aws_region"] or "us-west-1"
 
@@ -170,12 +170,12 @@ class RDSProvider:
                         for region_info in region_client.describe_regions()["Regions"]
                     ]
                 except Exception as e:
-                    logger.error(f"Error creating IAM client: {e}")
+                    logger.error(f"Error creating RDS client: {e}")
                     return Result(
                         relates_to="aws_data",
-                        result_name="aws_iam_data",
-                        result_description="Structured IAM data using.",
-                        formatted="Error creating IAM client.",
+                        result_name="aws_rds_data",
+                        result_description="Structured RDS data using.",
+                        formatted="Error creating RDS client.",
                         details={},
                     )
         else:
