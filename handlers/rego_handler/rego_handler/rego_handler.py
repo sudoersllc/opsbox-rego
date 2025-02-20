@@ -478,6 +478,7 @@ class ExecLocal(RegoExecution):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            self.opa_fp = binary_fp
         except Exception as e:
             logger.exception(e)
             raise RuntimeError("OPA subprocess not found or not installed!") from e
