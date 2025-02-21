@@ -16,7 +16,7 @@ from io import StringIO
 # Create a console object to use for logging and measuring the size of the main panel.
 console = Console()
 
-screen = True
+screen = False
 
 
 class ProjectDiscoverer:
@@ -406,7 +406,7 @@ def add_args():
     parser.add_argument(
         "--scan-dir",
         type=str,
-        default=os.getcwd(),
+        default="Unspecified",
         help="The directory to look for projects to build.",
     )
     parser.add_argument(
@@ -444,8 +444,10 @@ def main():
     )  # Set the screen variable to the opposite of the no-screen argument.
 
     # Discover projects.
+    scan_dir = args.scan_dir if args.scan_dir != "Unspecified" else "."
+    only_subdirs = True if args.scan_dir == "Unspecified" else False
     pd = ProjectDiscoverer(
-        args.scan_dir, layout, (True if args.scan_dir != os.getcwd() else False)
+        scan_dir, layout, only_subdirs=only_subdirs
     )
     projects = pd.find_projects()
 
