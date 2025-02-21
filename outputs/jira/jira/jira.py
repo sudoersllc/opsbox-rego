@@ -86,9 +86,7 @@ class JiraOutput:
         class JiraConfig(BaseModel):
             """Configuration for the Jira output."""
 
-            jira_url: Annotated[
-                str, Field(description="The URL of the Jira instance.")
-            ]
+            jira_url: Annotated[str, Field(description="The URL of the Jira instance.")]
             jira_email: Annotated[
                 str, Field(description="The email to authenticate to Jira with.")
             ]
