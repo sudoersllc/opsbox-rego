@@ -450,6 +450,8 @@ def main():
     projects = pd.find_projects()
 
     # Build projects.
+    if not Path(args.dist_dir).exists():
+        Path(args.dist_dir).mkdir(parents=True)
     builder = ProjectBuilder(projects, layout)
     builder.build(args.dist_dir, args.clean)
 
