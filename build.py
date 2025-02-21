@@ -16,7 +16,7 @@ from io import StringIO
 # Create a console object to use for logging and measuring the size of the main panel.
 console = Console()
 
-screen = False
+screen = True
 
 
 class ProjectDiscoverer:
