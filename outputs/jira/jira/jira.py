@@ -86,16 +86,14 @@ class JiraOutput:
         class JiraConfig(BaseModel):
             """Configuration for the Jira output."""
 
-            JIRA_USERNAME: Annotated[
-                str, Field(description="The URL of the Jira instance.")
-            ]
-            JIRA_EMAIL: Annotated[
+            jira_url: Annotated[str, Field(description="The URL of the Jira instance.")]
+            jira_email: Annotated[
                 str, Field(description="The email to authenticate to Jira with.")
             ]
-            JIRA_API_TOKEN: Annotated[
+            jira_api_token: Annotated[
                 str, Field(description="The api key to authenticate to Jira with.")
             ]
-            JIRA_PROJECT_KEY: Annotated[
+            jira_project_key: Annotated[
                 str, Field(description="The Jira project to create issues in.")
             ]
             pass
@@ -107,7 +105,7 @@ class JiraOutput:
     def activate(self):
         """Activate the plugin."""
         # jira identity token
-        credentials = f"{self.model.JIRA_EMAIL}:{self.model.JIRA_API_TOKEN}".encode(
+        credentials = f"{self.model.jira_email}:{self.model.jira_api_token}".encode(
             "utf-8"
         )
         base64_credentials = base64.b64encode(credentials).decode("utf-8")
@@ -311,7 +309,7 @@ Given the findings below, create a solutions plan for Jira:
         # Create the payload for the request
         headers = self.auth_headers
         url = self.model.jira_url
-        project_key = self.model.JIRA_PROJECT_KEY
+        project_key = self.model.jira_project_key
         import re
 
         re.sub(r"\W+", "", description)
@@ -368,7 +366,7 @@ Given the findings below, create a solutions plan for Jira:
         logger.debug(f"Uploading Task: {summary}")
         headers = self.auth_headers
         url = self.model.jira_url
-        project_key = self.model.JIRA_PROJECT_KEY
+        project_key = self.model.jira_project_key
         payload = json.dumps(
             {
                 "fields": {
