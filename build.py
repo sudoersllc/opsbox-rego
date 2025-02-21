@@ -446,9 +446,7 @@ def main():
     # Discover projects.
     scan_dir = args.scan_dir if args.scan_dir != "Unspecified" else "."
     only_subdirs = True if args.scan_dir == "Unspecified" else False
-    pd = ProjectDiscoverer(
-        scan_dir, layout, only_subdirs=only_subdirs
-    )
+    pd = ProjectDiscoverer(scan_dir, layout, only_subdirs=only_subdirs)
     projects = pd.find_projects()
 
     # Build projects.
