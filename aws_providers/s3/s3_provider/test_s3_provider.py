@@ -2,7 +2,6 @@ from moto import mock_aws
 import boto3
 from .s3_provider.s3_provider import S3Provider
 from opsbox import Result
-from pydantic import BaseModel
 from loguru import logger
 
 
@@ -47,13 +46,9 @@ def test_s3_provider_gather_data(json_output=False):
 
     # Instantiate provider and set credentials
     provider = S3Provider()
+    model = provider.grab_config()
 
-    class MockCredentials(BaseModel):
-        aws_access_key_id: str
-        aws_secret_access_key: str
-        aws_region: str | None
-
-    credentials = MockCredentials(
+    credentials = model(
         aws_access_key_id=aws_access_key_id,
         aws_secret_access_key=aws_secret_access_key,
         aws_region=aws_region,
