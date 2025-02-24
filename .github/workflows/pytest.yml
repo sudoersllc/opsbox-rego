@@ -30,7 +30,9 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run Pytest tests
-        run: uv run pytest . --html=report.html --self-contained-html -s --junit-xml=junit.xml
+        run: |
+          ls -la
+          uv run pytest . --html=report.html --self-contained-html -s --junit-xml=junit.xml
 
       - name: Upload Pytest report
         uses: actions/upload-artifact@v4
