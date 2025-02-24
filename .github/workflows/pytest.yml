@@ -1,0 +1,45 @@
+name: Test Code with Pytest
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+      - dev
+  workflow_dispatch:
+
+
+permissions: read-all
+jobs:
+  build:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }} environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install requirements
+        run: uv sync
+
+      - name: Run Pytest tests
+        run: uv run pytest . --ignore=./tests/integration --html=report.html --self-contained-html -s --junit-xml=junit.xml
+
+      - name: Upload Pytest report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.python-version }}_Pytest
+          path: report.html
+
+      - name: Upload Junit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.python-version }}_Junit
+          path: junit.xml
