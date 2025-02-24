@@ -27,7 +27,9 @@ jobs:
         run: pip install uv
 
       - name: Install requirements
-        run: uv sync --all-extras
+        run: |
+          uv sync --all-extras
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
 
       - name: Run Pytest tests
         run: |
