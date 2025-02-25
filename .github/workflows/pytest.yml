@@ -40,7 +40,10 @@ jobs:
       - name: Get Python CWD
         run: |
           ls -la
-          uv run python -c \"import os; print(os.getcwd())\"
+          uv run python
+          import os
+          print(os.getcwd())
+          exit()
 
       - name: Run Pytest tests
         run: |
