@@ -13,8 +13,7 @@ class DummyConfig(BaseModel):
     jira_email: str = "dummy@example.com"
     jira_api_token: str = "dummy_token"
     jira_project_key: str = "DUMMY"
-    jira_url: str = "http://dummy.jira"     # Note: our code expects a jira_url attribute
-
+    jira_url: str = "http://dummy.jira"  # Note: our code expects a jira_url attribute
 
 
 # A simple dummy response to simulate requests responses.
