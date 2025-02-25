@@ -66,8 +66,46 @@ class elbProvider:
             model (BaseModel): The model containing the data for the plugin.
         """
         logger.trace("Setting data for ELB plugin...")
+        self.get_regions(model)
         self.credentials = model.model_dump()
 
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+        
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+        logger.trace("Getting regions from the config model...")
+        regions: list[str] = []
+        if model.aws_region is None:
+            # gather all regions
+            if model.aws_access_key_id is None or model.aws_secret_access_key is None:
+                # Use the instance profile credentials
+                region_client = boto3.client("elb", region_name="us-west-1")
+            else:
+                # Use the provided credentials
+                region_client = boto3.client(
+                    "elb",
+                    aws_access_key_id=model.aws_access_key_id,
+                    aws_secret_access_key=model.aws_secret_access_key,
+                    region_name="us-west-1",
+                )
+            regions = [
+                region["RegionName"]
+                for region in region_client.describe_regions()["Regions"]
+            ]
+            model.regions = regions
+            logger.trace(f"Found {len(regions)} regions.", extra={"regions": regions})
+        else:
+            logger.trace("Regions already provided in the config model.")
+            pass
+
+        return model
+
+        
     @hookimpl
     def gather_data(self) -> Result:
         """
@@ -76,41 +114,11 @@ class elbProvider:
         Returns:
             Result: The data in a format that can be used by the rego policy.
         """
-        credentials = self.credentials
-        logger.info(credentials["aws_region"])
+        credentials = self.credentials    
 
-        # Determine regions. If no region is provided, try to get all regions.
-        if credentials["aws_region"] is None:
-            logger.info("Gathering data for IAM...")
-            # Use the specified region or default to "us-west-1"
-            region = credentials["aws_region"] or "us-west-1"
-            if credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("iam", region_name=region)
-            else:
-                try:
-                    region_client = boto3.client(
-                        "elb",
-                        aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"],
-                        region_name=region,
-                    )
-                    regions = [
-                        r["RegionName"]
-                        for r in region_client.describe_regions()["Regions"]
-                    ]
-                except Exception as e:
-                    logger.error(f"Error creating IAM client: {e}")
-                    return Result(
-                        relates_to="aws_data",
-                        result_name="aws_iam_data",
-                        result_description="Structured IAM data using.",
-                        formatted="Error creating IAM client.",
-                        details={},
-                    )
-        else:
-            regions = credentials["aws_region"].split(",")
+        regions = self.credentials["regions"].split(",")
 
+        logger.info("Gathering data for ELB...")
         elb_data = []  # Shared list to store load balancer details
         region_threads = []  # List to store region threads
         data_lock = threading.Lock()  # Lock to protect shared data (elb_data)
