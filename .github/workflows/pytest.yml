@@ -31,6 +31,17 @@ jobs:
           uv sync --all-extras
           curl -L -o ./opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
 
+      - name: Check OPA version
+        run: |
+          ls -la
+          chmod +x ./opa
+          ./opa --version
+
+      - name: Get Python CWD
+        run: |
+          ls -la
+          uv run python -c "import os; print(os.getcwd())"
+
       - name: Run Pytest tests
         run: |
           ls -la
