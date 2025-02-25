@@ -98,7 +98,7 @@ def _test_rego(rego_path: str, input_data: str, query: str, keys_to_check=None):
     package_name = _extract_package_name(rego_path)
     query = f"data.{package_name}"
     item = subprocess.run(
-        ["opa", "eval", "-d", rego_path, "-i", input_data, query, "--format=json"],
+        ["./opa", "eval", "-d", rego_path, "-i", input_data, query, "--format=json"],
         check=True,
         capture_output=True,
     )  # noqa: S607
