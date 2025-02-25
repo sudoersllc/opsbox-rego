@@ -13,8 +13,8 @@ class DummyConfig(BaseModel):
     jira_email: str = "dummy@example.com"
     jira_api_token: str = "dummy_token"
     jira_project_key: str = "DUMMY"
-    # Note: our code expects a jira_url attribute
-    jira_url: str = "http://dummy.jira"
+    jira_url: str = "http://dummy.jira"     # Note: our code expects a jira_url attribute
+
 
 
 # A simple dummy response to simulate requests responses.
@@ -53,7 +53,7 @@ def test_grab_config():
     assert issubclass(ConfigModel, BaseModel)
     # Instantiate it with dummy data.
     instance = ConfigModel(
-        jira_username="dummy",
+        jira_url="dummy",
         jira_email="dummy@example.com",
         jira_api_token="dummy_token",
         jira_project_key="DUMMY",
