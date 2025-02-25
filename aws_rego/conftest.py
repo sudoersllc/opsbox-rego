@@ -26,6 +26,7 @@ def _extract_package_name(rego_policy_path: str) -> str:
 
 def _download_opa():
     """Helper function to download OPA binary based on the OS to the root of the project."""
+    logger.info(f"Looking for opa in {os.getcwd()}")
     if os.path.exists(r".\opa") or os.path.exists(r".\opa.exe"):
         logger.info("OPA already exists! Using it instead...")
     else:
@@ -37,7 +38,7 @@ def _download_opa():
                     "curl",
                     "-L",
                     "-o",
-                    "opa",
+                    "./opa",
                     "https://openpolicyagent.org/downloads/latest/opa_linux_amd64",
                 ],
                 check=True,
@@ -97,7 +98,7 @@ def _test_rego(rego_path: str, input_data: str, query: str, keys_to_check=None):
     package_name = _extract_package_name(rego_path)
     query = f"data.{package_name}"
     item = subprocess.run(
-        ["opa", "eval", "-d", rego_path, "-i", input_data, query, "--format=json"],
+        ["./opa", "eval", "-d", rego_path, "-i", input_data, query, "--format=json"],
         check=True,
         capture_output=True,
     )  # noqa: S607
