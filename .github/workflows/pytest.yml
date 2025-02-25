@@ -35,7 +35,7 @@ jobs:
         run: |
           ls -la
           chmod +x ./opa
-          ./opa --version
+          ./opa version
           
       - name: Get Python CWD
         run: |
