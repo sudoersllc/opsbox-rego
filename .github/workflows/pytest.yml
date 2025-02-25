@@ -36,16 +36,16 @@ jobs:
           ls -la
           chmod +x ./opa
           ./opa --version
-
+          
       - name: Get Python CWD
         run: |
           ls -la
-          uv run python -c "import os; print(os.getcwd())"
+          uv run python -c \"import os; print(os.getcwd())\"
 
       - name: Run Pytest tests
         run: |
           ls -la
-          uv run pytest . --html=report.html --self-contained-html -rPf --junit-xml=junit.xml
+          uv run pytest . --html=report.html --self-contained-html -s --junit-xml=junit.xml
 
       - name: Upload Pytest report
         uses: actions/upload-artifact@v4
