@@ -67,7 +67,7 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
         class cost_savingsConfig(BaseModel):
             """Configuration for the AWS Cloudwatch Metrics plugin."""
 
-            arrigator: bool = Field(
+            aggregate_results: bool = Field(
                 ...,
                 description="Whether to aggregate the data and generate one response.",
             )
@@ -88,7 +88,7 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
 
         Args:
             data: List[FormattedResult]: The data to process.
-            arrigator: bool: Whether to aggregate the data and generate one response.
+            aggregate_results: bool: Whether to aggregate the data and generate one response.
 
         Returns:
             List[FormattedResult]: The transformed data."""
@@ -98,7 +98,7 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
             credentials = self.credentials
             appconfig = AppConfig()
             if appconfig.embed_model is not None:
-                if credentials["arrigator"]:  # for aggregation
+                if credentials["aggregate_results"]:  # for aggregation
                     logger.trace(
                         "Generating recommendations for all items with vector index"
                     )
@@ -158,7 +158,7 @@ Remember, your goal is to provide a comprehensive, all-encompassing review of th
                     return transformed_recs
 
             else:  # no vector index
-                if credentials["arrigator"]:
+                if credentials["aggregate_results"]:
                     logger.trace(
                         "Generating recommendations for all items without vector index"
                     )
