@@ -71,7 +71,7 @@ class elbProvider:
 
     def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
         """Get the regions from the model.
-        
+
         Args:
             model (type[BaseModel]): The model containing the data for the plugin.
 
@@ -105,7 +105,6 @@ class elbProvider:
 
         return model
 
-        
     @hookimpl
     def gather_data(self) -> Result:
         """
@@ -114,7 +113,7 @@ class elbProvider:
         Returns:
             Result: The data in a format that can be used by the rego policy.
         """
-        credentials = self.credentials    
+        credentials = self.credentials
 
         regions = self.credentials["regions"].split(",")
 
