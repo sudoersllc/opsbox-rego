@@ -66,8 +66,8 @@ class elbProvider:
             model (BaseModel): The model containing the data for the plugin.
         """
         logger.trace("Setting data for ELB plugin...")
-        self.get_regions(model)
         self.credentials = model.model_dump()
+        self.credentials["regions"] = self.get_regions(model)
 
     def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
         """Get the regions from the model.
@@ -97,13 +97,13 @@ class elbProvider:
                 region["RegionName"]
                 for region in region_client.describe_regions()["Regions"]
             ]
-            model.regions = regions
             logger.trace(f"Found {len(regions)} regions.", extra={"regions": regions})
+            return regions
         else:
+            regions = model.aws_region.split(",")
             logger.trace("Regions already provided in the config model.")
-            pass
-
-        return model
+            logger.trace(f"Found {len(regions)} regions.", extra={"regions": regions})
+            return regions
 
     @hookimpl
     def gather_data(self) -> Result:
@@ -115,7 +115,7 @@ class elbProvider:
         """
         credentials = self.credentials
 
-        regions = self.credentials["regions"].split(",")
+        regions = self.credentials["regions"]
 
         logger.info("Gathering data for ELB...")
         elb_data = []  # Shared list to store load balancer details
