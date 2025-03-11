@@ -9,12 +9,11 @@ from .jira.jira import JiraOutput, SolutionsPlan  # type: ignore
 
 
 class DummyConfig(BaseModel):
-    JIRA_USERNAME: str = "dummy_user"
-    JIRA_EMAIL: str = "dummy@example.com"
-    JIRA_API_TOKEN: str = "dummy_token"
-    JIRA_PROJECT_KEY: str = "DUMMY"
-    # Note: our code expects a jira_url attribute
-    jira_url: str = "http://dummy.jira"
+    jira_username: str = "dummy_user"
+    jira_email: str = "dummy@example.com"
+    jira_api_token: str = "dummy_token"
+    jira_project_key: str = "DUMMY"
+    jira_url: str = "http://dummy.jira"  # Note: our code expects a jira_url attribute
 
 
 # A simple dummy response to simulate requests responses.
@@ -53,19 +52,19 @@ def test_grab_config():
     assert issubclass(ConfigModel, BaseModel)
     # Instantiate it with dummy data.
     instance = ConfigModel(
-        JIRA_USERNAME="dummy",
-        JIRA_EMAIL="dummy@example.com",
-        JIRA_API_TOKEN="dummy_token",
-        JIRA_PROJECT_KEY="DUMMY",
+        jira_url="dummy",
+        jira_email="dummy@example.com",
+        jira_api_token="dummy_token",
+        jira_project_key="DUMMY",
     )
-    assert instance.JIRA_EMAIL == "dummy@example.com"
+    assert instance.jira_email == "dummy@example.com"
 
 
 def test_set_data(jira_instance):
     """
     Test that set_data correctly sets the plugin’s configuration.
     """
-    assert jira_instance.model.JIRA_EMAIL == "dummy@example.com"
+    assert jira_instance.model.jira_email == "dummy@example.com"
 
 
 def test_activate(jira_instance, monkeypatch):
@@ -77,7 +76,7 @@ def test_activate(jira_instance, monkeypatch):
 
     # Compute the expected base64 credentials.
     creds = (
-        f"{jira_instance.model.JIRA_EMAIL}:{jira_instance.model.JIRA_API_TOKEN}".encode(
+        f"{jira_instance.model.jira_email}:{jira_instance.model.jira_api_token}".encode(
             "utf-8"
         )
     )

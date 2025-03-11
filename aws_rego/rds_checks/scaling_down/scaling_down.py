@@ -77,7 +77,7 @@ class ScalingDown:
             logger.error(f"Error formatting scaling_instances details: {e}")
             scaling_instances = ""
 
-        template = """The following RSD storage instances should be scaled down:
+        template = """The following RDS storage instances should be scaled down:
         
 {scaling_instances}"""
 

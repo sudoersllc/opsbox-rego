@@ -1,0 +1,61 @@
+name: Test Code with Pytest
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+      - dev
+  workflow_dispatch:
+
+
+permissions: read-all
+jobs:
+  build:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }} environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install requirements
+        run: |
+          uv sync --all-extras
+          curl -L -o ./opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+
+      - name: Check OPA version
+        run: |
+          ls -la
+          chmod +x ./opa
+          ./opa version
+          
+      - name: Get Python CWD
+        run: |
+          ls -la
+          pwd
+          uv run python -c "import os; print(os.getcwd())"
+
+      - name: Run Pytest tests
+        run: |
+          ls -la
+          uv run pytest . --html=report.html --self-contained-html -s --junit-xml=junit.xml
+
+      - name: Upload Pytest report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.python-version }}_Pytest
+          path: report.html
+
+      - name: Upload Junit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.python-version }}_Junit
+          path: junit.xml

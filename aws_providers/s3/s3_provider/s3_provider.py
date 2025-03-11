@@ -34,29 +34,26 @@ class S3Provider:
 
             aws_access_key_id: Annotated[
                 str,
-                Field(description="AWS access key ID", required=False, default=None),
+                Field(description="AWS access key ID", default=None),
             ]
             aws_secret_access_key: Annotated[
                 str,
                 Field(
                     description="AWS secret access key",
-                    required=False,
                     default=None,
                 ),
             ]
             aws_region: Annotated[
                 str | None,
-                Field(description="AWS-Region", required=False, default=None),
+                Field(description="AWS-Region", default=None),
             ]
             object_count_threshold: Annotated[
-                str,
-                Field(description="Object count threshold", required=False, default=30),
+                int,
+                Field(description="Object count threshold", default=30),
             ]
             bucket_count_threshold: Annotated[
-                str,
-                Field(
-                    description="Bucket count threshold", required=False, default=100
-                ),
+                int,
+                Field(description="Bucket count threshold", default=100),
             ]
 
         return S3Config
