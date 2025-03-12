@@ -84,15 +84,16 @@ class elbProvider:
             # gather all regions
             if model.aws_access_key_id is None or model.aws_secret_access_key is None:
                 # Use the instance profile credentials
-                region_client = boto3.client("elb", region_name="us-west-1")
+                region_client = boto3.client("ec2", region_name="us-west-1")
             else:
                 # Use the provided credentials
                 region_client = boto3.client(
-                    "elb",
+                    "ec2",
                     aws_access_key_id=model.aws_access_key_id,
                     aws_secret_access_key=model.aws_secret_access_key,
                     region_name="us-west-1",
                 )
+
             regions = [
                 region["RegionName"]
                 for region in region_client.describe_regions()["Regions"]
