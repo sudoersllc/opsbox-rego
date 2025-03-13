@@ -52,6 +52,7 @@ class HighErrorRate:
                 load_balancers = findings.get("high_error_rate_load_balancers", [])
             else:
                 load_balancers = findings
+
             for lb in load_balancers:
                 logger.debug(f"Processing load balancer: {lb}")
                 if (
@@ -62,6 +63,16 @@ class HighErrorRate:
                 ):
                     lb_obj = {
                         lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
+                    }
+                    high_error_rate_load_balancers.append(lb_obj)
+                elif (
+                    isinstance(lb, dict)
+                    and "Name" in lb
+                    and "Type" in lb
+                    and "ErrorRate" in lb
+                ):
+                    lb_obj = {
+                        lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
                     }
                     high_error_rate_load_balancers.append(lb_obj)
                 else:
