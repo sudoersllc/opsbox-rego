@@ -7,6 +7,7 @@ license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
     "loguru>=0.7.2",
+    "markdown>=3.7",
     "opsbox==0.2.0",
     "pathspec>=0.12.1",
     "pydantic>=2.10.2",
