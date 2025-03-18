@@ -5,13 +5,13 @@ from pathlib import Path
 
 
 @pytest.mark.parametrize("module_string", [
- #   "rds_idle-cli_out",
-    # "rds_idle-json_out",
-    # "rds_idle-text_out",
-    # "rds_idle-jira_out",
-    # "rds_idle-pagerduty_out",
-    # "rds_idle-email_out",
-    # "rds_idle-github_out",
+    "rds_idle-cli_out",
+    "rds_idle-json_out",
+    "rds_idle-text_out",
+    "rds_idle-jira_out",
+    "rds_idle-pagerduty_out",
+    "rds_idle-email_out",
+    "rds_idle-github_out",
     "rds_idle-azure_out",
 ])
 def test_all_rego_checks(module_string):
