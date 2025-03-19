@@ -1,0 +1,6 @@
+[info]
+name="azurevm"
+module = "azurevm_provider"
+class_name= "AzureVMProvider"
+type = "provider"
+uses = ["general"]
