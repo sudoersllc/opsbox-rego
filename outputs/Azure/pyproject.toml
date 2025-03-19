@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-azure-output"
-version = "0.1.2"
+version = "0.1.4"
 description = "Azure issues output for opsbox"
 readme = "README.md"
 license = {file = "LICENSE"}
