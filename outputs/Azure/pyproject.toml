@@ -9,6 +9,7 @@ dependencies = [
     "llama-index>=0.12.6",
     "loguru>=0.7.2",
     "pandas>=2.2.3",
+    "markdown>=3.7",
     "pluggy>=1.5.0",
     "pydantic>=2.10.2",
     "requests>=2.32.3",
