@@ -3,7 +3,7 @@ name = "azure_idle_instances"
 module = "azure_idle_instances"
 class_name = "IdleInstances"
 type = "rego"
-uses = ["rego", "ec2"]
+uses = ["rego", "azurevm"]
 
 [rego]
 description = "Check for idle Azure VM instances."

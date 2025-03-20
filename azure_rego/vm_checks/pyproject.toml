@@ -1,0 +1,29 @@
+[project]
+name = "opsbox-azure-vm-checks"
+version = "0.1.0"
+description = "Collection of Azure VM checks for opsbox"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = "==3.11.*"
+dependencies = [
+    "opsbox-azure-vm-provider>=0.1.0",
+    "opsbox-rego-handler>=0.2.0"
+]
+
+[tool.setuptools.packages.find]
+include = ["*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[project.entry-points.'opsbox.plugins']
+opsbox_azure_idle_vms = "azure_idle_instances.azure_idle_instances:IdleVMs"
