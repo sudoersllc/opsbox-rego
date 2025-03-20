@@ -2,6 +2,7 @@ import os
 import json
 import pathlib
 
+
 def test_high_percent_io_limit(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
@@ -23,13 +24,13 @@ def test_high_percent_io_limit(rego_process):
     # Load rego policy
     rego_policy = os.path.join(current_dir, "high_percentiolimit.rego")
     rego_input = os.path.join(current_dir.parent, "efs_test_data.json")
-    needed_keys = [
-        "Id",
-        "Name",
-        "PercentIOLimit"
-    ]
+    needed_keys = ["Id", "Name", "PercentIOLimit"]
 
-    result = rego_process(rego_policy, rego_input, "data.aws_rego.efs_checks.high_percentiolimit.high_percentiolimit.details")
+    result = rego_process(
+        rego_policy,
+        rego_input,
+        "data.aws_rego.efs_checks.high_percentiolimit.high_percentiolimit.details",
+    )
     # check that result has the needed keys
     for key in needed_keys:
         assert key in result[0]

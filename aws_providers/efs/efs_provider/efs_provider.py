@@ -176,7 +176,9 @@ class efsProvider:
                         logger.warning(f"No percent_io_limit data for {file_system_id}")
                         return 0
                     return round(
-                        max(datapoint["Average"] for datapoint in metrics["Datapoints"]),
+                        max(
+                            datapoint["Average"] for datapoint in metrics["Datapoints"]
+                        ),
                         2,
                     )
                 except Exception as e:

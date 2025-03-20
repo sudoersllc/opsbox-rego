@@ -5,18 +5,19 @@ from moto import mock_aws
 from pydantic import BaseModel
 
 # Adjust these imports as needed.
-from .efs_provider.efs_provider import efsProvider   # type: ignore
+from .efs_provider.efs_provider import efsProvider  # type: ignore
 from opsbox import Result
+
 
 @mock_aws
 def test_efs_provider_gather_data(monkeypatch, json_output=True):
     """
     Test the efsProvider.gather_data method.
-    
+
     This test uses @mock_aws to intercept all AWS service calls. It creates a fake
     EFS file system and patches the boto3 client for EFS and CloudWatch to inject
     a file system name and a dummy metric value.
-    
+
     Args:
         monkeypatch (pytest.MonkeyPatch): Pytest monkeypatch fixture.
         json_output (bool, optional): If True, writes JSON output to a file.
@@ -48,6 +49,7 @@ def test_efs_provider_gather_data(monkeypatch, json_output=True):
             # Override get_metric_statistics to return a dummy datapoint.
             def new_get_metric_statistics(*args, **kwargs):
                 return {"Datapoints": [{"Average": 10}]}
+
             client.get_metric_statistics = new_get_metric_statistics
         return client
 
