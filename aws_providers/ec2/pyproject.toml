@@ -1,9 +1,9 @@
 [project]
 name = "opsbox-ec2-provider"
-version = "0.1.4"
+version = "0.1.5"
 description = "Opsbox provider for EC2 checks"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {file = "LICENCE.txt"}
 requires-python = "==3.11.*"
 dependencies = [
     "boto3>=1.35.87",

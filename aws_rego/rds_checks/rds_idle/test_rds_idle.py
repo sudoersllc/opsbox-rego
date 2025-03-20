@@ -23,7 +23,7 @@ def test_rds_idle(rego_process):
     if write:
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
-            
+
     rego_policy = os.path.join(current_dir, "rds_idle.rego")
     rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
 
@@ -35,6 +35,6 @@ def test_rds_idle(rego_process):
         "InstanceIdentifier",
         "InstanceType",
         "Region",
-        "StorageUtilization"
+        "StorageUtilization",
     ]
     rego_process(rego_policy, rego_input, "data.aws.cost.rds_idle", needed_keys)

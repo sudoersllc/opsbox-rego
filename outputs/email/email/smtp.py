@@ -23,12 +23,21 @@ class EmailOutput:
         class EmailConfig(BaseModel):
             """Configuration for the email output."""
 
-            smtp_username: Annotated[str, Field(description="The username for the SMTP server.", required=True)]
-            smtp_password: Annotated[str, Field(description="The password for the SMTP server.", required=True)]
-            smtp_server: Annotated[str, Field(description="The SMTP server to use.", required=True)]
-            smtp_port: Annotated[str, Field(description="The port to use for the SMTP server.", required=True)]
+            smtp_username: Annotated[
+                str, Field(description="The username for the SMTP server.")
+            ]
+            smtp_password: Annotated[
+                str, Field(description="The password for the SMTP server.")
+            ]
+            smtp_server: Annotated[str, Field(description="The SMTP server to use.")]
+            smtp_port: Annotated[
+                int, Field(description="The port to use for the SMTP server.")
+            ]
             receiver_email_list: Annotated[
-                str, Field(description="A comma-separated list of email addresses to send the email to.", required=True)
+                str,
+                Field(
+                    description="A comma-separated list of email addresses to send the email to."
+                ),
             ]
 
         return EmailConfig
@@ -49,7 +58,9 @@ class EmailOutput:
 
         logger.info("Sending email with check results")
         msg = MIMEMultipart()
-        logger.info(f"Sending email from {self.model.smtp_username} to {self.model.receiver_email_list}")
+        logger.info(
+            f"Sending email from {self.model.smtp_username} to {self.model.receiver_email_list}"
+        )
         msg["From"] = self.model.smtp_username
         msg["To"] = self.model.receiver_email_list
         try:
@@ -60,11 +71,17 @@ class EmailOutput:
                 server = smtplib.SMTP(self.model.smtp_server, self.model.smtp_port)
                 logger.info("Starting TLS...")
                 server.starttls()
-                logger.info(f"Logging in to {self.model.smtp_server} on port {self.model.smtp_port}")
+                logger.info(
+                    f"Logging in to {self.model.smtp_server} on port {self.model.smtp_port}"
+                )
                 server.login(self.model.smtp_username, self.model.smtp_password)
                 logger.info("Sending email...")
                 text = msg.as_string()
-                server.sendmail(self.model.smtp_username, self.model.receiver_email_list.split(","), text)
+                server.sendmail(
+                    self.model.smtp_username,
+                    self.model.receiver_email_list.split(","),
+                    text,
+                )
                 server.quit()
                 logger.success("Email sent successfully!")
         except Exception as e:

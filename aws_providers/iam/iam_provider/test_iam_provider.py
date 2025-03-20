@@ -30,10 +30,15 @@ def test_iam_provider_gather_data(json_output=False):
     iam_client.create_role(RoleName="test-role", AssumeRolePolicyDocument="{}")
 
     # Create valid policy document
-    policy_document = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}
+    policy_document = {
+        "Version": "2012-10-17",
+        "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}],
+    }
 
     # Create mock policy
-    iam_client.create_policy(PolicyName="test-policy", PolicyDocument=json.dumps(policy_document))
+    iam_client.create_policy(
+        PolicyName="test-policy", PolicyDocument=json.dumps(policy_document)
+    )
 
     # Generate credential report
     iam_client.generate_credential_report()

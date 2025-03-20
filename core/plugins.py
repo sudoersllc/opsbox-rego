@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class Result(BaseModel):
     """A dictionary representing the results of a rego check.
 

@@ -20,6 +20,7 @@ class UnusedBucketsConfig(BaseModel):
         ),
     ]
 
+
 class UnusedBuckets:
     """Plugin for identifying unused S3 buckets."""
 
@@ -60,19 +61,27 @@ class UnusedBuckets:
         if findings:
             buckets = findings.get("unused_buckets", [])
             for bucket in buckets:
-                if isinstance(bucket, dict) and "name" in bucket and "last_modified" in bucket:
+                if (
+                    isinstance(bucket, dict)
+                    and "name" in bucket
+                    and "last_modified" in bucket
+                ):
                     try:
                         # Convert timestamp to human-readable date format
-                        last_modified = datetime.fromtimestamp(bucket["last_modified"]).strftime("%Y-%m-%d %H:%M:%S")
+                        last_modified = datetime.fromtimestamp(
+                            bucket["last_modified"]
+                        ).strftime("%Y-%m-%d %H:%M:%S")
                         bucket_obj = {
                             bucket["name"]: {
                                 "last_modified": last_modified,
-                                "storage_class": bucket.get("storage_class", "Unknown")
+                                "storage_class": bucket.get("storage_class", "Unknown"),
                             }
                         }
                         old_buckets.append(bucket_obj)
                     except Exception as e:
-                        logger.error(f"Error formatting bucket's last_modified date: {e}")
+                        logger.error(
+                            f"Error formatting bucket's last_modified date: {e}"
+                        )
                 else:
                     logger.error(f"Unexpected format for bucket: {bucket}")
             try:

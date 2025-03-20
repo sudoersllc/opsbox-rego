@@ -35,6 +35,6 @@ def test_empty_storage(rego_process):
         "InstanceIdentifier",
         "InstanceType",
         "Region",
-        "StorageUtilization"
+        "StorageUtilization",
     ]
     rego_process(rego_policy, rego_input, "data.aws.cost.empty_storage", needed_keys)

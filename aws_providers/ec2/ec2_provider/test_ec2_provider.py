@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import boto3
 from datetime import datetime
 
+
 # ruff: noqa: S101
 @mock_aws
 def test_gather_data(json_output=False):
@@ -49,11 +50,7 @@ def test_gather_data(json_output=False):
     ami_id = ami_response["ImageId"]
 
     # Run an instance and capture its ID
-    instances = ec2_resource.create_instances(
-        ImageId=ami_id,
-        MinCount=1,
-        MaxCount=1
-    )
+    instances = ec2_resource.create_instances(ImageId=ami_id, MinCount=1, MaxCount=1)
     instance_id = instances[0].id
 
     # Create a volume and capture its ID
@@ -68,7 +65,9 @@ def test_gather_data(json_output=False):
     assert allocation_id is not None, "AllocationId is missing from EIP response"
 
     # Create a snapshot
-    snapshot = ec2_resource.create_snapshot(VolumeId=volume_id, Description="Test snapshot")
+    snapshot = ec2_resource.create_snapshot(
+        VolumeId=volume_id, Description="Test snapshot"
+    )
     snapshot_id = snapshot.id
 
     # Create mock CloudWatch metrics

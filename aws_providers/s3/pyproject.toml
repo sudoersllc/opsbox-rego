@@ -1,6 +1,6 @@
 [project]
 name = "opsbox-s3-provider"
-version = "0.1.5"
+version = "0.1.7"
 description = "Opsbox provider for S3 checks"
 readme = "README.md"
 license = {file = "LICENSE"}

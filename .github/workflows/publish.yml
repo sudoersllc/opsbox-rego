@@ -1,0 +1,89 @@
+name: Build, Publish, and Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag (e.g., rego_handler-v1.2.3)"
+        required: true
+      release_name:
+        description: "Release name/title"
+        required: true
+        default: "New Release"
+      release_notes:
+        description: "Release notes (optional)"
+        required: false
+      skip_publish:
+        description: "Set to 'true' to skip publishing to PyPI and only create a GitHub release."
+        required: false
+        default: "false"
+      build_subdir:
+        description: "Set to the subdirectory containing the package to build"
+        required: false
+        default: "."        
+      
+
+jobs:
+  build_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build Package with UV
+        run: uv run build.py --scan-dir ${{ github.event.inputs.build_subdir }} --no-screen
+
+      - name: Publish Package to PyPI
+        if: ${{ github.event.inputs.skip_publish != 'true' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+  
+  create_release:
+    needs: build_publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build-artifacts
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          release_name: ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.inputs.release_notes }}
+          draft: true
+          prerelease: false
+
+
+      - name: Upload Each Artifact as Release Asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la
+          for file in $(find build-artifacts -type f); do
+            echo "Uploading ${file}..."
+            gh release upload "${{ github.event.inputs.release_tag }}" "${file}" --clobber
+          done
+
+      - name: Clean Up Artifacts
+        run: rm -rf build-artifacts

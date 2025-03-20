@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+
 class ObjectLastModifiedConfig(BaseModel):
     s3_last_modified_date_threshold: Annotated[
         datetime,
@@ -17,6 +18,7 @@ class ObjectLastModifiedConfig(BaseModel):
             description="How long ago an object has to remain unmodified for it to be considered old. Default is 90 days.",
         ),
     ]
+
 
 class ObjectLastModified:
     """Plugin for identifying S3 objects that have not been modified in a long time."""
@@ -86,7 +88,9 @@ Percentage of total old objects: {percentage_old}%"""
                 result_name="object_last_modified",
                 result_description="S3 Objects that have not been modified in a long time",
                 details=data.details,
-                formatted=template.format(objects=objects_yaml, percentage_old=percentage_old),
+                formatted=template.format(
+                    objects=objects_yaml, percentage_old=percentage_old
+                ),
             )
         else:
             return Result(

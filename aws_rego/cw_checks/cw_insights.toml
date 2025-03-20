@@ -1,6 +1,0 @@
-[info]
-name = "cw_insights"
-module = "cw_insights"
-class_name = "CWMetricInsights"
-type = "input"
-uses = ["general", "cw_metrics"]

@@ -7,21 +7,20 @@ import base64
 import markdown
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.program import LLMTextCompletionProgram
-from opsbox import AppConfig
+from opsbox import AppConfig, Result
 
 
-from typing import TYPE_CHECKING, Annotated
-
-if TYPE_CHECKING:
-    from core.rego import FormattedResult
+from typing import Annotated
 
 
 hookimpl = HookimplMarker("opsbox")
+
 
 class AzureOutput:
     """
     Plugin for sending check results to Azure DevOps.
     """
+
     def __init__(self):
         pass
 
@@ -30,18 +29,39 @@ class AzureOutput:
         """
         Return the plugin's configuration.
         """
+
         class AzureDevOpsConfig(BaseModel):
             """Configuration for the Azure DevOps output."""
-            azure_devops_token: Annotated[str, Field(description="The personal access token for Azure DevOps.", required=True)]
-            azure_devops_organization: Annotated[str, Field(description="The name of the Azure DevOps organization.", required=True)]
-            azure_devops_project: Annotated[str, Field(description="The name of the Azure DevOps project.", required=True)]
-            azure_devops_username: Annotated[str, Field(description="The username for Azure DevOps.", required=True)]
-            azure_devops_priority: Annotated[int, Field(description="The priority of the work item.", required=False, default=4)]
-            tags: Annotated[str | None, Field(description="The tags to apply to the work item.", required=False, default=None)]
-            create_description: Annotated[bool, Field(description="Whether to create a description instead of an issue.", required=False, default=False)]
+
+            azure_devops_token: Annotated[
+                str, Field(description="The personal access token for Azure DevOps.")
+            ]
+            azure_devops_organization: Annotated[
+                str, Field(description="The name of the Azure DevOps organization.")
+            ]
+            azure_devops_project: Annotated[
+                str, Field(description="The name of the Azure DevOps project.")
+            ]
+            azure_devops_username: Annotated[
+                str, Field(description="The username for Azure DevOps.")
+            ]
+            azure_devops_priority: Annotated[
+                int, Field(description="The priority of the work item.", default=4)
+            ]
+            tags: Annotated[
+                str | None,
+                Field(description="The tags to apply to the work item.", default=None),
+            ]
+            create_description: Annotated[
+                bool,
+                Field(
+                    description="Whether to create a description instead of an issue.",
+                    default=False,
+                ),
+            ]
+
         return AzureDevOpsConfig
-    
-   
+
     @hookimpl
     def set_data(self, model: BaseModel):
         """
@@ -51,16 +71,18 @@ class AzureOutput:
         self.credentials = model.model_dump()
 
     @hookimpl
-    def proccess_results(self, results: list["FormattedResult"]):
+    def proccess_results(self, results: list["Result"]):
         """
         Emails the check results to the specified email addresses.
 
         Args:
-            results (list[FormattedResult]): The formatted results from the checks.
+            results (list[Result]): The formatted results from the checks.
         """
         appconfig = AppConfig()
         azure_devops_url = f"https://dev.azure.com/{self.model.azure_devops_organization}/{self.model.azure_devops_project}/_apis/wit/workitems/$Issue?api-version=7.1-preview.3"
-        base64_token = base64.b64encode(f"{self.model.azure_devops_username}:{self.model.azure_devops_token}".encode()).decode()
+        base64_token = base64.b64encode(
+            f"{self.model.azure_devops_username}:{self.model.azure_devops_token}".encode()
+        ).decode()
         try:
             for result in results:
                 # Prepare the file for upload
@@ -76,10 +98,10 @@ class AzureOutput:
                         attachment_url,
                         headers={
                             "Authorization": f"Basic {base64_token}",
-                            "Content-Type": "application/octet-stream"
+                            "Content-Type": "application/octet-stream",
                         },
                         data=file_data,
-                        timeout=15
+                        timeout=15,
                     )
 
                 if attachment_response.status_code in [200, 201]:
@@ -87,7 +109,9 @@ class AzureOutput:
                     attachment_url = attachment_info["url"]
                     print("File uploaded successfully.")
                 else:
-                    print(f"Failed to upload file. Status Code: {attachment_response.status_code}")
+                    print(
+                        f"Failed to upload file. Status Code: {attachment_response.status_code}"
+                    )
                     print(attachment_response.text)
                 credentials = self.credentials
                 if credentials["create_description"]:
@@ -125,9 +149,13 @@ class AzureOutput:
                         program(document=str(text=result["formatted"]))
                     else:
                         docs: Document = []
-                        docs.append(Document(text=result["formatted"], id=result["check_name"]))
+                        docs.append(
+                            Document(text=result["formatted"], id=result["check_name"])
+                        )
 
-                        index = VectorStoreIndex.from_documents(docs, embed_model=appconfig.embed_model)
+                        index = VectorStoreIndex.from_documents(
+                            docs, embed_model=appconfig.embed_model
+                        )
 
                         # Query the index for detailed Azure issue descriptions
                         azure_query: str = """
@@ -154,7 +182,9 @@ class AzureOutput:
                     **Output:**
                     - Provide a singular Azure issue, each with a clear detailed description, to enable the development team to start working on the cost-saving initiatives effectively.
                     """  # noqa: E501
-                        logger.info("Querying the vector store index to create Azure issue descriptions...")
+                        logger.info(
+                            "Querying the vector store index to create Azure issue descriptions..."
+                        )
                         query_engine = index.as_query_engine(llm=appconfig.llm)
                         response = query_engine.query(azure_query)
                         body = str(response)
@@ -165,27 +195,26 @@ class AzureOutput:
 
                 headers = {
                     "Authorization": f"Basic {base64_token}",
-                    "Content-Type": "application/json-patch+json"
+                    "Content-Type": "application/json-patch+json",
                 }
                 body_html = markdown.markdown(body)
-
 
                 # Get today's date for the title
                 data = [
                     {
                         "op": "add",
                         "path": "/fields/System.Title",
-                        "value": f'OpsBox Optimization Check - {pd.Timestamp.now().strftime("%Y-%m-%d")} - {result.get("check_name", "Unnamed")}'
+                        "value": f"OpsBox Optimization Check - {pd.Timestamp.now().strftime('%Y-%m-%d')} - {result.get('check_name', 'Unnamed')}",
                     },
                     {
                         "op": "add",
                         "path": "/fields/System.Description",
-                        "value": body_html
+                        "value": body_html,
                     },
                     {
                         "op": "add",
                         "path": "/fields/System.Tags",
-                        "value": self.model.tags or ""
+                        "value": self.model.tags or "",
                     },
                     {
                         "op": "add",
@@ -195,23 +224,28 @@ class AzureOutput:
                             "url": attachment_url,
                             "attributes": {
                                 "comment": "Attached file with detailed information"
-                            }
-                        }
+                            },
+                        },
                     },
                     {
-                    "op": "add",
-                    "path": "/fields/Microsoft.VSTS.Common.Priority",
-                    "value": self.model.azure_devops_priority
-                    }
-                    
+                        "op": "add",
+                        "path": "/fields/Microsoft.VSTS.Common.Priority",
+                        "value": self.model.azure_devops_priority,
+                    },
                 ]
 
                 # Make the POST request with optional parameters
-                response = requests.post(azure_devops_url, headers=headers, json=data, timeout=15)
+                response = requests.post(
+                    azure_devops_url, headers=headers, json=data, timeout=15
+                )
                 if response.status_code == 200:
-                    logger.success(f'Successfully created Azure DevOps work item: {response.json()["url"]}')
+                    logger.success(
+                        f"Successfully created Azure DevOps work item: {response.json()['url']}"
+                    )
                 else:
-                    logger.error(f"Failed to create Azure DevOps work item: {response.status_code}")
+                    logger.error(
+                        f"Failed to create Azure DevOps work item: {response.status_code}"
+                    )
                     logger.error(response.text)
                     logger.error(response.json())
 

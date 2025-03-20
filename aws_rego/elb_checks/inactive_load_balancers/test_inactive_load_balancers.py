@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 
+
 def test_inactive_load_balancers(rego_process):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
@@ -35,10 +36,12 @@ def test_inactive_load_balancers(rego_process):
         "SecurityGroups",
         "State",
         "Type",
-        "VpcId"
+        "VpcId",
     ]
 
-    result = rego_process(rego_policy, rego_input, "data.aws.elb.inactive_load_balancers")
+    result = rego_process(
+        rego_policy, rego_input, "data.aws.elb.inactive_load_balancers"
+    )
     # check that result has the needed keys
     for key in needed_keys:
         assert key in result[0]

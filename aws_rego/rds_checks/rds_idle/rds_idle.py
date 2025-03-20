@@ -8,8 +8,16 @@ from typing import Annotated
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+
 class RdsIdleConfig(BaseModel):
-    rds_cpu_idle_threshold: Annotated[int, Field(default = 5, description=r"% of cpu utilization under which an RDS instance is flagged as idle. Default = 5.")]
+    rds_cpu_idle_threshold: Annotated[
+        int,
+        Field(
+            default=5,
+            description=r"% of cpu utilization under which an RDS instance is flagged as idle. Default = 5.",
+        ),
+    ]
+
 
 class RDSIdle:
     """Plugin for identifying idle RDS instances."""
@@ -18,7 +26,7 @@ class RDSIdle:
     def grab_config(self) -> type[BaseModel]:
         """Return the plugin's configuration pydantic model.
         These should be things your plugin needs/wants to function.
-        
+
         Returns:
             type[BaseModel]: The configuration model for the plugin."""
         return RdsIdleConfig
@@ -41,7 +49,9 @@ class RDSIdle:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["rds_cpu_idle_threshold"] = self.conf["rds_cpu_idle_threshold"]
+        data.details["input"]["rds_cpu_idle_threshold"] = self.conf[
+            "rds_cpu_idle_threshold"
+        ]
         return data
 
     @hookimpl
@@ -59,7 +69,9 @@ class RDSIdle:
         # Handle findings as a list
         if isinstance(findings, list):
             for instance in findings:
-                if instance.get("CPUUtilization", 0) < 5:  # Check if the instance is idle
+                if (
+                    instance.get("CPUUtilization", 0) < 5
+                ):  # Check if the instance is idle
                     idle_instances.append(
                         f"Instance: {instance['InstanceIdentifier']} is idle."
                     )

@@ -13,10 +13,12 @@ hookimpl = HookimplMarker("opsbox")
 if TYPE_CHECKING:
     pass
 
+
 class SlackOutput:
     """
-    Plugin for sending results to Slack.
+    Plugin for sending results to a Slack channel.
     """
+
     def __init__(self):
         pass
 
@@ -25,14 +27,17 @@ class SlackOutput:
         """
         Return the plugin's configuration
         """
+
         class SlackConfig(BaseModel):
-            """Configuration for the email output."""
-            slack_token: Annotated[str, Field(description="The Slack token to use.", required=True)]
-            slack_channel: Annotated[str, Field(description="The Slack channel to send the message to.", required=True)]
+            """Configuration for the slack output."""
+
+            slack_token: Annotated[str, Field(description="The Slack token to use.")]
+            slack_channel: Annotated[
+                str, Field(description="The Slack channel to send the message to.")
+            ]
 
         return SlackConfig
 
-    
     @hookimpl
     @logger.catch(reraise=True)
     def activate(self):
@@ -41,16 +46,15 @@ class SlackOutput:
         """
         self.client = WebClient(token=self.model.slack_token)
 
-
     @hookimpl
     def set_data(self, model: BaseModel):
         """
         Set the data for the plugin based on the model.
         """
         self.model = model
-    
+
     @hookimpl
-    def proccess_results(self,  results: list["Result"]):
+    def proccess_results(self, results: list["Result"]):
         """
         Send the results to Slack.
 
@@ -63,12 +67,9 @@ class SlackOutput:
         for result in results:
             try:
                 response = client.chat_postMessage(
-                    channel=channel,
-                    text=result.formatted
+                    channel=channel, text=result.formatted
                 )
                 if not response["ok"]:
                     raise ValueError("Slack API response indicates failure.")
             except SlackApiError as e:
                 logger.error(f"Error sending message to Slack: {e.response['error']}")
-       
-        

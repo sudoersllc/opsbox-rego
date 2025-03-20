@@ -8,8 +8,16 @@ from typing import Annotated
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+
 class EmptyStorageConfig(BaseModel):
-    rds_empty_storage_threshold: Annotated[int, Field(default = 40, description=r"% of storage utilization under which an RDS instance is flagged as empty. Default = 40.")]
+    rds_empty_storage_threshold: Annotated[
+        int,
+        Field(
+            default=40,
+            description=r"% of storage utilization under which an RDS instance is flagged as empty. Default = 40.",
+        ),
+    ]
+
 
 class EmptyStorage:
     """Plugin for identifying RDS storage instances with low storage utilization."""
@@ -18,7 +26,7 @@ class EmptyStorage:
     def grab_config(self) -> type[BaseModel]:
         """Return the plugin's configuration pydantic model.
         These should be things your plugin needs/wants to function.
-        
+
         Returns:
             type[BaseModel]: The configuration model for the plugin."""
         return EmptyStorageConfig
@@ -41,7 +49,9 @@ class EmptyStorage:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["rds_empty_storage_threshold"] = self.conf["rds_empty_storage_threshold"]
+        data.details["input"]["rds_empty_storage_threshold"] = self.conf[
+            "rds_empty_storage_threshold"
+        ]
         return data
 
     @hookimpl
@@ -74,7 +84,9 @@ class EmptyStorage:
 
         # Format the storage instances into YAML
         try:
-            storage_instances_yaml = yaml.dump(storage_instances, default_flow_style=False)
+            storage_instances_yaml = yaml.dump(
+                storage_instances, default_flow_style=False
+            )
         except Exception as e:
             logger.error(f"Error formatting storage_instances details: {e}")
             storage_instances_yaml = "Error formatting data."

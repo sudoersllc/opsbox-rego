@@ -28,17 +28,17 @@ class NoHealthyTargets:
 {load_balancers}"""
 
             # Format the output using the yaml dump for better display
-            formatted_load_balancers = yaml.dump(no_healthy_targets, default_flow_style=False)
-
+            formatted_load_balancers = yaml.dump(
+                no_healthy_targets, default_flow_style=False
+            )
 
             # Create the result item with the formatted data
             item = Result(
                 relates_to="elb",
                 result_name="no_healthy_targets",
-
                 result_description="ELBs with no healthy targets",
                 details=data.details,
-                formatted=template.format(load_balancers=formatted_load_balancers)
+                formatted=template.format(load_balancers=formatted_load_balancers),
             )
 
             return item
@@ -48,6 +48,5 @@ class NoHealthyTargets:
                 result_name="no_healthy_targets",
                 result_description="No Healthy Targets",
                 details=data.details,
-                formatted="No ELBs found with no healthy targets."
-
+                formatted="No ELBs found with no healthy targets.",
             )
