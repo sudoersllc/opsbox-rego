@@ -1,5 +1,5 @@
 [project]
-name = "opsbox-azurevm_provider"
+name = "opsbox-azure-vm-provider"
 version = "0.1.0"
 description = "Opsbox provider for Azure VM checks"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.entry-points.'opsbox.plugins']
-azurevm_provider = "azurevm_provider.azurevm_provider:AzureVMProvider"
+azurevm_provider = "azure_vm_provider.azure_vm_provider:AzureVMProvider"
 
 [build-system]
 requires = ["setuptools>=61.0"]

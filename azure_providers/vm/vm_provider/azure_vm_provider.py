@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timedelta
 from loguru import logger
 import threading
-from typing import Annotated, Optional
+from typing import Annotated
 from opsbox import Result
 import json
 
@@ -109,6 +109,14 @@ class AzureVMProvider:
     def activate(self) -> None:
         """Log a trace message indicating the provider is being activated."""
         logger.trace("Activating Azure VM provider...")
+        self.credential = DefaultAzureCredential()
+        subscription_id = self.config["azure_subscription_id"]
+
+        credential= self.credential
+        self.compute_client = ComputeManagementClient(credential, subscription_id)
+        self.network_client = NetworkManagementClient(credential, subscription_id)
+        self.monitor_client = MonitorManagementClient(credential, subscription_id)
+        
 
     @hookimpl
     def set_data(self, model: type[BaseModel]) -> None:
@@ -118,7 +126,9 @@ class AzureVMProvider:
             model (BaseModel): The configuration model for the Azure VM provider.
         """
         logger.trace("Setting data for Azure VM provider...")
-        self.credentials = model.model_dump()
+        self.config = model.model_dump()
+
+
 
     @hookimpl
     def gather_data(self):
@@ -129,30 +139,29 @@ class AzureVMProvider:
             Result: A formatted result containing the gathered data.
         """
         logger.info("Gathering data for Azure VMs, Disks, Snapshots, and Public IPs...")
-        creds = self.credentials
-        subscription_id = creds["azure_subscription_id"]
-        resource_group = creds.get("azure_resource_group")
+                
+        # Initialize Azure credentials and clients
+        compute_client = self.compute_client
+        network_client = self.network_client
+        monitor_client = self.monitor_client
+        
+        resource_group = self.config.get("azure_resource_group")
         # Parse locations if provided; otherwise process all locations
         locations = None
-        if creds.get("azure_locations"):
-            locations = [loc.strip().lower() for loc in creds["azure_locations"].split(",")]
+        if self.config.get("azure_locations"):
+            locations = [loc.strip().lower() for loc in self.config["azure_locations"].split(",")]
 
         # Parse tag filters if provided
-        vm_tag_filter = tag_string_to_dict(creds["vm_tags"]) if creds.get("vm_tags") else None
-        disk_tag_filter = tag_string_to_dict(creds["disk_tags"]) if creds.get("disk_tags") else None
-        snapshot_tag_filter = tag_string_to_dict(creds["snapshot_tags"]) if creds.get("snapshot_tags") else None
-        public_ip_tag_filter = tag_string_to_dict(creds["public_ip_tags"]) if creds.get("public_ip_tags") else None
+        vm_tag_filter = tag_string_to_dict(self.config["vm_tags"]) if self.config.get("vm_tags") else None
+        disk_tag_filter = tag_string_to_dict(self.config["disk_tags"]) if self.config.get("disk_tags") else None
+        snapshot_tag_filter = tag_string_to_dict(self.config["snapshot_tags"]) if self.config.get("snapshot_tags") else None
+        public_ip_tag_filter = tag_string_to_dict(self.config["public_ip_tags"]) if self.config.get("public_ip_tags") else None
 
         # Set time range for metrics (last 7 days)
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(days=7)
         timespan = f"{start_time.isoformat()}/{end_time.isoformat()}"
 
-        # Initialize Azure credentials and clients
-        credential = DefaultAzureCredential()
-        compute_client = ComputeManagementClient(credential, subscription_id)
-        network_client = NetworkManagementClient(credential, subscription_id)
-        monitor_client = MonitorManagementClient(credential, subscription_id)
 
         # Containers to store gathered data
         all_vms = []
