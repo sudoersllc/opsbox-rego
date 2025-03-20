@@ -4,4 +4,4 @@ import rego.v1
 
 default details := []
 
-details := [efs | some efs in input.efss; efs.PercentIOLimit >= input.efs_percent_io_limit_threshold]
+details := [efs | some efs in input.efss; efs.PercentIOLimit*100 >= input.efs_percent_io_limit_threshold]
