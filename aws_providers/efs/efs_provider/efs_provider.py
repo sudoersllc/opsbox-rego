@@ -70,11 +70,10 @@ class efsProvider:
             Result: EFS data in a format that can be used by the rego policy.
         """
         credentials = self.credentials
-        logger.info(credentials["aws_region"])
 
         # If no region is provided, get all regions
         if credentials["aws_region"] is None:
-            logger.info("Gathering data for IAM...")
+            logger.info("Gathering regions for EFS...")
             credentials = self.credentials
 
             # Use the specified region or default to "us-west-1"
@@ -82,11 +81,11 @@ class efsProvider:
 
             if credentials["aws_access_key_id"] is None:
                 # Use the instance profile credentials
-                region_client = boto3.client("iam", region_name=region)
+                region_client = boto3.client("ec2", region_name=region)
             else:
                 try:
                     region_client = boto3.client(
-                        "efs",
+                        "ec2",
                         aws_access_key_id=credentials["aws_access_key_id"],
                         aws_secret_access_key=credentials["aws_secret_access_key"],
                         region_name=region,
@@ -97,12 +96,12 @@ class efsProvider:
                     ]
 
                 except Exception as e:
-                    logger.error(f"Error creating IAM client: {e}")
+                    logger.error(f"Error creating EFS client: {e}")
                     return Result(
-                        relates_to="aws_data",
-                        result_name="aws_iam_data",
-                        result_description="Structured IAM data using.",
-                        formatted="Error creating IAM client.",
+                        relates_to="aws_efs",
+                        result_name="awfs_efs_info",
+                        result_description="Structured EFS data.",
+                        formatted="Error finding regions.",
                         details={},
                     )
 
@@ -122,7 +121,7 @@ class efsProvider:
                 region (str): The region to process.
             """
             credentials = self.credentials
-            logger.debug(f"Gathering data for region {region}...")
+            logger.debug(f"Gathering EFS data for region {region}...")
 
             try:
                 # Initialize boto3 clients with provided credentials
