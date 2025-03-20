@@ -1,0 +1,6 @@
+[info]
+name="efs"
+module = "efs_provider"
+class_name = "efsProvider"
+type = "provider"
+uses = ["general"]

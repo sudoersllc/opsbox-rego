@@ -1,0 +1,29 @@
+[project]
+name = "opsbox-efs-checks"
+version = "0.1.0"
+description = "Collection of EFS checks for opsbox"
+readme = "README.md"
+license = {file = "LICENCE.txt"}
+requires-python = "==3.11.*"
+dependencies = [
+    "opsbox-efs-provider>=0.1.0",
+    "opsbox-rego-handler>=0.2.0"
+]
+
+[tool.setuptools.packages.find]
+include = ["*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_efs_high_percent_io = "high_percentiolimit.high_percentiolimit:HighPercentIOLimit"
+
+[tool.setuptools]
+include-package-data = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
