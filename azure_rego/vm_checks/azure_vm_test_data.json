@@ -1,0 +1,49 @@
+{
+    "vms": [
+        {
+            "vm_id": "vm_1",
+            "name": "test-vm",
+            "location": "eastus",
+            "vm_size": "Standard_DS1_v2",
+            "avg_cpu_utilization": 55.0,
+            "tags": {
+                "env": "test"
+            }
+        }
+    ],
+    "disks": [
+        {
+            "disk_id": "disk_1",
+            "name": "test-disk",
+            "location": "eastus",
+            "size_gb": 128,
+            "tags": {
+                "env": "test"
+            }
+        }
+    ],
+    "snapshots": [
+        {
+            "snapshot_id": "snap_1",
+            "name": "test-snapshot",
+            "location": "eastus",
+            "disk_size_gb": 128,
+            "provisioning_state": "Succeeded",
+            "tags": {
+                "env": "test"
+            }
+        }
+    ],
+    "public_ips": [
+        {
+            "ip_address": "1.2.3.4",
+            "name": "test-ip",
+            "location": "eastus",
+            "allocation_method": "Static",
+            "tags": {
+                "env": "test"
+            }
+        }
+    ],
+    "azure_vm_cpu_idle_threshold": 1
+}
