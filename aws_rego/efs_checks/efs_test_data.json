@@ -1,0 +1,10 @@
+{
+    "efss": [
+        {
+            "Name": "TestEFS",
+            "Id": "fs-55cc2955",
+            "PercentIOLimit": 10
+        }
+    ],
+    "efs_percent_io_limit_threshold": 1
+}
