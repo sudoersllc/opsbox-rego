@@ -1,0 +1,10 @@
+[info]
+name = "azure_db_high_connections_failed"
+module = "high_connections_failed"
+class_name = "HighConnectionsFailed"
+type = "rego"
+uses = ["rego", "azure_db"]
+
+[rego]
+description = "Check for high azure failed connections"
+rego_file = "high_connections_failed.rego"

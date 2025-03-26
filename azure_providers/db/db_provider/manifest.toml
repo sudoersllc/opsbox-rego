@@ -1,0 +1,6 @@
+[info]
+name="azure_db"
+module = "db_provider"
+class_name = "AzureDBProvider"
+type = "provider"
+uses = ["general"]
