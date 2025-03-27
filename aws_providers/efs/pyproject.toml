@@ -1,0 +1,32 @@
+[project]
+name = "opsbox-efs-provider"
+version = "0.1.0"
+description = "Opsbox provider for EFS checks"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = "==3.11.*"
+dependencies = [
+    "boto3>=1.35.87",
+    "loguru>=0.7.2",
+    "pluggy>=1.5.0",
+    "opsbox-general-handler>=0.1.2"
+]
+
+[project.entry-points.'opsbox.plugins']
+opsbox_ec2_provider = "efs_provider.efs_provider:efsProvider"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"efs_provider" = ["manifest.toml"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "moto[all]>=5.0.26",
+]
