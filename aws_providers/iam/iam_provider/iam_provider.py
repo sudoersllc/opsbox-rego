@@ -59,7 +59,6 @@ class IAMProvider:
         region = credentials["aws_region"] or "us-west-1"
 
         if credentials["aws_access_key_id"] is None:
-            # Use the instance profile credentials
             iam_client = boto3.client("iam", region_name=region)
         else:
             try:
@@ -136,7 +135,8 @@ class IAMProvider:
                     )
 
             # Get credential report
-            logger.info("Fetching credential report...")
+            logger.debug("Fetching credential report...")
+            iam_client.generate_credential_report()
             report_response = iam_client.get_credential_report()
             credential_report_csv = report_response["Content"].decode("utf-8")
             credential_report = [
@@ -152,6 +152,8 @@ class IAMProvider:
 
             # Collect credential report data
             credential_report_data = credential_report
+
+            logger.debug("Credential report data collected successfully.", extra={"data": credential_report_data})
 
         except Exception as e:
             logger.error(f"Error gathering IAM data: {e}")
@@ -169,8 +171,8 @@ class IAMProvider:
         # export iam data to json file
         with open("iam_data.json", "w") as f:
             json.dump(rego_ready_data, f)
-        logger.success("IAM data successfully gathered and structured.")
-        logger.debug(rego_ready_data)
+            
+        logger.success("IAM data successfully gathered and structured.", extra={"data": rego_ready_data})
 
         item = Result(
             relates_to="aws_data",
