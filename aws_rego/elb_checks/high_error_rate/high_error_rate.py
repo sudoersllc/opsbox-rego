@@ -52,8 +52,8 @@ class HighErrorRate:
                 load_balancers = findings.get("high_error_rate_load_balancers", [])
             else:
                 load_balancers = findings
+            logger.info(f"Formatting results for {len(load_balancers)} load balancers")
             for lb in load_balancers:
-                logger.debug(f"Processing load balancer: {lb}")
                 if (
                     isinstance(lb, dict)
                     and "name" in lb
@@ -64,8 +64,25 @@ class HighErrorRate:
                         lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
                     }
                     high_error_rate_load_balancers.append(lb_obj)
+                elif (
+                    isinstance(lb, dict)
+                    and "Name" in lb
+                    and "Type" in lb
+                    and "ErrorRate" in lb
+                ):
+                    lb_obj = {
+                        lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
+                    }
                 else:
-                    logger.error(f"Invalid load balancer data: {lb}")
+                    name:str
+                    if lb.get("name") is not None:
+                        name = lb["name"]
+                        pass
+                    elif lb.get("Name") is not None:
+                        name = lb["Name"]
+                        pass
+
+                    logger.error(f"Invalid load balancer data for {name}", extra=lb)
 
             template = """The following ELBs have a high error rate: \n
             {load_balancers}"""
