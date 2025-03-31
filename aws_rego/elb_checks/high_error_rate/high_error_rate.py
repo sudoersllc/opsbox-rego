@@ -74,7 +74,7 @@ class HighErrorRate:
                         lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
                     }
                 else:
-                    name:str
+                    name: str
                     if lb.get("name") is not None:
                         name = lb["name"]
                         pass
