@@ -153,7 +153,10 @@ class IAMProvider:
             # Collect credential report data
             credential_report_data = credential_report
 
-            logger.debug("Credential report data collected successfully.", extra={"data": credential_report_data})
+            logger.debug(
+                "Credential report data collected successfully.",
+                extra={"data": credential_report_data},
+            )
 
         except Exception as e:
             logger.error(f"Error gathering IAM data: {e}")
@@ -171,8 +174,11 @@ class IAMProvider:
         # export iam data to json file
         with open("iam_data.json", "w") as f:
             json.dump(rego_ready_data, f)
-            
-        logger.success("IAM data successfully gathered and structured.", extra={"data": rego_ready_data})
+
+        logger.success(
+            "IAM data successfully gathered and structured.",
+            extra={"data": rego_ready_data},
+        )
 
         item = Result(
             relates_to="aws_data",
