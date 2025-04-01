@@ -73,6 +73,7 @@ class HighErrorRate:
                     lb_obj = {
                         lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
                     }
+                    high_error_rate_load_balancers.append(lb_obj)
                 else:
                     name: str
                     if lb.get("name") is not None:
