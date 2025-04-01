@@ -1,0 +1,10 @@
+[info]
+name = "efs_high_percentiolimit"
+module = "high_percentiolimit"
+class_name = "HighPercentIOLimit"
+type = "rego"
+uses = ["rego", "efs"]
+
+[rego]
+description = "Check for high AWS EFS percent IO Limit"
+rego_file = "high_percentiolimit.rego"

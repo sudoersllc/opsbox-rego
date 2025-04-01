@@ -1,23 +1,19 @@
 [project]
-name = "opsbox-azure-output"
-version = "0.1.4"
-description = "Azure issues output for opsbox"
+name = "opsbox-efs-provider"
+version = "0.1.0"
+description = "Opsbox provider for EFS checks"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
-    "llama-index>=0.12.6",
+    "boto3>=1.35.87",
     "loguru>=0.7.2",
-    "pandas>=2.2.3",
-    "markdown>=3.7",
     "pluggy>=1.5.0",
-    "pydantic>=2.10.2",
-    "requests>=2.32.3",
     "opsbox-general-handler>=0.1.2"
 ]
 
 [project.entry-points.'opsbox.plugins']
-opsbox_azure_out = "azure.azure:AzureOutput"
+opsbox_ec2_provider = "efs_provider.efs_provider:efsProvider"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -27,4 +23,10 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-data]
-"azure_out" = ["manifest.toml"]
+"efs_provider" = ["manifest.toml"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "moto[all]>=5.0.26",
+]
