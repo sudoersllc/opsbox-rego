@@ -14,7 +14,7 @@ class Config(BaseModel):
         int,
         Field(
             default=0,
-            description="Lower bound for cpu percent threshold..",
+            description="Lower bound for cpu percent threshold.",
         ),
     ]
 

@@ -6,6 +6,9 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = "==3.11.*"
 dependencies = [
+    "azure-identity>=1.21.0",
+    "azure-mgmt-monitor>=6.0.2",
+    "azure-mgmt-sql>=3.0.1",
     "loguru>=0.7.2",
     "opsbox==0.2.0",
     "pathspec>=0.12.1",

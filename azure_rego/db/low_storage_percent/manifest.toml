@@ -1,0 +1,10 @@
+[info]
+name = "azure_db_low_storage_percent"
+module = "low_storage_percent"
+class_name = "LowStoragePercent"
+type = "rego"
+uses = ["rego", "azure_db"]
+
+[rego]
+description = "Check for low azure db storage percent"
+rego_file = "low_storage_percent.rego"

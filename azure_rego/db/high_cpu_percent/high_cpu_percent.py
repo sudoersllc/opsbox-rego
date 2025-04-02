@@ -10,17 +10,17 @@ hookimpl = HookimplMarker("opsbox")
 
 
 class Config(BaseModel):
-    connections_failed_upper_bound: Annotated[
+    cpu_percent_upper_bound: Annotated[
         int,
         Field(
-            default=2,
-            description="Upper bound for failed connections threshold.",
+            default=0,
+            description="Upper bound for cpu percent.",
         ),
     ]
 
 
-class HighConnectionsFailed:
-    """Plugin for identifying Azure DBs with high failed connections."""
+class HighCPUPercent:
+    """Plugin for identifying Azure DBs with high cpu rates."""
 
     @hookimpl
     def grab_config(self) -> type[BaseModel]:
@@ -56,7 +56,7 @@ class HighConnectionsFailed:
             server_metrics_list.append(cursor)
             
 
-        template = """The following Azure SQL dbs have amounts of failed connections: \n
+        template = """The following Azure SQL dbs have high average cpu usage: \n
         {info}"""
         try:
             info = yaml.dump(
@@ -69,8 +69,8 @@ class HighConnectionsFailed:
 
             return Result(
                 relates_to="azure_sql_db",
-                result_name="high_connections_failed",
-                result_description="High Failed Connections Azure SQL DBs",
+                result_name="high_cpu_percent",
+                result_description="High CPU Percent Azure SQL DBs",
                 details=data.details,
                 formatted=formatted,
             )
@@ -85,7 +85,7 @@ class HighConnectionsFailed:
         Returns:
             Result: The data with the injected values.
         """
-        data.details["input"]["connections_failed_upper_bound"] = self.conf[
-            "connections_failed_upper_bound"
+        data.details["input"]["cpu_upper_bound_threshold"] = self.conf[
+            "cpu_upper_bound_threshold"
         ]
         return data

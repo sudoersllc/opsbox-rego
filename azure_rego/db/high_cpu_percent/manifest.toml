@@ -1,0 +1,10 @@
+[info]
+name = "azure_db_high_cpu_percent"
+module = "high_cpu_percent"
+class_name = "HighCPUPercent"
+type = "rego"
+uses = ["rego", "azure_db"]
+
+[rego]
+description = "Check for high azure db cpu percent"
+rego_file = "high_cpu_percent.rego"

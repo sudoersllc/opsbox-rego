@@ -1,0 +1,10 @@
+[info]
+name = "azure_db_high_sessions_count"
+module = "high_sessions_count"
+class_name = "HighSessionsCount"
+type = "rego"
+uses = ["rego", "azure_db"]
+
+[rego]
+description = "Check for high # of sessions"
+rego_file = "high_sessions_count.rego"

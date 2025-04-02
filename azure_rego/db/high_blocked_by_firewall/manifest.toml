@@ -1,0 +1,10 @@
+[info]
+name = "azure_db_high_connections_firewalled"
+module = "high_connections_firewalled"
+class_name = "HighConnectionsFirewalled"
+type = "rego"
+uses = ["rego", "azure_db"]
+
+[rego]
+description = "Check for high azure firewalled connections"
+rego_file = "high_connections_firewalled.rego"
