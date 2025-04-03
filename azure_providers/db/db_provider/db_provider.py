@@ -66,6 +66,7 @@ class AzureDBProvider:
             servers = sql_client.servers.list_by_resource_group(credentials.resource_group)
             for server in servers:
                 dbs = sql_client.databases.list_by_server(credentials.resource_group, credentials.server_name)
+                logger.warning(dbs)
                 db_uris.extend([record.id for record in dbs])
         else:
             db_uris.append(
