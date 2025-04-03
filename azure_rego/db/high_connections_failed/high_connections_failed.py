@@ -48,7 +48,7 @@ class HighConnectionsFailed:
 
         server_metrics_list = []
 
-        logger.warning("Details: %s", data.details)
+        logger.warning(f"Details: {data.details}")
 
         for x in findings["azure_sql_dbs"]:
             cursor = {}
