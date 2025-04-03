@@ -123,6 +123,10 @@ class AzureDBProvider:
         resources = {
             'azure_sql_dbs': resources
         }
+
+        resources= {
+            "input": resources
+        }
             
         result = Result(
             relates_to="Azure DB",
