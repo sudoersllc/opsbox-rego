@@ -27,9 +27,9 @@ class AzureDBProvider:
 
             subscription_id: Annotated[str, Field(description="Azure subscription ID")]
             resource_group: Annotated[str, Field(description="Azure resource group.")]
-            db_name: Annotated[str | None, Field(description="Database name. If not provided, all databases in resource group will be queried.")]
+            db_name: Annotated[str | None, Field(default=None, description="Database name. If not provided, all databases in resource group will be queried.")]
             server_name: Annotated[str | None, Field(default=None, description="Server name. If not provided, all servers in resource group will be queried.")]
-            start_from: Annotated[datetime, Field(default=(datetime.utcnow() - timedelta(hours=48)), description="Datetime to start monitoring from. Defaults to 48 hours ago.")]
+            start_from: Annotated[datetime | None, Field(default=(datetime.utcnow() - timedelta(hours=48)), description="Datetime to start monitoring from. Defaults to 48 hours ago.")]
 
         return AzureDBConfig
     
