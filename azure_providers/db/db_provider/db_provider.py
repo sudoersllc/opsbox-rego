@@ -27,9 +27,9 @@ class AzureDBProvider:
 
             subscription_id: Annotated[str, Field(description="Azure subscription ID")]
             resource_group: Annotated[str, Field(description="Azure resource group.")]
-            db_name: Annotated[str, Field(description="Database name")]
+            db_name: Annotated[str | None, Field(description="Database name. If not provided, all databases in resource group will be queried.")]
             server_name: Annotated[str | None, Field(default=None, description="Server name. If not provided, all servers in resource group will be queried.")]
-            start_from: Annotated[datetime, Field(default=(datetime.utcnow() - timedelta(hours=48)), description="Start from")]
+            start_from: Annotated[datetime, Field(default=(datetime.utcnow() - timedelta(hours=48)), description="Datetime to start monitoring from. Defaults to 48 hours ago.")]
 
         return AzureDBConfig
     
@@ -55,7 +55,7 @@ class AzureDBProvider:
 
         db_uris = []
 
-        if credentials.server_name is None:
+        if credentials.server_name is None or credentials.db_name is None:
             logger.info(f"Getting all servers in resource group {credentials.resource_group}")
 
 
