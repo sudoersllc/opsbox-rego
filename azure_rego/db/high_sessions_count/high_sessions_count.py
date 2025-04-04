@@ -48,7 +48,7 @@ class HighSessionsCount:
 
         server_metrics_list = []
 
-        if not findings["azure_sql_dbs"]:
+        if "azure_sql_dbs" not in findings:
             logger.info("No Azure SQL DBs found with high session counts.")
             return Result(
                 relates_to="azure_sql_db",

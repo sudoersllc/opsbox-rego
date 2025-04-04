@@ -44,11 +44,11 @@ class HighCPUPercent:
         Returns:
             str: The formatted string containing the findings.
         """
-        findings: dict = data.details
+        findings: dict | list = data.details
 
         server_metrics_list = []
 
-        if not findings["azure_sql_dbs"]:
+        if "azure_sql_dbs" not in findings:
             logger.info("No Azure SQL DBs found with high cpu percent.")
             return Result(
                 relates_to="azure_sql_db",

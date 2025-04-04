@@ -48,7 +48,7 @@ class HighConnectionsFirewalled:
 
         server_metrics_list = []
 
-        if not findings["azure_sql_dbs"]:
+        if "azure_sql_dbs" not in findings:
             logger.info("No Azure SQL DBs found with high connections firewalled.")
             
             return Result(
