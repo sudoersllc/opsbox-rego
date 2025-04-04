@@ -29,7 +29,7 @@ class AzureDBProvider:
             resource_group: Annotated[str, Field(description="Azure resource group.")]
             db_name: Annotated[str | None, Field(default=None, description="Database name. If not provided, all databases in resource group will be queried.")]
             server_name: Annotated[str | None, Field(default=None, description="Server name. If not provided, all servers in resource group will be queried.")]
-            start_from: Annotated[datetime | None, Field(default=(datetime.utcnow() - timedelta(hours=48)), description="Datetime to start monitoring from. Defaults to 48 hours ago.")]
+            start_from: Annotated[datetime | None, Field(default=(datetime.utcnow() - timedelta(days=5)), description="Datetime to start monitoring from. Defaults to 5 days ago.")]
 
         return AzureDBConfig
     
@@ -48,7 +48,7 @@ class AzureDBProvider:
         logger.info("Gathering data for Azure DB...")
         credentials = self.credentials
 
-        logger.info("creating client")
+        logger.info("Creating client")
         client = MonitorManagementClient(
             self.az_creds, credentials.subscription_id
         )
@@ -88,7 +88,6 @@ class AzureDBProvider:
         end_time = datetime.utcnow()
         start_time = credentials.start_from
 
-        main_dict = {}
         resources = []
         for resource_uri in db_uris:
             metrics_dict = {}
