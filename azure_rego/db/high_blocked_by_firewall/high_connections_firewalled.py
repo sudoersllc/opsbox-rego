@@ -48,6 +48,17 @@ class HighConnectionsFirewalled:
 
         server_metrics_list = []
 
+        if not findings["azure_sql_dbs"]:
+            logger.info("No Azure SQL DBs found with high connections firewalled.")
+            
+            return Result(
+                relates_to="azure_sql_db",
+                result_name="high_connections_firewalled",
+                result_description="High Connections Firewalled Azure SQL DBs",
+                details=data.details,
+                formatted="There are no Azure SQL DBs with high connections firewalled.",
+            )
+
         for x in findings["azure_sql_dbs"]:
             cursor = {}
             uri = x["uri"]
