@@ -430,7 +430,7 @@ class ExecLocal(RegoExecution):
             case ("darwin", "arm64"):
                 url = f"{base_url}/opa_darwin_arm64_static"
             case ("darwin", "amd64") | ("darwin", "x86_64"):
-                url = f"{base_url}/opa_darwin_amd64_static"
+                url = f"{base_url}/opa_darwin_amd64"
             case ("windows", "amd64") | ("windows", "x86_64"):
                 url = f"{base_url}/opa_windows_amd64.exe"
             case _:
