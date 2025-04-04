@@ -35,14 +35,20 @@ class efsProvider:
                 aws_region (str): AWS region."""
 
             aws_access_key_id: Annotated[
-                str, Field(..., description="AWS access key ID", required=True)
+                str,
+                Field(default=None, description="AWS access key ID. Omit to use CLI credentials.", required=True),
             ]
             aws_secret_access_key: Annotated[
-                str, Field(..., description="AWS secret access key", required=True)
+                str,
+                Field(default=None, description="AWS secret access key. Omit to use CLI credentials.", required=True),
             ]
             aws_region: Annotated[
                 str | None,
-                Field(description="AWS-Region", required=False, default=None),
+                Field(
+                    description="AWS region(s), separated by a comma",
+                    required=False,
+                    default=None,
+                ),
             ]
 
         return EFSConfig
@@ -60,6 +66,57 @@ class efsProvider:
             model (BaseModel): The model containing the data for the plugin."""
         logger.trace("Setting data for EFS plugin...")
         self.credentials = model.model_dump()
+        self.credentials["aws_region"] = self.get_regions(model)
+
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+
+        # Check if the region is provided in the model
+        regions = [] if model.aws_region is None else model.aws_region.split(",")
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("ec2", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"] for r in region_client.describe_regions()["Regions"]
+                ]
+
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
+                )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
+
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
+
+        return regions
 
     @hookimpl
     def gather_data(self) -> Result:
@@ -70,43 +127,7 @@ class efsProvider:
             Result: EFS data in a format that can be used by the rego policy.
         """
         credentials = self.credentials
-
-        # If no region is provided, get all regions
-        if credentials["aws_region"] is None:
-            logger.info("Gathering regions for EFS...")
-            credentials = self.credentials
-
-            # Use the specified region or default to "us-west-1"
-            region = credentials["aws_region"] or "us-west-1"
-
-            if credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("ec2", region_name=region)
-            else:
-                try:
-                    region_client = boto3.client(
-                        "ec2",
-                        aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"],
-                        region_name=region,
-                    )
-                    regions = [
-                        region["RegionName"]
-                        for region in region_client.describe_regions()["Regions"]
-                    ]
-
-                except Exception as e:
-                    logger.error(f"Error creating EFS client: {e}")
-                    return Result(
-                        relates_to="aws_efs",
-                        result_name="awfs_efs_info",
-                        result_description="Structured EFS data.",
-                        formatted="Error finding regions.",
-                        details={},
-                    )
-
-        else:
-            regions = credentials["aws_region"].split(",")
+        regions = credentials["aws_region"]  # Get the regions from the credentials
 
         efs_data = []  # List to store efs data
         region_threads = []  # List to store threads
@@ -121,10 +142,9 @@ class efsProvider:
                 region (str): The region to process.
             """
             credentials = self.credentials
-            logger.debug(f"Gathering EFS data for region {region}...")
 
+            # Create EFS and CloudWatch clients for the given region
             try:
-                # Initialize boto3 clients with provided credentials
                 if (
                     credentials["aws_access_key_id"] is None
                     or credentials["aws_secret_access_key"] is None
@@ -188,11 +208,10 @@ class efsProvider:
                     return 0
 
             try:
-                logger.info(f"Getting EFS info for {region}")
                 response = efs_client.describe_file_systems()
                 for fs in response["FileSystems"]:
                     file_system_id = fs["FileSystemId"]
-                    logger.debug(f"Getting info for EFS {file_system_id}")
+                    logger.trace(f"Getting info for EFS {file_system_id}")
 
                     percent_io_limit = get_percent_io_limit(file_system_id)
 
@@ -204,12 +223,15 @@ class efsProvider:
                                 "PercentIOLimit": percent_io_limit,
                             }
                         )
-                logger.success("EFS info collected successfully.")
+                logger.debug(
+                    f"Gathered EFS data for {len(response['FileSystems'])} file systems in {region}",
+                )
             except Exception as e:
                 logger.error(f"Error gathering EFS info: {e}")
 
         # Process each region in a separate thread
         for region in regions:
+            logger.info(f"Gathering EFS data for region {region}...")
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
@@ -220,13 +242,15 @@ class efsProvider:
 
         # Prepare the data in a format that can be consumed by Rego
         rego_ready_data = {"input": {"efss": efs_data}}
-        logger.success("EFS data gathered successfully.")
-        logger.trace(f"EFS data: {rego_ready_data}")
+        logger.success(
+            f"Found info for {len(efs_data)} EFS file systems from {len(regions)} region(s).",
+            extra={"efs_data": efs_data},
+        )
         item = Result(
             relates_to="efs",
-            result_name="efs_info",
-            result_description="EFS Information",
-            details=rego_ready_data,
+            result_name="aws_efs_data",
+            result_description="Structured EFS data.",
             formatted="",
+            details=rego_ready_data,
         )
         return item

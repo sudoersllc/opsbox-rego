@@ -105,7 +105,7 @@ class EC2Provider:
             ]
             aws_region: Annotated[
                 str | None,
-                Field(description="AWS region", required=False, default=region),
+                Field(description="AWS region(s), seperated by a comma", required=False, default=region),
             ]
             volume_tags: Annotated[
                 str | None,
@@ -148,6 +148,63 @@ class EC2Provider:
         """
         logger.trace("Setting data for EC2 provider...")
         self.credentials = model.model_dump()
+        self.credentials["aws_region"] = self.get_regions(model)
+
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+
+        # Check if the region is provided in the model
+        regions = (
+            []
+            if model.aws_region is None
+            else model.aws_region.split(",")
+        )
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("ec2", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"]
+                    for r in region_client.describe_regions()["Regions"]
+                ]
+                
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
+                )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
+
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
+
+        return regions
+
 
     @hookimpl
     def gather_data(self):
@@ -156,42 +213,8 @@ class EC2Provider:
         Returns:
             Result: A formatted result containing the gathered data.
         """
-        logger.info(
-            "Gathering data for AWS EC2 instances, volumes, snapshots, and Elastic IPs..."
-        )
         credentials = self.credentials
-
-        # Determine regions to query
-        if credentials["aws_region"] is None:
-            logger.info("Gathering data for IAM...")
-            # Use the specified region or default to "us-west-1"
-            region = credentials["aws_region"] or "us-west-1"
-            if credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("ec2", region_name=region)
-            else:
-                try:
-                    region_client = boto3.client(
-                        "ec2",
-                        aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"],
-                        region_name=region,
-                    )
-                    regions = [
-                        r["RegionName"]
-                        for r in region_client.describe_regions()["Regions"]
-                    ]
-                except Exception as e:
-                    logger.error(f"Error creating IAM client: {e}")
-                    return Result(
-                        relates_to="aws_data",
-                        result_name="aws_iam_data",
-                        result_description="Structured IAM data using.",
-                        formatted="Error creating IAM client.",
-                        details={},
-                    )
-        else:
-            regions = credentials["aws_region"].split(",")
+        regions = credentials["aws_region"]
 
         # Containers to store gathered data
         all_volumes = []
@@ -204,7 +227,7 @@ class EC2Provider:
         data_lock = threading.Lock()
 
         # Helper function for multi-thread data gathering
-        def process_region(region):
+        def process_region(region: str):
             """Thread-safe function to gather data for a specific AWS region.
 
             Args:
@@ -219,9 +242,9 @@ class EC2Provider:
                     aws_secret_access_key=credentials["aws_secret_access_key"],
                     region_name=region,
                 )
-            logger.debug(f"Gathering data for region {region}...")
 
             # Gather volumes
+            logger.debug(f"Gathering volumes for region: {region}")
             paginator = regional_ec2.get_paginator("describe_volumes")
             volume_filters = [{"Name": "status", "Values": ["available"]}]
             if credentials["volume_tags"]:
@@ -253,6 +276,7 @@ class EC2Provider:
                     instance_filters.append({"Name": f"tag:{key}", "Values": [value]})
 
             # Gather instances
+            logger.debug(f"Gathering instances for region: {region}")
             if instance_filters:
                 instances = regional_ec2.describe_instances(Filters=instance_filters)
             else:
@@ -312,6 +336,7 @@ class EC2Provider:
                         )
 
             # Gather Elastic IPs
+            logger.debug(f"Gathering Elastic IPs for region: {region}")
             eip_filters = []
             if credentials["eip_tags"]:
                 eip_tags = tag_string_to_dict(credentials["eip_tags"])
@@ -333,6 +358,7 @@ class EC2Provider:
                     )
 
             # Gather snapshots
+            logger.debug(f"Gathering snapshots for region: {region}")
             snapshot_filters = []
             if credentials.get("volume_tags"):
                 tags = tag_string_to_dict(credentials["volume_tags"])
@@ -359,6 +385,9 @@ class EC2Provider:
 
         # Start threads for each region
         for region in regions:
+            logger.info(
+                f"Gathering EC2 volumes, instances, eips, and snapshots for region: {region}"
+            )
             thread = threading.Thread(target=process_region, args=(region,))
             threads.append(thread)
             thread.start()
@@ -383,11 +412,16 @@ class EC2Provider:
             }
         }
 
+        logger.success(
+            f"Found info for {len(all_volumes)} volumes, {len(all_instances)} instances, {len(all_eips)} Elastic IPs, and {len(all_snapshots)} snapshots in {len(regions)} region(s).",
+            extra={"ec2_data": rego_ready_data},
+        )
+
         # Return the result in a standardized format
         item = Result(
             relates_to="ec2",
             result_name="ec2_data",
-            result_description="Gathered data related to EC2 instances, volumes, and Elastic IPs.",
+            result_description="Structured data related to EC2 instances, volumes, and Elastic IPs.",
             formatted="",
             details=rego_ready_data,
         )

@@ -48,7 +48,11 @@ class elbProvider:
             ]
             aws_region: Annotated[
                 str | None,
-                Field(description="AWS-Region", required=False, default=None),
+                Field(
+                    description="AWS region(s), separated by a comma",
+                    required=False,
+                    default=None,
+                ),
             ]
 
         return ELBConfig
@@ -78,34 +82,52 @@ class elbProvider:
         Returns:
             type[BaseModel]: The model containing the data for the plugin.
         """
-        logger.trace("Getting regions from the config model...")
-        regions: list[str] = []
-        if model.aws_region is None:
-            # gather all regions
-            if model.aws_access_key_id is None or model.aws_secret_access_key is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("ec2", region_name="us-west-1")
-            else:
-                # Use the provided credentials
-                region_client = boto3.client(
-                    "ec2",
-                    aws_access_key_id=model.aws_access_key_id,
-                    aws_secret_access_key=model.aws_secret_access_key,
-                    region_name="us-west-1",
+
+        # Check if the region is provided in the model
+        regions = (
+            []
+            if model.aws_region is None
+            else model.aws_region.split(",")
+        )
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("ec2", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"]
+                    for r in region_client.describe_regions()["Regions"]
+                ]
+                
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
                 )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
 
-            regions = [
-                region["RegionName"]
-                for region in region_client.describe_regions()["Regions"]
-            ]
-            logger.trace(f"Found {len(regions)} regions.", extra={"regions": regions})
-            return regions
-        else:
-            regions = model.aws_region.split(",")
-            logger.trace("Regions already provided in the config model.")
-            logger.trace(f"Found {len(regions)} regions.", extra={"regions": regions})
-            return regions
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
 
+        return regions
+    
     @hookimpl
     def gather_data(self) -> Result:
         """
@@ -115,10 +137,8 @@ class elbProvider:
             Result: The data in a format that can be used by the rego policy.
         """
         credentials = self.credentials
-
         regions = self.credentials["regions"]
 
-        logger.info("Gathering data for ELB...")
         elb_data = []  # Shared list to store load balancer details
         region_threads = []  # List to store region threads
         data_lock = threading.Lock()  # Lock to protect shared data (elb_data)
@@ -129,9 +149,8 @@ class elbProvider:
             Args:
                 region (str): The region to process.
             """
-            logger.debug(f"Gathering data for region {region}...")
+            # Initialize boto3 clients
             try:
-                # Initialize boto3 clients with provided credentials
                 if (
                     credentials["aws_access_key_id"] is None
                     or credentials["aws_secret_access_key"] is None
@@ -165,6 +184,7 @@ class elbProvider:
             end_time = datetime.now()
             start_time = end_time - timedelta(days=30)
 
+            # data-gathering subroutines
             def get_request_count(
                 load_balancer_name: str, namespace: str, dimension_name: str
             ) -> int:
@@ -242,15 +262,42 @@ class elbProvider:
                         f"Error retrieving error rate for {load_balancer_name}: {e}"
                     )
                     return 0
+                
+            def get_alb_nlb_instance_health(
+                elbv2_client, target_group_arn: str
+            ) -> list:
+                """Get the health status of instances behind an ALB or NLB."""
+                try:
+                    response = elbv2_client.describe_target_health(
+                        TargetGroupArn=target_group_arn
+                    )
+                    instance_health = []
+                    for target in response["TargetHealthDescriptions"]:
+                        instance_health.append(
+                            {
+                                "InstanceId": target["Target"]["Id"],
+                                "State": target["TargetHealth"]["State"],
+                                "Description": target["TargetHealth"].get(
+                                    "Description", "No description available"
+                                ),
+                            }
+                        )
+                    return instance_health
+                except Exception as e:
+                    logger.error(
+                        f"Error retrieving instance health for target group {target_group_arn}: {e}"
+                    )
+                    return []
 
+            # threading subroutines
             def process_classic_load_balancers():
                 """Process Classic Load Balancers and gather data."""
                 try:
-                    logger.info("Getting classic load balancer info...")
                     response = elb_client.describe_load_balancers()
+                    logger.debug(f"Gathering info for {len(response['LoadBalancerDescriptions'])} classic load balancers...")
                     for lb in response["LoadBalancerDescriptions"]:
                         lb_name = lb["LoadBalancerName"]
-                        logger.debug(
+                        logger.trace(
                             f"Getting info for classic load balancer {lb_name}"
                         )
 
@@ -287,45 +334,18 @@ class elbProvider:
                                     "InstanceHealth": instance_health,
                                 }
                             )
-                    logger.success("Classic load balancer info collected successfully.")
                 except Exception as e:
                     logger.error(f"Error gathering classic load balancer info: {e}")
-
-            def get_alb_nlb_instance_health(
-                elbv2_client, target_group_arn: str
-            ) -> list:
-                """Get the health status of instances behind an ALB or NLB."""
-                try:
-                    response = elbv2_client.describe_target_health(
-                        TargetGroupArn=target_group_arn
-                    )
-                    instance_health = []
-                    for target in response["TargetHealthDescriptions"]:
-                        instance_health.append(
-                            {
-                                "InstanceId": target["Target"]["Id"],
-                                "State": target["TargetHealth"]["State"],
-                                "Description": target["TargetHealth"].get(
-                                    "Description", "No description available"
-                                ),
-                            }
-                        )
-                    return instance_health
-                except Exception as e:
-                    logger.error(
-                        f"Error retrieving instance health for target group {target_group_arn}: {e}"
-                    )
-                    return []
 
             def process_application_network_load_balancers():
                 """Process Application and Network Load Balancers and gather data."""
                 try:
-                    logger.info("Getting application and network load balancer info...")
                     response = elbv2_client.describe_load_balancers()
+                    logger.debug(f"Gathering info for {len(response['LoadBalancers'])} application and network load balancers...")
                     for lb in response["LoadBalancers"]:
                         lb_arn = lb["LoadBalancerArn"]
                         lb_name = lb["LoadBalancerName"]
-                        logger.info(
+                        logger.trace(
                             f"Getting info for {lb['Type']} load balancer {lb_name}"
                         )
 
@@ -369,9 +389,6 @@ class elbProvider:
                                         "InstanceHealth": instance_health,
                                     }
                                 )
-                    logger.success(
-                        "Application and network load balancer info collected successfully."
-                    )
                 except Exception as e:
                     logger.error(
                         f"Error gathering application and network load balancer info: {e}"
@@ -389,6 +406,7 @@ class elbProvider:
 
         # Process each region in a separate thread.
         for region in regions:
+            logger.info(f"Gathering ELB data for region {region}...")
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
@@ -396,6 +414,8 @@ class elbProvider:
         # Wait for all region threads to complete.
         for region_thread in region_threads:
             region_thread.join()
+
+        logger.success(f"Gathered ELB data for {len(elb_data)} load balancers from {len(regions)} region(s).", extra={"elb_data": elb_data})
 
         # Prepare the data for consumption by Rego.
         rego_ready_data = {"input": {"elbs": elb_data}}
