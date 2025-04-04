@@ -48,6 +48,16 @@ class HighSessionsCount:
 
         server_metrics_list = []
 
+        if not findings["azure_sql_dbs"]:
+            logger.info("No Azure SQL DBs found with high session counts.")
+            return Result(
+                relates_to="azure_sql_db",
+                result_name="high_sessions_count",
+                result_description="High Session Count Azure SQL DBs",
+                details=data.details,
+                formatted="There are no Azure SQL DBs with high session counts.",
+            )
+
         for x in findings["azure_sql_dbs"]:
             cursor = {}
             uri = x["uri"]

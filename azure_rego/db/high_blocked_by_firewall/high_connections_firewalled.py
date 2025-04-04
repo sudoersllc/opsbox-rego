@@ -58,6 +58,8 @@ class HighConnectionsFirewalled:
                 details=data.details,
                 formatted="There are no Azure SQL DBs with high connections firewalled.",
             )
+        
+        logger.info("Found Azure SQL DBs with high connections firewalled.")
 
         for x in findings["azure_sql_dbs"]:
             cursor = {}

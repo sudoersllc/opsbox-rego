@@ -47,9 +47,16 @@ class HighConnectionsFailed:
         findings: dict = data.details
 
         server_metrics_list = []
-
-        logger.warning(f"Details: {data.details}")
-
+        if not findings["azure_sql_dbs"]:
+            logger.info("No Azure SQL DBs found with high connections failed.")
+            return Result(
+                relates_to="azure_sql_db",
+                result_name="high_connections_failed",
+                result_description="High Failed Connections Azure SQL DBs",
+                details=data.details,
+                formatted="There are no Azure SQL DBs with high connections failed.",
+            )
+        logger.info("Found Azure SQL DBs with high connections failed.")
         for x in findings["azure_sql_dbs"]:
             cursor = {}
             uri = x["uri"]

@@ -48,6 +48,17 @@ class LowCPUPercent:
 
         server_metrics_list = []
 
+        if not findings["azure_sql_dbs"]:
+            logger.info("No Azure SQL DBs found with low cpu percent.")
+            return Result(
+                relates_to="azure_sql_db",
+                result_name="low_cpu_percent",
+                result_description="Low CPU Percent Azure SQL DBs",
+                details=data.details,
+                formatted="There are no Azure SQL DBs with low cpu percent.",
+            )
+        logger.info("Found Azure SQL DBs with low cpu percent.")
+
         for x in findings["azure_sql_dbs"]:
             cursor = {}
             uri = x["uri"]
