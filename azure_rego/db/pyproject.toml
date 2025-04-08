@@ -1,0 +1,34 @@
+[project]
+name = "opsbox-azure-db-checks"
+version = "0.1.0"
+description = "Collection of Azure DB checks for opsbox."
+readme = "README.md"
+license = {file = "LICENCE.txt"}
+requires-python = "==3.11.*"
+dependencies = [
+    "opsbox-azure-db-provider>=0.1.0",
+    "opsbox-rego-handler>=0.2.0"
+]
+
+[tool.setuptools.packages.find]
+include = ["*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[project.entry-points.'opsbox.plugins']
+opsbox_azure_db_high_firewalled = "high_blocked_by_firewall.high_connections_firewalled:HighConnectionsFirewalled"
+opsbox_azure_db_high_conn_failed = "high_connections_failed.high_connections_failed:HighConnectionsFailed"
+opsbox_azure_db_high_cpu_percent = "high_cpu_percent.high_cpu_percent:HighCPUPercent"
+opsbox_azure_db_high_sess_count = "high_sessions_count.high_sessions_count:HighSessionsCount"
+opsbox_azure_db_low_cpu_percent = "low_cpu_percent.low_cpu_percent:LowCPUPercent"
+opsbox_azure_db_low_storage_percent = "low_storage_percent.low_storage_percent:LowStoragePercent"
