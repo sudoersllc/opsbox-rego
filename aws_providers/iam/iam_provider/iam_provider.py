@@ -74,10 +74,10 @@ class IAMProvider:
                     model.aws_access_key_id is None
                     or model.aws_secret_access_key is None
                 ):
-                    region_client = boto3.client("iam", region_name=default_region)
+                    region_client = boto3.client("ec2", region_name=default_region)
                 else:
                     region_client = boto3.client(
-                        "iam",
+                        "ec2",
                         aws_access_key_id=model.aws_access_key_id,
                         aws_secret_access_key=model.ws_secret_access_key,
                         region_name=default_region,
