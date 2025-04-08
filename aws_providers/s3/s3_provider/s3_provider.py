@@ -171,6 +171,8 @@ class S3Provider:
             logger.debug(f"Found {len(response['Buckets'])} buckets in region {region}")
             buckets = response["Buckets"]
             bucket_threads = []
+            thresholded_buckets = []  # List to store buckets that exceed the object count threshold
+            skipped_buckets = []  # List to store skipped buckets
 
             def process_bucket(bucket):
                 nonlocal processed_buckets
@@ -189,7 +191,6 @@ class S3Provider:
                     all_buckets.append(bucket_details)
 
                 most_recent_last_modified = None
-                thresholded_buckets = []
                 try:
                     paginator = s3_client.get_paginator("list_objects_v2")
                     bucket_storage_classes = set()
@@ -197,9 +198,6 @@ class S3Provider:
                     for page in paginator.paginate(Bucket=bucket_name):
                         for obj in page.get("Contents", []):
                             if object_counter >= object_count_threshold:
-                                logger.trace(
-                                    f"Reached object count threshold for bucket {bucket_name}, skipping remaining objects"
-                                )
                                 thresholded_buckets.append(bucket_name)
                                 break
                             # Gather object details
@@ -226,8 +224,8 @@ class S3Provider:
                             break
                     
                     if len(thresholded_buckets) > 0:
-                        logger.warning(
-                            f"{len(thresholded_buckets)} buckets have over {object_count_threshold} objects, skipped remaining objects.", extra = {"buckets": thresholded_buckets}
+                        logger.debug(
+                            f"{bucket_details['BucketName']} bucket has over {object_count_threshold} objects, skipped remaining objects."
                         )
                     inferred_storage_class = (
                         bucket_storage_classes.pop()
@@ -242,9 +240,7 @@ class S3Provider:
 
                     with data_lock:
                         if processed_buckets >= bucket_count_threshold:
-                            logger.warning(
-                                "Reached bucket count threshold, skipping remaining buckets"
-                            )
+                            skipped_buckets.append(bucket_name)
                             return
                         
                 except Exception as e:
@@ -262,6 +258,17 @@ class S3Provider:
             for thread in bucket_threads:
                 thread.join()
 
+            if skipped_buckets:
+                logger.warning(
+                    f"Skipped {len(skipped_buckets)} buckets due to exceeding the bucket count threshold.",
+                    extra = {"skipped_buckets": skipped_buckets},
+                )
+            if thresholded_buckets:
+                logger.warning(
+                    f"Buckets {len(thresholded_buckets)} may not have all objects due to exceeding the object count threshold.",
+                    extra = {"thresholded_buckets": thresholded_buckets},
+                )
+
         # Start a thread for each region.
         for region in regions:
             logger.debug(f"Processing region {region}...")
@@ -272,6 +279,12 @@ class S3Provider:
         # Wait for all region threads to finish.
         for region_thread in region_threads:
             region_thread.join()
+
+        logger.success(f"Gathered data for {len(all_buckets)} buckets and {len(all_objects)} objects across {len(regions)} regions.",
+            extra={
+                "buckets": all_buckets,
+                "objects": all_objects,
+            })
 
         # Prepare the data in a format that can be consumed by Rego.
         rego_ready_data = {
