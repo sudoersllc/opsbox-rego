@@ -74,7 +74,6 @@ class OverdueAPIKeysIAM:
         template = """The following IAM API keys are overdue:
         
 {unused_policies}"""
-        logger.info(unused_policies_yaml)
 
         # Generate the result with formatted output
         if unused_policies:
