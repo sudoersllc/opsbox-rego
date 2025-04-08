@@ -110,8 +110,14 @@ class IAMProvider:
         credentials = self.credentials
 
         # Use the specified region or default to "us-west-1"
-        region = credentials["aws_region"] or "us-west-1"
-
+        if len(credentials["aws_region"]) > 1:
+            logger.info(
+                f"Multiple regions provided: {credentials['aws_region']}. Using the first region."
+            )
+            region = credentials["aws_region"][0]
+        else:
+            
+            region = credentials["aws_region"][0] if credentials["aws_region"] else "us-west-1"
         if credentials["aws_access_key_id"] is None:
             iam_client = boto3.client("iam", region_name=region)
         else:
