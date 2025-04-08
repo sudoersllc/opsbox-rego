@@ -1,7 +1,6 @@
 from pluggy import HookimplMarker
 import yaml
 from opsbox import Result
-import logging as logger
 from pydantic import BaseModel, Field
 from typing import Annotated
 
@@ -58,7 +57,6 @@ class LowRequestCount:
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
         findings = data.details
-        logger.debug(f"Findings: {findings}")
 
         if not findings:
             return Result(

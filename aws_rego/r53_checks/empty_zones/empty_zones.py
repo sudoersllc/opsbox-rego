@@ -18,7 +18,6 @@ class EmptyZones:
             str: The formatted string containing the findings.
         """
         details = data.details
-        logger.info(f"Details: {details}")
 
         # Directly get empty hosted zones from the Rego result
         empty_zones = details.get("empty_hosted_zones", [])

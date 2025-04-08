@@ -53,7 +53,6 @@ class HighPercentIOLimit:
             else:
                 efs_set = findings
             for efs in efs_set:
-                logger.debug(f"Processing efs: {efs}")
                 if (
                     isinstance(efs, dict)
                     and "Name" in efs

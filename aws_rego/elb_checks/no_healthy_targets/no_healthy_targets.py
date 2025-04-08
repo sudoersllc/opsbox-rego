@@ -1,6 +1,5 @@
 from pluggy import HookimplMarker
 import yaml
-from loguru import logger
 from opsbox import Result
 
 # Define a hookimpl (implementation of the contract)
@@ -14,7 +13,6 @@ class NoHealthyTargets:
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
         findings = data.details
-        logger.debug(f"Findings: {findings}")
 
         no_healthy_targets = []
 

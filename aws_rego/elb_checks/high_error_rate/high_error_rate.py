@@ -52,7 +52,6 @@ class HighErrorRate:
                 load_balancers = findings.get("high_error_rate_load_balancers", [])
             else:
                 load_balancers = findings
-            logger.info(f"Formatting results for {len(load_balancers)} load balancers")
             for lb in load_balancers:
                 if (
                     isinstance(lb, dict)

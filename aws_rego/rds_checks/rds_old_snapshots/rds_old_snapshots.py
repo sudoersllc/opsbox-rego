@@ -68,7 +68,6 @@ class RDSOldSnapshots:
                 old_snapshots.append(
                     f"Snapshot: {snapshot['SnapshotIdentifier']} is older than a year. Created on: {snapshot['SnapshotCreateTime']}"  # noqa: E501
                 )
-            logger.success(f"Found {len(snapshot)} old snapshots.")
         try:
             old_snapshots_yaml = yaml.dump(old_snapshots, default_flow_style=False)
         except Exception as e:

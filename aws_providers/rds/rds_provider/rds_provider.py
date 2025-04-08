@@ -55,6 +55,57 @@ class RDSProvider:
         """Set the data for the plugin based on the model."""
         logger.trace("Setting data for RDS plugin...")
         self.credentials = model.model_dump()
+        self.credentials["aws_region"] = self.get_regions(model)
+
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+
+        # Check if the region is provided in the model
+        regions = [] if model.aws_region is None else model.aws_region.split(",")
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("ec2", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"] for r in region_client.describe_regions()["Regions"]
+                ]
+
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
+                )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
+
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
+
+        return regions
 
     @hookimpl
     def gather_data(self):
@@ -67,6 +118,7 @@ class RDSProvider:
 
         def get_rds_instances(rds_client: boto3.client):
             """Retrieve information about RDS instances."""
+            logger.trace("Gathering RDS instances...")
             instances = []
             paginator = rds_client.get_paginator("describe_db_instances")
             for page in paginator.paginate():
@@ -84,6 +136,7 @@ class RDSProvider:
 
         def get_rds_snapshots(rds_client: boto3.client):
             """Retrieve information about RDS snapshots."""
+            logger.trace("Gathering RDS snapshots...")
             snapshots = []
             paginator = rds_client.get_paginator("describe_db_snapshots")
             for page in paginator.paginate():
@@ -109,6 +162,9 @@ class RDSProvider:
             cloudwatch_client: boto3.client,
         ):
             """Retrieve CloudWatch metrics for a given instance."""
+            logger.trace(
+                f"Gathering CloudWatch metric {metric_name} for {instance_id}..."
+            )
             end_time = datetime.now()
             start_time = end_time - timedelta(days=7)
 
@@ -130,6 +186,9 @@ class RDSProvider:
 
         def get_storage_utilization(instance_id, cloudwatch_client, allocated_storage):
             """Calculate the storage utilization for a given instance."""
+            logger.trace(
+                f"Calculating storage utilization for {instance_id} with allocated storage {allocated_storage}..."
+            )
             avg_free_storage = get_cloudwatch_metric(
                 instance_id, "FreeStorageSpace", "Average", 86400, cloudwatch_client
             )
@@ -141,45 +200,6 @@ class RDSProvider:
         instance_data = []  # List to store instance details across regions.
         snapshots = []  # List to store snapshots across regions.
         data_lock = threading.Lock()
-
-        credentials = self.credentials
-
-        # Determine regions to process.
-        if credentials["aws_region"] is None:
-            logger.info("Gathering data for RDS...")
-            # Use the specified region or default to "us-west-1"
-            region = credentials["aws_region"] or "us-west-1"
-
-            if credentials["aws_access_key_id"] is None:
-                # Use the instance profile credentials
-                region_client = boto3.client("ec2", region_name=region)
-                regions = [
-                    region_info["RegionName"]
-                    for region_info in region_client.describe_regions()["Regions"]
-                ]
-            else:
-                try:
-                    region_client = boto3.client(
-                        "ec2",
-                        aws_access_key_id=credentials["aws_access_key_id"],
-                        aws_secret_access_key=credentials["aws_secret_access_key"],
-                        region_name=region,
-                    )
-                    regions = [
-                        region_info["RegionName"]
-                        for region_info in region_client.describe_regions()["Regions"]
-                    ]
-                except Exception as e:
-                    logger.error(f"Error creating RDS client: {e}")
-                    return Result(
-                        relates_to="aws_data",
-                        result_name="aws_rds_data",
-                        result_description="Structured RDS data using.",
-                        formatted="Error creating RDS client.",
-                        details={},
-                    )
-        else:
-            regions = credentials["aws_region"].split(",")
 
         region_threads = []  # List to store threads for each region.
 
@@ -250,7 +270,9 @@ class RDSProvider:
                         instance_data.append(instance)
 
         # Start a thread for each region.
+        regions = self.credentials["aws_region"]
         for region in regions:
+            logger.debug(f"Starting thread for region {region}...")
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()
@@ -258,6 +280,11 @@ class RDSProvider:
         # Wait for all region threads to complete.
         for region_thread in region_threads:
             region_thread.join()
+
+        logger.success(
+            f"Successfully gathered data for {len(instance_data)} RDS instances and {len(snapshots)} snapshots in {len(regions)} region(s).",
+            extra={"regions": regions},
+        )
 
         rego_ready_data = {
             "input": {

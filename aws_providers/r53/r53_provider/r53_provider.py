@@ -30,10 +30,6 @@ class Route53Provider:
                     description="AWS secret access key", required=False, default=None
                 ),
             ]
-            aws_region: Annotated[
-                str | None,
-                Field(description="AWS region", required=False, default=None),
-            ]
 
         return Route53Config
 
@@ -47,28 +43,13 @@ class Route53Provider:
         """Set the data for the plugin based on the model."""
         logger.trace("Setting data for Route 53 plugin...")
         self.credentials = model.model_dump()
+    
 
     @hookimpl
     def gather_data(self):
         """Gathers data related to AWS Route 53 hosted zones, DNS records, health checks."""
-        logger.info("Gathering data for AWS Route 53...")
         credentials = self.credentials
-
-        # Determine regions if needed (though not used directly in the fetch)
-        if credentials["aws_region"] is None:
-            region_client = boto3.client(
-                "ec2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name="us-west-1",
-            )
-            regions = [
-                region["RegionName"]
-                for region in region_client.describe_regions()["Regions"]
-            ]
-            logger.info(f"Regions: {regions}")
-        else:
-            regions = credentials["aws_region"].split(",")
+        logger.info("Gathering data from AWS Route 53...")
 
         # Shared data structures for storing results
         hosted_zones = []
@@ -102,6 +83,7 @@ class Route53Provider:
                 )
 
             # Gather hosted zones
+            logger.debug("Gathering hosted zones...")
             paginator = route53.get_paginator("list_hosted_zones")
             for page in paginator.paginate():
                 for zone in page["HostedZones"]:
@@ -118,6 +100,7 @@ class Route53Provider:
                         )
 
             # Gather DNS records for each hosted zone, filtering for A and CNAME records
+            logger.debug("Gathering DNS records...")
             for zone in hosted_zones:
                 zone_id = zone["id"]
                 paginator = route53.get_paginator("list_resource_record_sets")
@@ -136,6 +119,7 @@ class Route53Provider:
                                 )
 
             # Gather health checks
+            logger.debug("Gathering health checks...")
             paginator = route53.get_paginator("list_health_checks")
             for page in paginator.paginate():
                 for check in page["HealthChecks"]:
@@ -172,7 +156,7 @@ class Route53Provider:
                 "health_checks": health_checks,
             }
         }
-        logger.success(rego_ready_data)
+        logger.success(f"Gathered {len(hosted_zones)} hosted zones and {len(all_records)} DNS records.", extra={"hosted_zones": hosted_zones, "records": all_records})
 
         item = Result(
             relates_to="aws_data",

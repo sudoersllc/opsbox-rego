@@ -72,6 +72,62 @@ class S3Provider:
         """
         logger.trace("Setting data for S3 plugin...")
         self.credentials = model.model_dump()
+        self.credentials["aws_region"] = self.get_regions(model)
+
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+
+        # Check if the region is provided in the model
+        regions = (
+            []
+            if model.aws_region is None
+            else model.aws_region.split(",")
+        )
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("ec2", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "ec2",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"]
+                    for r in region_client.describe_regions()["Regions"]
+                ]
+                
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
+                )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
+
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
+
+        return regions
 
     @hookimpl
     def gather_data(self):
@@ -90,30 +146,12 @@ class S3Provider:
         data_lock = threading.Lock()
 
         credentials = self.credentials
+        regions = credentials["aws_region"]  # Get the regions from the credentials
 
         # Convert thresholds to integers (they may come in as strings)
         object_count_threshold = int(credentials["object_count_threshold"])
         bucket_count_threshold = int(credentials["bucket_count_threshold"])
 
-        logger.info(f"Region(s): {credentials['aws_region']}")
-
-        if credentials["aws_region"] is None:
-            # If region is not provided, list all available regions
-            region_client = boto3.client(
-                "ec2",
-                aws_access_key_id=credentials["aws_access_key_id"],
-                aws_secret_access_key=credentials["aws_secret_access_key"],
-                region_name="us-west-1",
-            )
-
-            regions = [
-                region["RegionName"]
-                for region in region_client.describe_regions()["Regions"]
-            ]
-            logger.info(f"Regions: {regions}")
-        else:
-            # Allow multiple regions (comma-separated)
-            regions = credentials["aws_region"].split(",")
 
         region_threads = []  # Threads for each region
 
@@ -130,7 +168,7 @@ class S3Provider:
                 )
 
             response = s3_client.list_buckets()  # List all buckets
-            logger.trace(f"List of buckets in region {region}: {response}")
+            logger.debug(f"Found {len(response['Buckets'])} buckets in region {region}")
             buckets = response["Buckets"]
             bucket_threads = []
 
@@ -151,6 +189,7 @@ class S3Provider:
                     all_buckets.append(bucket_details)
 
                 most_recent_last_modified = None
+                thresholded_buckets = []
                 try:
                     paginator = s3_client.get_paginator("list_objects_v2")
                     bucket_storage_classes = set()
@@ -158,9 +197,10 @@ class S3Provider:
                     for page in paginator.paginate(Bucket=bucket_name):
                         for obj in page.get("Contents", []):
                             if object_counter >= object_count_threshold:
-                                logger.warning(
+                                logger.trace(
                                     f"Reached object count threshold for bucket {bucket_name}, skipping remaining objects"
                                 )
+                                thresholded_buckets.append(bucket_name)
                                 break
                             # Gather object details
                             object_details = {
@@ -178,16 +218,17 @@ class S3Provider:
                                     bucket_details["LastModified"] = obj[
                                         "LastModified"
                                     ].timestamp()
-                            logger.debug(
-                                f"Added object {obj['Key']} with storage class {object_details['StorageClass']} to data, last modified: {obj['LastModified']}"
-                            )
                             with data_lock:
                                 all_objects.append(object_details)
                             object_counter += 1
 
                         if object_counter >= object_count_threshold:
                             break
-
+                    
+                    if len(thresholded_buckets) > 0:
+                        logger.warning(
+                            f"{len(thresholded_buckets)} buckets have over {object_count_threshold} objects, skipped remaining objects.", extra = {"buckets": thresholded_buckets}
+                        )
                     inferred_storage_class = (
                         bucket_storage_classes.pop()
                         if len(bucket_storage_classes) == 1
@@ -205,7 +246,7 @@ class S3Provider:
                                 "Reached bucket count threshold, skipping remaining buckets"
                             )
                             return
-
+                        
                 except Exception as e:
                     logger.error(f"Error listing objects for bucket {bucket_name}: {e}")
 
@@ -223,6 +264,7 @@ class S3Provider:
 
         # Start a thread for each region.
         for region in regions:
+            logger.debug(f"Processing region {region}...")
             region_thread = threading.Thread(target=process_region, args=(region,))
             region_threads.append(region_thread)
             region_thread.start()

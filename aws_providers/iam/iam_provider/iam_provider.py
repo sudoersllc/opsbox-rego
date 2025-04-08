@@ -4,7 +4,6 @@ import boto3
 from loguru import logger
 from typing import Annotated
 from opsbox import Result
-import json
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
@@ -47,12 +46,67 @@ class IAMProvider:
         """Set the data for the plugin based on the model."""
         logger.trace("Setting data for IAM plugin...")
         self.credentials = model.model_dump()
+        self.credentials["aws_region"] = self.get_regions(model)
+
+    def get_regions(self, model: type[BaseModel]) -> type[BaseModel]:
+        """Get the regions from the model.
+
+        Args:
+            model (type[BaseModel]): The model containing the data for the plugin.
+
+        Returns:
+            type[BaseModel]: The model containing the data for the plugin.
+        """
+
+        # Check if the region is provided in the model
+        regions = (
+            []
+            if model.aws_region is None
+            else model.aws_region.split(",")
+        )
+        default_region = "us-west-1"
+
+        # If no regions are provided, gather regions from AWS
+        try:
+            if not regions:
+                logger.info("No region(s) provided. Gathering regions.")
+                if (
+                    model.aws_access_key_id is None
+                    or model.aws_secret_access_key is None
+                ):
+                    region_client = boto3.client("iam", region_name=default_region)
+                else:
+                    region_client = boto3.client(
+                        "iam",
+                        aws_access_key_id=model.aws_access_key_id,
+                        aws_secret_access_key=model.ws_secret_access_key,
+                        region_name=default_region,
+                    )
+                regions = [
+                    r["RegionName"]
+                    for r in region_client.describe_regions()["Regions"]
+                ]
+                
+                logger.success(
+                    f"Found {len(regions)} region(s).",
+                    extra={"regions": regions},
+                )
+        except Exception as e:
+            logger.exception(
+                f"Error gathering regions: {e}. Using default region {default_region}."
+            )
+
+        # If no regions are found, return an error
+        if not regions:
+            logger.warning(f"No regions found. Using default region {default_region}.")
+            regions = [default_region]
+
+        return regions
 
     @hookimpl
     def gather_data(self):
         """Gathers and structures data related to AWS IAM users, roles, and policies."""
 
-        logger.info("Gathering data for IAM...")
         credentials = self.credentials
 
         # Use the specified region or default to "us-west-1"
@@ -170,10 +224,6 @@ class IAMProvider:
                 "credential_report": credential_report_data,
             }
         }
-
-        # export iam data to json file
-        with open("iam_data.json", "w") as f:
-            json.dump(rego_ready_data, f)
 
         logger.success(
             "IAM data successfully gathered and structured.",
