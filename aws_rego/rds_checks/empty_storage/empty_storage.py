@@ -53,6 +53,21 @@ class EmptyStorage:
             "rds_empty_storage_threshold"
         ]
         return data
+    
+    def format_data(self, input: "Result") -> list:
+        """Format the input data to extract RDS storage instances with low storage utilization.
+
+        Args:
+            input (Result): The input data containing RDS details.
+
+        Returns:
+            list: A dictionary containing details of RDS storage instances with low storage utilization.
+        """
+        details = input.details["input"]
+        rds_instances = [instance for instance in details["rds_instances"] if instance["StorageUtilization"] < self.conf["rds_empty_storage_threshold"]]
+        return rds_instances
+
+
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -62,7 +77,7 @@ class EmptyStorage:
         Returns:
             Result: The formatted string containing the findings.
         """
-        details = data.details
+        details = self.format_data(data)
 
         storage_instances = []
 
@@ -78,7 +93,7 @@ class EmptyStorage:
                 relates_to="rds",
                 result_name="empty_storage",
                 result_description="RDS Storage Instances with <40% Storage Utilization",
-                details=data.details,
+                details=details,
                 formatted="Error: Invalid data format for details.",
             )
 
@@ -103,7 +118,7 @@ class EmptyStorage:
                 relates_to="rds",
                 result_name="empty_storage",
                 result_description="RDS Storage Instances with <40% Storage Utilization",
-                details=data.details,
+                details=details,
                 formatted=template.format(storage_instances=storage_instances_yaml),
             )
         else:
@@ -111,6 +126,6 @@ class EmptyStorage:
                 relates_to="rds",
                 result_name="empty_storage",
                 result_description="RDS Storage Instances with <40% Storage Utilization",
-                details=data.details,
+                details=details,
                 formatted="No RDS storage instances with <40% storage utilization found.",
             )

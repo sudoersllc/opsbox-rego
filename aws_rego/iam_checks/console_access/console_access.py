@@ -10,6 +10,26 @@ hookimpl = HookimplMarker("opsbox")
 class ConsoleAccessIAM:
     """Plugin for identifying IAM users with console access."""
 
+    def format_result(self, input: "Result") -> dict:
+        """Format the result for the plugin.
+        Args:
+            input (Result): The input data to format.
+        Returns:
+            dict: The formatted data.
+        """
+        details = input.details["input"]
+        users_with_console_access = []
+
+        for user in details["credential_report"]:
+            if user.get("password_enabled") == "true":
+                users_with_console_access.append(user)
+
+        details = {
+            "users_with_console_access": users_with_console_access,
+        }
+        
+        return details
+
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -18,7 +38,7 @@ class ConsoleAccessIAM:
         Returns:
             Result: The formatted result object containing the findings.
         """
-        details = data.details
+        details = self.format_result(data)
 
         # Check if details is a list
         if isinstance(details, list):
@@ -33,7 +53,7 @@ class ConsoleAccessIAM:
                 relates_to="iam",
                 result_name="users_with_console_access",
                 result_description="IAM Users with Console Access",
-                details=data.details,
+                details=details,
                 formatted="Error: Invalid data format for details.",
             )
 
@@ -60,6 +80,6 @@ class ConsoleAccessIAM:
             relates_to="iam",
             result_name="users_with_console_access",
             result_description="IAM Users with Console Access",
-            details=data.details,
+            details=details,
             formatted=formatted_output,
         )

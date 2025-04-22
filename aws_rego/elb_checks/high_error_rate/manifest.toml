@@ -1,9 +1,9 @@
 [info]
-name = "high_error_rate"
+name = "elb_high_error_rate"
 module = "high_error_rate"
 class_name = "HighErrorRate"
-type = "rego"
-uses = ["rego", "elb"]
+type = "input"
+uses = ["general", "elb"]
 
 [rego]
 description = "Check for high AWS ELB error rates"

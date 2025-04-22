@@ -2,8 +2,8 @@
 name = "unused_policies"
 module = "unused_policies"
 class_name = "UnusedIAMPolicies"
-type = "rego"
-uses = ["rego", "iam"]
+type = "input"
+uses = ["general", "iam"]
 
 [rego]
 description = "Check for empty iam policies."

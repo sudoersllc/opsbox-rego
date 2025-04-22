@@ -28,6 +28,32 @@ class OverdueAPIKeysIAM:
         """Return the plugin's configuration pydantic model.
         These should be things your plugin needs/wants to function."""
         return OverdueAPIKeysConfig
+    
+    def format_result(self, input: "Result") -> dict:
+        """Format the result for the plugin.
+        Args:
+            input (Result): The input data to format.
+        Returns:
+            dict: The formatted data.
+        """
+        details = input.details["input"]
+        overdue_api_keys = []
+
+        for user in details["credential_report"]:
+            if user.get("access_key_2_active") == "true":
+                key_last_rotated = datetime.strptime(user["access_key_2_last_rotated"], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                print(f"Key last rotated: {key_last_rotated}")
+                print(f"Threshold: {self.conf['iam_overdue_key_date_threshold'].timestamp()}")
+                print(f"is overdue: {key_last_rotated < self.conf['iam_overdue_key_date_threshold'].timestamp()}")
+                # Check if the key is overdue
+                if key_last_rotated < self.conf["iam_overdue_key_date_threshold"].timestamp():
+                    overdue_api_keys.append(user)
+
+        details = {
+            "overdue_api_keys": overdue_api_keys,
+        }
+        
+        return details
 
     @hookimpl
     def set_data(self, model: type[BaseModel]) -> None:
@@ -58,7 +84,7 @@ class OverdueAPIKeysIAM:
         Returns:
             str: The formatted string containing the findings.
         """
-        details = data.details
+        details = self.format_result(data)
 
         # Directly get unused policies from the Rego result
         unused_policies = details.get("overdue_api_keys", [])
@@ -82,7 +108,7 @@ class OverdueAPIKeysIAM:
                 relates_to="iam",
                 result_name="overdue_api_keys",
                 result_description="IAM API Keys Overdue",
-                details=data.details,
+                details=details,
                 formatted=template.format(unused_policies=unused_policies_yaml),
             )
         else:
@@ -90,6 +116,6 @@ class OverdueAPIKeysIAM:
                 relates_to="iam",
                 result_name="overdue_api_keys",
                 result_description="IAM API Keys Overdue",
-                details=data.details,
+                details=[],
                 formatted="No overdue API keys found.",
             )

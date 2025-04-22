@@ -2,8 +2,8 @@
 name = "ec2_old_snapshots"
 module = "ec2_old_snapshots"
 class_name = "EC2OLD"
-type = "rego"
-uses = ["ec2", "rego"]
+type = "input"
+uses = ["ec2", "general"]
 
 [rego]
 description = "Check for old snapshots."

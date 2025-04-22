@@ -54,12 +54,35 @@ class ScalingDown:
             "rds_cpu_scaling_threshold"
         ]
         return data
+    
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
+
+        Args:
+            input (Result): The input data to format.
+
+        Returns:
+            dict: The formatted data.
+        """
+        details = input.details["input"]
+
+        scaling_instances = []
+
+        for instance in details["rds_instances"]:
+            if instance["CPUUtilization"] < self.conf["rds_cpu_scaling_threshold"]:
+                scaling_instances.append(instance)
+
+        scaling_instances = {
+            "recommendations_for_scaling_down": scaling_instances
+        }
+
+        return scaling_instances
 
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin."""
 
-        findings = data.details
+        findings = self.format_data(data)
 
         scaling_instances = []
         if findings:
@@ -86,7 +109,7 @@ class ScalingDown:
                 relates_to="rds",
                 result_name="scaling_down",
                 result_description="RDS Instances that should be scaled down",
-                details=data.details,
+                details=findings,
                 formatted=template.format(scaling_instances=scaling_instances_yaml),
             )
         else:
@@ -94,6 +117,6 @@ class ScalingDown:
                 relates_to="rds",
                 result_name="scaling_down",
                 result_description="RDS Instances that should be scaled down",
-                details=data.details,
+                details=findings,
                 formatted="No RDS instances that should be scaled down found.",
             )

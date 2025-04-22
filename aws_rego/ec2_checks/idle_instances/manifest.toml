@@ -1,9 +1,9 @@
 [info]
-name = "idle_instances"
+name = "ec2_idle_instances"
 module = "idle_instances"
 class_name = "IdleInstances"
-type = "rego"
-uses = ["rego", "ec2"]
+type = "input"
+uses = ["general", "ec2"]
 
 [rego]
 description = "Check for idle EC2 instances."

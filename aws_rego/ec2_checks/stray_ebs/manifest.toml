@@ -2,8 +2,8 @@
 name = "stray_ebs"
 module = "stray_ebs"
 class_name = "StrayEbs"
-type = "rego"
-uses = ["rego", "ec2"]
+type = "input"
+uses = ["general", "ec2"]
 
 [rego]
 description= "Check for stray EBS volumes."

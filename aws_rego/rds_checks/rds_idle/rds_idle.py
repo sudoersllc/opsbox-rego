@@ -39,20 +39,20 @@ class RDSIdle:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
 
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
 
         Args:
-            data (Result): The data to inject into the plugin.
+            input (Result): The input data to format.
 
         Returns:
-            Result: The data with the injected values.
+            dict: The formatted data.
         """
-        data.details["input"]["rds_cpu_idle_threshold"] = self.conf[
-            "rds_cpu_idle_threshold"
-        ]
-        return data
+        details = input.details["input"]
+
+        idle_instances = [instance for instance in details["rds_instances"] if instance.CPUUtilization < self.conf["rds_cpu_idle_threshold"]]
+
+        return idle_instances
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -62,7 +62,7 @@ class RDSIdle:
         Returns:
             Result: The formatted string containing the findings.
         """
-        findings = data.details
+        findings = self.format_data(data)
 
         idle_instances = []
 
@@ -70,7 +70,7 @@ class RDSIdle:
         if isinstance(findings, list):
             for instance in findings:
                 if (
-                    instance.get("CPUUtilization", 0) < 5
+                    instance.get("CPUUtilization", 0) < self.conf["rds_cpu_idle_threshold"]
                 ):  # Check if the instance is idle
                     idle_instances.append(
                         f"Instance: {instance['InstanceIdentifier']} is idle."
@@ -104,7 +104,7 @@ class RDSIdle:
                 relates_to="rds",
                 result_name="idle_instances",
                 result_description="Idle RDS Instances",
-                details=data.details,
+                details=findings,
                 formatted=template.format(idle_instances=idle_instances_yaml),
             )
         else:
@@ -112,6 +112,6 @@ class RDSIdle:
                 relates_to="rds",
                 result_name="idle_instances",
                 result_description="Idle RDS Instances",
-                details=data.details,
+                details=findings,
                 formatted="No idle RDS instances found.",
             )

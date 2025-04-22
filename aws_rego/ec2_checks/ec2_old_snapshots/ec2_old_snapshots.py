@@ -37,19 +37,26 @@ class EC2OLD:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
 
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
+
+    def filter_snapshots(self, input: "Result") -> list:
+        """Filter the snapshots based on the threshold.
 
         Args:
-            data (Result): The data to inject into the plugin.
+            input (Result): The input data containing the snapshots.
 
         Returns:
-            Result: The data with the injected values.
+            list: A list of filtered snapshots.
         """
-        timestamp = int(self.conf["ec2_snapshot_old_threshold"].timestamp() * 1e9)
-        data.details["input"]["ec2_snapshot_old_threshold"] = timestamp
-        return data
+        # Filter snapshots older than the threshold
+        details = input.details["input"]
+        old_snapshots = [
+            snapshot
+            for snapshot in details["snapshots"]
+            if datetime.fromisoformat(snapshot["start_time"]).timestamp() < self.conf["ec2_snapshot_old_threshold"].timestamp()
+        ]
+        details = {"ec2_old_snapshots": old_snapshots}
+        return details
+
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -59,7 +66,7 @@ class EC2OLD:
         Returns:
             str: The formatted string containing the findings.
         """
-        findings = data.details
+        findings = self.filter_snapshots(data)
 
         old_snapshots = []
         if findings:

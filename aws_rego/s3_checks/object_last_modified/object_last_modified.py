@@ -50,6 +50,27 @@ class ObjectLastModified:
         timestamp = int(self.conf["s3_last_modified_date_threshold"].timestamp())
         data.details["input"]["s3_last_modified_date_threshold"] = timestamp
         return data
+    
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
+
+        Args:
+            input (Result): The input data to format.
+
+        Returns:
+            dict: The formatted data.
+        """
+        # Format the data as needed
+        details = input.details["input"]
+        total = len(details["objects"])
+        std_and_old = [obj for obj in details["objects"] if obj["StorageClass"] == "STANDARD" and obj["LastModified"] < self.conf["s3_last_modified_date_threshold"].timestamp()]
+        percentage = (len(std_and_old) / total) * 100 if total > 0 else 0
+        formatted_data = {
+            "percentage_standard_and_old": percentage,
+            "standard_and_old_objects": std_and_old,
+            "total_objects": total,
+        }
+        return formatted_data
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -59,7 +80,7 @@ class ObjectLastModified:
         Returns:
             Result: The formatted result containing the findings.
         """
-        findings = data.details
+        findings = self.format_data(data)
 
         standard_and_old_objects = []
         if findings:
@@ -87,7 +108,7 @@ Percentage of total old objects: {percentage_old}%"""
                 relates_to="s3",
                 result_name="object_last_modified",
                 result_description="S3 Objects that have not been modified in a long time",
-                details=data.details,
+                details=findings,
                 formatted=template.format(
                     objects=objects_yaml, percentage_old=percentage_old
                 ),
@@ -97,6 +118,6 @@ Percentage of total old objects: {percentage_old}%"""
                 relates_to="s3",
                 result_name="object_last_modified",
                 result_description="S3 Objects that have not been modified in a long time",
-                details=data.details,
+                details=findings,
                 formatted="No old S3 objects found.",
             )

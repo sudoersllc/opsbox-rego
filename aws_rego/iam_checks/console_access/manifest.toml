@@ -2,8 +2,8 @@
 name = "console_access"
 module = "console_access"
 class_name = "ConsoleAccessIAM"
-type = "rego"
-uses = ["rego", "iam"]
+type = "input"
+uses = ["general", "iam"]
 
 [rego]
 description = "Check for empty iam policies."

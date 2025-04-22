@@ -1,9 +1,9 @@
 [info]
-name = "low_request_count"
+name = "elb_low_request_count"
 module = "low_request_count"
 class_name = "LowRequestCount"
-type = "rego"
-uses = ["elb","rego"]
+type = "input"
+uses = ["elb","general"]
 
 [rego]
 description = "Check for ELBs with low request counts."

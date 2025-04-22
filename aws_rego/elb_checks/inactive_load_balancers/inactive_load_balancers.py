@@ -39,28 +39,41 @@ class InactiveLoadBalancers:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
 
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
+    def format_data(self, input: Result) -> dict:
+        """Format the input data to extract inactive load balancers.
 
         Args:
-            data (Result): The data to inject into the plugin.
+            input (Result): The input data containing ELB details.
 
         Returns:
-            Result: The data with the injected values.
+            dict: A dictionary containing details of inactive load balancers.
         """
-        data.details["input"]["elb_inactive_requests_threshold"] = self.conf[
-            "elb_inactive_requests_threshold"
-        ]
-        return data
+        lbs = input.details.get("input").get("elbs", [])
+        inactive = []
+
+        for load_balancer in lbs:
+            if load_balancer.get("State", load_balancer.get("state")) == "inactive":
+                inactive.append(load_balancer)
+            elif (
+                load_balancer.get("RequestCount", load_balancer.get("request_count", 0))
+                <= self.conf["elb_inactive_requests_threshold"]):
+                inactive.append(load_balancer)
+        print("inactive", inactive)
+        return {"inactive_load_balancers": inactive}
 
     @hookimpl
-    def report_findings(self, data: "Result"):
-        """Format the check results in a LLM-readable format."""
-        findings = data.details
-        logger.debug(f"Findings: {findings}")
+    def report_findings(self, data: Result):
+        """Format the check results in a readable format.
 
-        inactive_load_balancers = []
+        Args:
+            data (Result): The data containing ELB details.
+
+        Returns:
+            Result: The formatted result with inactive ELBs.
+        """
+        findings = self.format_data(data)
+
+        inactive_load_balancers = findings.get("inactive_load_balancers", [])
 
         # Check for findings and collect inactive load balancers
         if findings is not None:
@@ -81,7 +94,7 @@ class InactiveLoadBalancers:
                 relates_to="elb",
                 result_name="inactive_load_balancers",
                 result_description="Inactive Load Balancers",
-                details=data.details,
+                details=findings,
                 formatted=template.format(load_balancers=formatted_load_balancers),
             )
 
@@ -91,6 +104,6 @@ class InactiveLoadBalancers:
                 relates_to="elb",
                 result_name="inactive_load_balancers",
                 result_description="Inactive Load Balancers",
-                details=data.details,
+                details=[],
                 formatted="No inactive ELBs found.",
             )

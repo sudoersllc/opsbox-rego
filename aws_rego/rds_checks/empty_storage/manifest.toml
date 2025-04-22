@@ -2,8 +2,8 @@
 name = "empty_storage"
 module = "empty_storage"
 class_name = "EmptyStorage"
-type = "rego"
-uses = ["rego", "rds"]
+type = "input"
+uses = ["general", "rds"]
 
 [rego]
 description = "Check for empty RDS storages."

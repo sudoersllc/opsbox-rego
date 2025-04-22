@@ -13,7 +13,7 @@ class ELBLowRequestsConfig(BaseModel):
     elb_low_requests_threshold: Annotated[
         int,
         Field(
-            default=0,
+            default=100,
             description="# of requests below which to consider an ELB to have low request counts. Default = 100.",
         ),
     ]
@@ -39,41 +39,44 @@ class LowRequestCount:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
 
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
+    def format_data(self, input: "Result") -> dict:
+        """Format the input data to extract ELBs with low request counts.
 
         Args:
-            data (Result): The data to inject into the plugin.
+            input (Result): The input data containing ELB details.
 
         Returns:
-            Result: The data with the injected values.
+            list: A list of ELBs with low request counts.
         """
-        data.details["input"]["elb_low_requests_threshold"] = self.conf[
-            "elb_low_requests_threshold"
-        ]
-        return data
+        lbs = input.details.get("input").get("elbs", [])
+        print("lbs", lbs)
+        low_request_count = []
 
+        for load_balancer in lbs:
+            if (
+                load_balancer.get("RequestCount", load_balancer.get("request_count", 0))
+                <= self.conf["elb_low_requests_threshold"]
+            ):
+                low_request_count.append(load_balancer)
+
+        print("low_request_count", low_request_count)
+        return low_request_count
+    
     @hookimpl
     def report_findings(self, data: "Result"):
         """Format the check results in a LLM-readable format."""
-        findings = data.details
-        logger.debug(f"Findings: {findings}")
+        findings = self.format_data(data)
 
         if not findings:
             return Result(
                 relates_to="elb",
                 result_name="low_request_count",
                 result_description="Low Request Count",
-                details=data.details,
+                details=[],
                 formatted="No ELBs with low request counts found.",
             )
 
-        inactive_load_balancers = []
-
-        # Assuming findings is a list of ELB dictionaries
-        for lb in findings:
-            inactive_load_balancers.append(lb)
+        inactive_load_balancers = findings
 
         template = """The following ELBs have low request counts:
 
@@ -87,7 +90,7 @@ class LowRequestCount:
             relates_to="elb",
             result_name="low_request_count",
             result_description="Low Request Count",
-            details=data.details,
+            details=findings,
             formatted=template.format(load_balancers=formatted_load_balancers),
         )
         return item

@@ -2,8 +2,8 @@
 name = "rds_old_snapshots"
 module = "rds_old_snapshots"
 class_name = "RDSOldSnapshots"
-type = "rego"
-uses = ["rds", "rego"]
+type = "input"
+uses = ["rds", "general"]
 
 [rego]
 description = "Check for old snapshots."

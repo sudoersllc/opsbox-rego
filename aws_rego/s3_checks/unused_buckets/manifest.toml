@@ -2,8 +2,8 @@
 name = "unused_buckets"
 module = "unused_buckets"
 class_name = "UnusedBuckets"
-type = "rego"
-uses = ["rego", "s3"]
+type = "input"
+uses = ["general", "s3"]
 
 [rego]
 description = "Check for unused buckets"

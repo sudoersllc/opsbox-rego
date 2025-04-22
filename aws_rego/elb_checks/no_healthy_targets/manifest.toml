@@ -1,9 +1,9 @@
 [info]
-name = "no_healthy_targets"
+name = "elb_no_healthy_targets"
 module = "no_healthy_targets"
 class_name = "NoHealthyTargets"
-type="rego"
-uses = ["elb", "rego"]
+type="input"
+uses = ["elb", "general"]
 
 [rego]
 description = "Check for no healthy targets in load balancers."

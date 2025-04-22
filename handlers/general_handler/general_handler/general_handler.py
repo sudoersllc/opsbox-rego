@@ -19,7 +19,6 @@ class ProviderSpec:
     def gather_data(self) -> "Result":
         """Gather data for the plugin."""
 
-
 class OutputSpec:
     """Base contract for outputs.
     Outputs are plugins that process the data from the providers."""
@@ -46,8 +45,10 @@ class InputSpec:
     Inputs are plugins that process the data from the providers."""
 
     @hookspec
-    def process(self, data: list["Result"]) -> None:
-        """Process the results from the plugin."""
+    def report_findings(self, data: "Result") -> "Result":
+        """Format the results in a human-readable format.
+        You would do this by adding the formatted results to the 'formatted' key of the result.
+        """
 
 
 hookimpl = HookimplMarker("opsbox")
@@ -80,7 +81,7 @@ class GeneralHandler:
             data = []
             for x in providers:
                 data.append(x.plugin_obj.gather_data())
-            return plugin.plugin_obj.process(data)
+            return plugin.plugin_obj.report_findings(data[0])
         elif plugin.type == "output":
             return plugin.plugin_obj.proccess_results(prior_results)
         elif plugin.type == "assistant":

@@ -36,6 +36,62 @@ class HighErrorRate:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
 
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
+
+        Args:
+            input (Result): The input data to format.
+
+        Returns:
+            dict: The formatted data.
+        """
+        details = input.details["input"]
+
+        load_balancers = []
+
+        for lb in details["elbs"]:
+            if (
+                isinstance(lb, dict)
+                and "name" in lb
+                and "type" in lb
+                and "error_rate" in lb
+            ):
+                lb_obj = {
+                    lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
+                }
+                load_balancers.append(lb_obj)
+            elif (
+                isinstance(lb, dict)
+                and "Name" in lb
+                and "Type" in lb
+                and "ErrorRate" in lb
+            ):
+                lb_obj = {
+                    lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
+                }
+                load_balancers.append(lb_obj)
+            else:
+                name: str
+                if lb.get("name") is not None:
+                    name = lb["name"]
+                    pass
+                elif lb.get("Name") is not None:
+                    name = lb["Name"]
+                    pass
+
+                logger.error(f"Invalid load balancer data for {name}", extra=lb)
+
+        print(load_balancers)
+        high_error_rate_load_balancers = [
+            {name: details}
+            for lb in load_balancers
+            for name, details in lb.items()
+            if details["error_rate"] > self.conf["elb_error_rate_threshold"]
+        ]
+
+        details = high_error_rate_load_balancers
+        return details
+
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -44,47 +100,11 @@ class HighErrorRate:
         Returns:
             str: The formatted string containing the findings.
         """
-        findings = data.details
+        findings = self.format_data(data)
 
         high_error_rate_load_balancers = []
         if findings:
-            if findings is type(dict):
-                load_balancers = findings.get("high_error_rate_load_balancers", [])
-            else:
-                load_balancers = findings
-            logger.info(f"Formatting results for {len(load_balancers)} load balancers")
-            for lb in load_balancers:
-                if (
-                    isinstance(lb, dict)
-                    and "name" in lb
-                    and "type" in lb
-                    and "error_rate" in lb
-                ):
-                    lb_obj = {
-                        lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
-                    }
-                    high_error_rate_load_balancers.append(lb_obj)
-                elif (
-                    isinstance(lb, dict)
-                    and "Name" in lb
-                    and "Type" in lb
-                    and "ErrorRate" in lb
-                ):
-                    lb_obj = {
-                        lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
-                    }
-                    high_error_rate_load_balancers.append(lb_obj)
-                else:
-                    name: str
-                    if lb.get("name") is not None:
-                        name = lb["name"]
-                        pass
-                    elif lb.get("Name") is not None:
-                        name = lb["Name"]
-                        pass
-
-                    logger.error(f"Invalid load balancer data for {name}", extra=lb)
-
+            high_error_rate_load_balancers = findings
             template = """The following ELBs have a high error rate: \n
             {load_balancers}"""
             try:
@@ -100,7 +120,7 @@ class HighErrorRate:
                 relates_to="elb",
                 result_name="high_error_rate",
                 result_description="High Error Rate Load Balancers",
-                details=data.details,
+                details=high_error_rate_load_balancers,
                 formatted=formatted,
             )
         else:
@@ -108,21 +128,6 @@ class HighErrorRate:
                 relates_to="elb",
                 result_name="high_error_rate",
                 result_description="High Error Rate Load Balancers",
-                details=data.details,
+                details=[],
                 formatted="No ELBs with high error rates found.",
             )
-
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
-
-        Args:
-            data (Result): The data to inject into the plugin.
-
-        Returns:
-            Result: The data with the injected values.
-        """
-        data.details["input"]["elb_error_rate_threshold"] = self.conf[
-            "elb_error_rate_threshold"
-        ]
-        return data

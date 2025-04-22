@@ -2,8 +2,8 @@
 name = "unattached_eips"
 module = "unattached_eips"
 class_name = "UnattachedEips"
-type = "rego"
-uses = ["rego", "ec2"]
+type = "input"
+uses = ["general", "ec2"]
 
 [rego]
 description= "Check for Unattached EIPs."

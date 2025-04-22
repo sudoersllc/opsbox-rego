@@ -6,6 +6,12 @@ from opsbox import Result
 class StrayEbs:
     """Formatting for the stray_ebs rego check."""
 
+    def format_results(self, input: Result) -> dict:
+        input = input.details["input"]
+        details = [volume for volume in input["volumes"] if volume["state"] != "in-use"]
+        return details
+
+
     def report_findings(self, data: Result) -> Result:
         """Report the findings of the plugin.
         Attributes:
@@ -14,7 +20,7 @@ class StrayEbs:
             str: The formatted string containing the findings.
         """
         volumes = []
-        findings = data.details
+        findings = self.format_results(data)
         for volume in findings:
             volume_obj = {
                 volume["volume_id"]: {
@@ -43,6 +49,6 @@ class StrayEbs:
             relates_to="ec2",
             result_name="stray_ebs",
             result_description="Stray EBS Volumes",
-            details=data.details,
+            details=volumes,
             formatted=result.formatted,
         )

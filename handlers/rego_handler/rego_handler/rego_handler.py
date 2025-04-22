@@ -106,7 +106,7 @@ class RegoHandler:
 
     @hookimpl
     def process_plugin(
-        self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry"
+        self, plugin: "PluginInfo", prior_results: list["Result"], registry: "list[PluginInfo]"
     ) -> list["Result"]:
         """Process the rego plugin.
 
@@ -125,9 +125,10 @@ class RegoHandler:
         # grab list of providers
         providers: list[PluginInfo] = [
             x
-            for x in registry.active_plugins
+            for x in registry
             if (x.type == "provider") and (x.name in plugin.uses)
         ]
+        
 
         if len(providers) == 1:
             logger.trace(f"Provider found for rego plugin {plugin.name}.")

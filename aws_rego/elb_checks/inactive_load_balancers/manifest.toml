@@ -1,9 +1,9 @@
 [info]
-name = "inactive_load_balancers"
+name = "elb_inactive_load_balancers"
 module = "inactive_load_balancers"
 class_name = "InactiveLoadBalancers"
-type="rego"
-uses = ["elb", "rego"]
+type="input"
+uses = ["elb", "general"]
 
 [rego]
 description = "Check for inactive load balancers."

@@ -1,7 +1,6 @@
 from pluggy import HookimplMarker
 import yaml
 from loguru import logger
-from datetime import datetime
 from opsbox import Result
 from pydantic import BaseModel, Field
 from typing import Annotated
@@ -51,15 +50,30 @@ class UnusedBuckets:
         timestamp = int(self.conf["s3_unused_bucket_date_threshold"].timestamp())
         data.details["input"]["s3_unused_bucket_date_threshold"] = timestamp
         return data
+    
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
+
+        Args:
+            input (Result): The input data to format.
+
+        Returns:
+            dict: The formatted data.
+        """
+        # Format the data as needed
+        details = input.details["input"]
+        buckets = [bucket for bucket in details["buckets"] if bucket["last_modified"] is not None]
+        buckets = [x for x in buckets if x["last_modified"] < self.conf["s3_unused_bucket_date_threshold"].timestamp()]
+        return buckets
 
     @hookimpl
     def report_findings(self, data: "Result"):
         """Format the check results in a readable format."""
-        findings = data.details
+        findings = self.format_data(data)
 
         old_buckets = []
         if findings:
-            buckets = findings.get("unused_buckets", [])
+            buckets = findings
             for bucket in buckets:
                 if (
                     isinstance(bucket, dict)
@@ -96,7 +110,7 @@ class UnusedBuckets:
                 relates_to="s3",
                 result_name="unused_buckets",
                 result_description="Unused S3 Buckets",
-                details=data.details,
+                details=findings,
                 formatted=template.format(buckets=buckets_yaml),
             )
         else:
@@ -104,6 +118,6 @@ class UnusedBuckets:
                 relates_to="s3",
                 result_name="unused_buckets",
                 result_description="Unused S3 Buckets",
-                details=data.details,
+                details=findings,
                 formatted="No unused S3 buckets found.",
             )

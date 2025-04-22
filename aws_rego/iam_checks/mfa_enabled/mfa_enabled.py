@@ -10,6 +10,26 @@ hookimpl = HookimplMarker("opsbox")
 class IAMMFADisabled:
     """Plugin for identifying IAM users without MFA enabled."""
 
+    def format_result(self, input: "Result") -> dict:
+        """Format the result for the plugin.
+        Args:
+            input (Result): The input data to format.
+        Returns:
+            dict: The formatted data.
+        """
+        details = input.details["input"]
+        users_without_mfa = []
+
+        for user in details["credential_report"]:
+            if user.get("mfa_active") == "false":
+                users_without_mfa.append(user)
+
+        details = {
+            "users_without_mfa": users_without_mfa,
+        }
+        
+        return details
+
     @hookimpl
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -18,7 +38,7 @@ class IAMMFADisabled:
         Returns:
             Result: The formatted result object containing the findings.
         """
-        details = data.details
+        details = self.format_result(data)
 
         # Handle details as a list or dictionary
         if isinstance(details, list):
@@ -33,7 +53,7 @@ class IAMMFADisabled:
                 relates_to="iam",
                 result_name="users_without_mfa",
                 result_description="IAM Users without MFA",
-                details=data.details,
+                details=details,
                 formatted="Error: Invalid data format for details.",
             )
 
@@ -60,6 +80,6 @@ class IAMMFADisabled:
             relates_to="iam",
             result_name="users_without_mfa",
             result_description="IAM Users without MFA",
-            details=data.details,
+            details=details,
             formatted=formatted_output,
         )

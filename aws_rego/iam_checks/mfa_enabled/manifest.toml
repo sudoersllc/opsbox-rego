@@ -2,8 +2,8 @@
 name = "mfa_enabled"
 module = "mfa_enabled"
 class_name = "IAMMFADisabled"
-type = "rego"
-uses = ["rego", "iam"]
+type = "input"
+uses = ["general", "iam"]
 
 [rego]
 description = "Check for empty iam policies."

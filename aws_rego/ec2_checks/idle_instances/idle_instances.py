@@ -50,6 +50,24 @@ class IdleInstances:
             "ec2_cpu_idle_threshold"
         ]
         return data
+    
+    def format_data(self, input: "Result") -> dict:
+        """Format the data for the plugin.
+
+        Args:
+            input (Result): The input data to format.
+
+        Returns:
+            dict: The formatted data.
+        """
+        # Filter instances based on CPU utilization and staTE
+        input = input.details["input"]
+        details = [
+            instance for instance in input["instances"]
+            if instance["avg_cpu_utilization"] < self.conf["ec2_cpu_idle_threshold"] and instance["state"] == "running"
+        ]
+        return details
+
 
     @hookimpl
     def report_findings(self, data: Result) -> Result:
@@ -59,8 +77,7 @@ class IdleInstances:
         Returns:
             str: The formatted string containing the findings.
         """
-        findings = data.details
-        logger.debug(f"Findings: {findings}")
+        findings = self.format_data(data)
         instances = []
         for instance in findings:
             instance_obj = {
@@ -94,7 +111,8 @@ The data is presented in the following format:
             relates_to="ec2",
             result_name="idle_instances",
             result_description="Idle EC2 Instances",
-            details=data.details,
+            details=instances,
             formatted=formatted,
         )
+
         return item

@@ -35,21 +35,23 @@ class UnusedIAMPolicies:
         Args:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
-
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
-
+    
+    def format_result(self, input: "Result") -> list:
+        """Format the result for the plugin.
         Args:
-            data (Result): The data to inject into the plugin.
-
+            input (Result): The input data to format.
         Returns:
-            Result: The data with the injected values.
+            list: The formatted data.
         """
-        data.details["input"]["iam_unused_attachment_threshold"] = self.conf[
-            "iam_unused_attachment_threshold"
-        ]
-        return data
+        details = input.details["input"]
+
+        unused_policies = []
+
+        for policy in details["iam_policies"]:
+            if policy.get("attachment_count") < self.conf["iam_unused_attachment_threshold"]:
+                unused_policies.append(policy)
+
+        return unused_policies
 
     @hookimpl
     def report_findings(self, data: "Result"):
@@ -59,7 +61,7 @@ class UnusedIAMPolicies:
         Returns:
             Result: The formatted result object containing the findings.
         """
-        details = data.details
+        details = self.format_result(data)
 
         # Handle cases where details is a list or dictionary
         if isinstance(details, list):
@@ -74,7 +76,7 @@ class UnusedIAMPolicies:
                 relates_to="iam",
                 result_name="iam_unused_policies",
                 result_description="IAM Policies with Zero Attachments",
-                details=data.details,
+                details=details,
                 formatted="Error: Invalid data format for details.",
             )
 
@@ -101,6 +103,6 @@ class UnusedIAMPolicies:
             relates_to="iam",
             result_name="iam_unused_policies",
             result_description="IAM Policies with Zero Attachments",
-            details=data.details,
+            details=details,
             formatted=formatted_output,
         )
