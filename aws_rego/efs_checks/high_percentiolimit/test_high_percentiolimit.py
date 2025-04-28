@@ -1,9 +1,10 @@
 import os
 import json
 import pathlib
+from .high_percentiolimit.high_percentiolimit import HighPercentIOLimit
 
 
-def test_high_percent_io_limit(rego_process):
+def test_high_percent_io_limit(test_input_plugin):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     # if test key does not exist in the result, the test will fail.
@@ -22,15 +23,11 @@ def test_high_percent_io_limit(rego_process):
             json.dump(data, file, indent=4)
 
     # Load rego policy
-    rego_policy = os.path.join(current_dir, "high_percentiolimit.rego")
-    rego_input = os.path.join(current_dir.parent, "efs_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "efs_test_data.json")
     needed_keys = ["Id", "Name", "PercentIOLimit"]
 
-    result = rego_process(
-        rego_policy,
-        rego_input,
-        "data.aws_rego.efs_checks.high_percentiolimit.high_percentiolimit.details",
-    )
-    # check that result has the needed keys
-    for key in needed_keys:
-        assert key in result[0]
+    result = test_input_plugin(test_data_path, HighPercentIOLimit).details
+    
+    for item in result:
+        for key in needed_keys:
+            assert key in item, f"Key {key} not found in item {item}"

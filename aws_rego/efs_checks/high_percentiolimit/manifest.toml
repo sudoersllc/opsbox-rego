@@ -2,8 +2,8 @@
 name = "efs_high_percentiolimit"
 module = "high_percentiolimit"
 class_name = "HighPercentIOLimit"
-type = "rego"
-uses = ["rego", "efs"]
+type = "input"
+uses = ["general", "efs"]
 
 [rego]
 description = "Check for high AWS EFS percent IO Limit"
