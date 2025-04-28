@@ -1,14 +1,11 @@
 import os
 import pathlib
+from .mfa_enabled.mfa_enabled import IAMMFADisabled
 
 
-# ruff: noqa: S101
-def test_mfa_enabled(rego_process):
-    """Test for mfa enabled policy"""
-    # Load rego policy
+def test_mfa_enabled(test_input_plugin):
+    """Test for MFA enabled check"""
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
-
-    rego_policy = os.path.join(current_dir, "mfa_enabled.rego")
     rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
 
     needed_keys = [
@@ -35,4 +32,10 @@ def test_mfa_enabled(rego_process):
         "user",
         "user_creation_time",
     ]
-    rego_process(rego_policy, rego_input, "data.aws.cost.mfa_enabled", needed_keys)
+
+    result = test_input_plugin(rego_input, IAMMFADisabled)
+    # check that result has the needed keys
+    details = result.details["users_without_mfa"]
+    for user in details:
+        for key in needed_keys:
+            assert key in user

@@ -1,9 +1,10 @@
 import os
 import pathlib
+from .console_access.console_access import ConsoleAccessIAM
 
 
 # ruff: noqa: S101
-def test_console_access(rego_process):
+def test_console_access(test_input_plugin):
     """Test for console access policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -35,4 +36,11 @@ def test_console_access(rego_process):
         "user",
         "user_creation_time",
     ]
-    rego_process(rego_policy, rego_input, "data.aws.cost.console_access", needed_keys)
+
+
+    result = test_input_plugin(rego_input, ConsoleAccessIAM)
+    # check that result has the needed keys
+    details = result.details["users_with_console_access"]
+    for user in details:
+        for key in needed_keys:
+            assert key in user

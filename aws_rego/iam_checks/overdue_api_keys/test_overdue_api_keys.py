@@ -2,10 +2,11 @@ import os
 import pathlib
 import json
 from datetime import datetime, timedelta
+from .overdue_api_keys.overdue_api_keys import OverdueAPIKeysIAM
 
 
 # ruff: noqa: S101
-def test_overdue_api_keys(rego_process):
+def test_overdue_api_keys(test_input_plugin):
     """Test for overdue api keys policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -30,9 +31,8 @@ def test_overdue_api_keys(rego_process):
     rego_policy = os.path.join(current_dir, "overdue_api_keys.rego")
     rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
 
-    result = rego_process(
-        rego_policy, rego_input, "data.aws.cost.overdue_api_keys", ["overdue_api_keys"]
-    )
+    result = test_input_plugin(rego_input, OverdueAPIKeysIAM)
+    result = result.details
     needed_keys = [
         "access_key_1_active",
         "access_key_1_last_rotated",
@@ -57,6 +57,7 @@ def test_overdue_api_keys(rego_process):
         "user",
         "user_creation_time",
     ]
+
     for x in result["overdue_api_keys"]:
         for key in needed_keys:
             assert key in x, f"Key {key} not found in {x}"

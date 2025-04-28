@@ -41,14 +41,10 @@ class OverdueAPIKeysIAM:
 
         for user in details["credential_report"]:
             if user.get("access_key_2_active") == "true":
-                key_last_rotated = datetime.strptime(user["access_key_2_last_rotated"], "%Y-%m-%dT%H:%M:%SZ").timestamp()
-                print(f"Key last rotated: {key_last_rotated}")
-                print(f"Threshold: {self.conf['iam_overdue_key_date_threshold'].timestamp()}")
-                print(f"is overdue: {key_last_rotated < self.conf['iam_overdue_key_date_threshold'].timestamp()}")
+                key_last_rotated = datetime.fromisoformat(user["access_key_2_last_rotated"]).timestamp()
                 # Check if the key is overdue
                 if key_last_rotated < self.conf["iam_overdue_key_date_threshold"].timestamp():
                     overdue_api_keys.append(user)
-
         details = {
             "overdue_api_keys": overdue_api_keys,
         }
@@ -62,20 +58,6 @@ class OverdueAPIKeysIAM:
         Args:
             model (BaseModel): The model containing the data for the plugin."""
         self.conf = model.model_dump()
-
-    @hookimpl
-    def inject_data(self, data: "Result") -> "Result":
-        """Inject data into the plugin.
-
-        Args:
-            data (Result): The data to inject into the plugin.
-
-        Returns:
-            Result: The data with the injected values.
-        """
-        timestamp = int(self.conf["iam_overdue_key_date_threshold"].timestamp() * 1e9)
-        data.details["input"]["iam_overdue_key_date_threshold"] = timestamp
-        return data
 
     def report_findings(self, data: "Result"):
         """Report the findings of the plugin.
@@ -100,7 +82,6 @@ class OverdueAPIKeysIAM:
         template = """The following IAM API keys are overdue:
         
 {unused_policies}"""
-        logger.info(unused_policies_yaml)
 
         # Generate the result with formatted output
         if unused_policies:
