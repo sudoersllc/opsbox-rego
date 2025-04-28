@@ -1,9 +1,9 @@
 import json
 import os
 import pathlib
+from .scaling_down.scaling_down import ScalingDown
 
-
-def test_scaling_down(rego_process):
+def test_scaling_down(test_input_plugin):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     # if test key does not exist in the result, the test will fail.
@@ -35,12 +35,8 @@ def test_scaling_down(rego_process):
         "StorageUtilization",
     ]
 
-    result = rego_process(
-        rego_policy,
-        rego_input,
-        "data.aws.cost.scaling_down",
-        ["recommendations_for_scaling_down"],
-    )
+    result = test_input_plugin(rego_input, ScalingDown)
     # check that result has the needed keys
+    details = result.details
     for key in needed_keys:
-        assert key in result["recommendations_for_scaling_down"][0]
+        assert key in details["recommendations_for_scaling_down"][0]

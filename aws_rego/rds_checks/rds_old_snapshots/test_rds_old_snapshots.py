@@ -4,12 +4,13 @@ import json
 import os
 import pathlib
 from datetime import datetime, timedelta
+from opsbox import Result
+from .rds_old_snapshots.rds_old_snapshots import RDSOldSnapshots
 
 
-def test_rds_old_snapshots(rego_process):
+def test_rds_old_snapshots(test_input_plugin):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
-    rego_policy = os.path.join(current_dir, "rds_old_snapshots.rego")
-    rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
+    test_input = os.path.join(current_dir.parent, "rds_test_data.json")
 
     # if test key does not exist in the result, the test will fail.
     # we need to add rds_old_date_threshold to the json file.
@@ -35,13 +36,9 @@ def test_rds_old_snapshots(rego_process):
         "SnapshotIdentifier",
         "StorageType",
     ]
+    result = test_input_plugin(test_input, RDSOldSnapshots)
 
-    result = rego_process(
-        rego_policy,
-        rego_input,
-        "data.aws.cost.rds_old_snapshots",
-        ["rds_old_snapshots"],
-    )
     # check that result has the needed keys
+    details = result.details
     for key in needed_keys:
-        assert key in result["rds_old_snapshots"][0]
+        assert key in details["rds_old_snapshots"][0]

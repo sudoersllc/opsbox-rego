@@ -50,7 +50,7 @@ class RDSIdle:
         """
         details = input.details["input"]
 
-        idle_instances = [instance for instance in details["rds_instances"] if instance.CPUUtilization < self.conf["rds_cpu_idle_threshold"]]
+        idle_instances = [instance for instance in details["rds_instances"] if instance["CPUUtilization"] < self.conf["rds_cpu_idle_threshold"]]
 
         return idle_instances
 
