@@ -6,8 +6,48 @@ import pytest
 import requests
 import subprocess
 from loguru import logger
+from opsbox import Result
 # ruff: noqa: S607, S603, S101
 
+def inner(json_file, plugin_obj):
+        """
+        Test input plugin to ensure it returns a valid JSON object.
+        Args:
+            json_file (str): Path to the JSON file.
+            plugin_obj (object): The plugin object to test.
+        Returns:
+            Result: The result of the test.
+        """
+        """Test input plugin to ensure it returns a valid JSON object."""
+        with open(json_file, "r") as file:
+            data = json.load(file)
+            assert isinstance(data, dict), "Input plugin did not return a valid JSON object."
+
+            # create a result from the json file
+        with open(json_file, "r") as file:
+            data = {"input": json.load(file)}
+            rego_input = Result(
+                relates_to="test",
+                result_name="test_input_plugin",
+                result_description="test",
+                details=data,
+                formatted="test",
+            )
+
+        obj = plugin_obj()
+        try:
+            conf = obj.grab_config()
+            conf = conf()
+            obj.set_data(conf)
+        except AttributeError:
+            pass
+
+        result = obj.report_findings(rego_input)
+        return result
+
+@pytest.fixture(scope="module")
+def test_input_plugin():
+    return inner
 
 def _extract_package_name(rego_policy_path: str) -> str:
     """
