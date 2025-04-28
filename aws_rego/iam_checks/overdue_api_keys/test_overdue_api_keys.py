@@ -28,7 +28,6 @@ def test_overdue_api_keys(test_input_plugin):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "overdue_api_keys.rego")
     rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
 
     result = test_input_plugin(rego_input, OverdueAPIKeysIAM)
