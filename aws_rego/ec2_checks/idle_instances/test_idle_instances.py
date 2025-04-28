@@ -1,9 +1,10 @@
 import json
 import os
 import pathlib
+from .idle_instances.idle_instances import IdleInstances
 
 
-def test_idle_instances(rego_process):
+def test_idle_instances(test_input_plugin):
     """Test for idle instances rego policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -23,12 +24,10 @@ def test_idle_instances(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "idle_instances.rego")
-    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "ec2_test_data.json")
     needed_keys = [
         "avg_cpu_utilization",
         "ebs_optimized",
-        "instance_id",
         "instance_type",
         "operating_system",
         "processor",
@@ -38,9 +37,9 @@ def test_idle_instances(rego_process):
         "tenancy",
         "virtualization_type",
     ]
-    rego_process(
-        rego_policy,
-        rego_input,
-        "aws_rego.ec2_checks.idle_instances.idle_instances",
-        needed_keys,
-    )
+
+    result = test_input_plugin(test_data_path, IdleInstances)
+    for item in result.details:
+        info = item[next(iter(item))]
+        for key in needed_keys:
+            assert key in info, f"Key {key} not found in {info}"

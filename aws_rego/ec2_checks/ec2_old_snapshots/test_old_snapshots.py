@@ -2,11 +2,11 @@ import datetime
 import json
 import os
 import pathlib
-
+from .ec2_old_snapshots.ec2_old_snapshots import EC2OLD
 # ruff: noqa: S101
 
 
-def test_idle_instances(rego_process):
+def test_idle_instances(test_input_plugin):
     """Test for idle instances rego policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -29,8 +29,7 @@ def test_idle_instances(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "ec2_old_snapshots.rego")
-    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "ec2_test_data.json")
 
     needed_keys = [
         "progress",
@@ -41,13 +40,9 @@ def test_idle_instances(rego_process):
         "tags",
         "volume_id",
     ]
-    result = rego_process(
-        rego_policy,
-        rego_input,
-        "aws_rego.ec2_checks.ec2_old_snapshots.ec2_old_snapshots",
-        ["ec2_old_snapshots"],
-    )
+    result = test_input_plugin(test_data_path, EC2OLD)
+    result = result.details["ec2_old_snapshots"]
 
-    for x in result["ec2_old_snapshots"]:
+    for x in result:
         for key in needed_keys:
             assert key in x, f"Key {key} not found in {x}"

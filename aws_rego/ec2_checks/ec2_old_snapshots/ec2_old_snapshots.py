@@ -91,7 +91,7 @@ class EC2OLD:
                 relates_to="ec2",
                 result_name="old_snapshots",
                 result_description="Old EC2 Snapshots",
-                details=data.details,
+                details=findings,
                 formatted=template.format(old_snapshots=old_snapshots_yaml),
             )
         else:
@@ -99,7 +99,7 @@ class EC2OLD:
                 relates_to="ec2",
                 result_name="old_snapshots",
                 result_description="Old EC2 Snapshots",
-                details=data.details,
+                details=findings,
                 formatted="No old EC2 snapshots found.",
             )
 

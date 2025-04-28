@@ -22,14 +22,10 @@ class StrayEbs:
         volumes = []
         findings = self.format_results(data)
         for volume in findings:
+            vol_id = volume["volume_id"]
+            del volume["volume_id"]
             volume_obj = {
-                volume["volume_id"]: {
-                    "create_time": volume["create_time"],
-                    "region": volume["region"],
-                    "state": volume["state"],
-                    "size": f"{volume['size']}MB",
-                    "tags": volume["tags"],
-                }
+                vol_id: volume
             }
             volumes.append(volume_obj)
             try:

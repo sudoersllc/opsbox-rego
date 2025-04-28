@@ -1,13 +1,18 @@
 import os
 import pathlib
+from .unattached_eips.unattached_eips import UnattachedEips
 
 
-def test_unattached_eips(rego_process):
+def test_unattached_eips(test_input_plugin):
     """Test for idle instances rego policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
-    rego_policy = os.path.join(current_dir, "unattached_eips.rego")
-    rego_input = os.path.join(current_dir.parent, "ec2_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "ec2_test_data.json")
     needed_keys = ["association_id", "domain", "public_ip", "region"]
-    rego_process(rego_policy, rego_input, "data.aws.cost.unattached_eips", needed_keys)
+    result = test_input_plugin(test_data_path, UnattachedEips)
+    result = result.details
+
+    for x in result:
+        for key in needed_keys:
+            assert key in x, f"Key {key} not found in {x}"

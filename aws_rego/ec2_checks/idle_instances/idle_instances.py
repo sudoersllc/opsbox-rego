@@ -78,19 +78,16 @@ class IdleInstances:
             str: The formatted string containing the findings.
         """
         findings = self.format_data(data)
+
         instances = []
         for instance in findings:
-            instance_obj = {
-                instance["instance_id"]: {
-                    "region": instance["region"],
-                    "state": instance["state"],
-                    "avg_cpu_utilization": instance["avg_cpu_utilization"],
-                    "instance_type": instance["instance_type"],
-                    "operating_system": instance.get("operating_system", "N/A"),
-                    "tags": instance.get("tags", {}),
-                }
+            inst_id = instance["instance_id"]
+            del instance["instance_id"]
+            entry = {
+                inst_id: instance
             }
-            instances.append(instance_obj)
+            instances.append(entry)
+
         try:
             instance_yaml = yaml.dump(instances, default_flow_style=False)
         except Exception as e:
@@ -114,5 +111,6 @@ The data is presented in the following format:
             details=instances,
             formatted=formatted,
         )
+
 
         return item
