@@ -6,7 +6,7 @@ from .mfa_enabled.mfa_enabled import IAMMFADisabled
 def test_mfa_enabled(test_input_plugin):
     """Test for MFA enabled check"""
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
-    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "iam_test_data.json")
 
     needed_keys = [
         "access_key_1_active",
@@ -33,7 +33,7 @@ def test_mfa_enabled(test_input_plugin):
         "user_creation_time",
     ]
 
-    result = test_input_plugin(rego_input, IAMMFADisabled)
+    result = test_input_plugin(test_data_path, IAMMFADisabled)
     # check that result has the needed keys
     details = result.details["users_without_mfa"]
     for user in details:

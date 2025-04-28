@@ -2,10 +2,10 @@ import datetime
 import json
 import os
 import pathlib
-
+from .storage_class_usage.storage_class_usage import StorageClassUsage
 
 # ruff: noqa: S101
-def test_storage_class_usage(rego_process):
+def test_storage_class_usage(test_input_plugin):
     """Test for storage class usage policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -26,13 +26,21 @@ def test_storage_class_usage(rego_process):
     if write:
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
-    rego_policy = os.path.join(current_dir, "storage_class_usage.rego")
-    rego_input = os.path.join(current_dir.parent, "s3_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "s3_test_data.json")
 
     needed_keys = [
         "percentage_glacier_or_standard_ia",
         "glacier_or_standard_ia_buckets",
+        "count_glacier_or_standard_ia",
+        "count_stale",
+        "count_mixed",
+        "percentage_stale",
+        "percentage_mixed",
+        "stale_buckets",
+        "mixed_storage_buckets",
     ]
-    rego_process(
-        rego_policy, rego_input, "data.aws.cost.storage_class_usage", needed_keys
-    )
+    
+    result = test_input_plugin(test_data_path, StorageClassUsage).details
+
+    for key in needed_keys:
+        assert key in result

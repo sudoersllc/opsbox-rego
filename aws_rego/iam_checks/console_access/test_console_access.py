@@ -9,7 +9,7 @@ def test_console_access(test_input_plugin):
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
-    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "iam_test_data.json")
 
     needed_keys = [
         "access_key_1_active",
@@ -37,7 +37,7 @@ def test_console_access(test_input_plugin):
     ]
 
 
-    result = test_input_plugin(rego_input, ConsoleAccessIAM)
+    result = test_input_plugin(test_data_path, ConsoleAccessIAM)
     # check that result has the needed keys
     details = result.details["users_with_console_access"]
     for user in details:

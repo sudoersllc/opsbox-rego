@@ -2,10 +2,11 @@ import datetime
 import json
 import os
 import pathlib
+from .unused_buckets.unused_buckets import UnusedBuckets
 
 
 # ruff: noqa: S101
-def test_unused_buckets(rego_process):
+def test_unused_buckets(test_input_plugin):
     """Test for unused buckets policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -27,13 +28,10 @@ def test_unused_buckets(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "unused_buckets.rego")
-    rego_input = os.path.join(current_dir.parent, "s3_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "s3_test_data.json")
 
     needed_keys = ["last_modified", "name", "storage_class"]
-    result = rego_process(
-        rego_policy, rego_input, "data.aws.cost.unused_buckets", ["unused_buckets"]
-    )
-    for x in result["unused_buckets"]:
+    result = test_input_plugin(test_data_path, UnusedBuckets).details
+    for x in result:
         for key in needed_keys:
             assert key in x, f"Key {key} not found in {x}"

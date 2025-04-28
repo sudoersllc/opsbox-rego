@@ -35,8 +35,6 @@ class EmptyZones:
             zone for zone in details.get("hosted_zones", [])
             if zone["id"] in zone_ids
         ]
-
-        pprint(empty_hosted_zones)
         
         return {"empty_hosted_zones": empty_hosted_zones}
 

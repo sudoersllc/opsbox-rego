@@ -1,10 +1,10 @@
 import json
 import os
 import pathlib
-
+from .empty_storage.empty_storage import EmptyStorage
 
 # ruff: noqa: S101
-def test_empty_storage(rego_process):
+def test_empty_storage(test_input_plugin):
     """Test for empty storage policy"""
     # Load rego policy
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
@@ -24,8 +24,7 @@ def test_empty_storage(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "empty_storage.rego")
-    rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "rds_test_data.json")
 
     needed_keys = [
         "AllocatedStorage",
@@ -37,4 +36,9 @@ def test_empty_storage(rego_process):
         "Region",
         "StorageUtilization",
     ]
-    rego_process(rego_policy, rego_input, "data.aws.cost.empty_storage", needed_keys)
+
+    result = test_input_plugin(test_data_path, EmptyStorage).details
+
+    for item in result:
+        for key in needed_keys:
+            assert key in item, f"Key {key} not found in item {item}"

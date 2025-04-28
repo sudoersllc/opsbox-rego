@@ -25,8 +25,7 @@ def test_rds_idle(test_input_plugin):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "rds_idle.rego")
-    rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "rds_test_data.json")
 
     needed_keys = [
         "AllocatedStorage",
@@ -39,7 +38,7 @@ def test_rds_idle(test_input_plugin):
         "StorageUtilization",
     ]
 
-    result = test_input_plugin(rego_input, RDSIdle)
+    result = test_input_plugin(test_data_path, RDSIdle)
     # check that result has the needed keys
     details = result.details
     for item in details:

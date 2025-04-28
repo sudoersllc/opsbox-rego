@@ -23,7 +23,7 @@ def test_low_request_counts(test_input_plugin):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_input = os.path.join(current_dir.parent, "elb_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "elb_test_data.json")
     needed_keys = [
         "CreatedTime",
         "DNSName",
@@ -35,7 +35,7 @@ def test_low_request_counts(test_input_plugin):
         "Type",
     ]
 
-    result = test_input_plugin(rego_input, LowRequestCount)
+    result = test_input_plugin(test_data_path, LowRequestCount)
     # check that result has the needed keys
     details = result.details
 

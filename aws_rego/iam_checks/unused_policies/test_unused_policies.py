@@ -7,7 +7,7 @@ from .unused_policies.unused_policies import UnusedIAMPolicies
 def test_unused_policies(test_input_plugin):
     """Test for unused policies"""
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
-    rego_input = os.path.join(current_dir.parent, "iam_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "iam_test_data.json")
 
     needed_keys = [
         "Arn",
@@ -23,7 +23,7 @@ def test_unused_policies(test_input_plugin):
         "attached_to"
     ]
 
-    result = test_input_plugin(rego_input, UnusedIAMPolicies)
+    result = test_input_plugin(test_data_path, UnusedIAMPolicies)
     # check that result has the needed keys
     details = result.details
     for policy in details:

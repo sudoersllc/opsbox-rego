@@ -21,8 +21,7 @@ def test_scaling_down(test_input_plugin):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "scaling_down.rego")
-    rego_input = os.path.join(current_dir.parent, "rds_test_data.json")
+    test_data_path = os.path.join(current_dir.parent, "rds_test_data.json")
 
     needed_keys = [
         "AllocatedStorage",
@@ -35,7 +34,7 @@ def test_scaling_down(test_input_plugin):
         "StorageUtilization",
     ]
 
-    result = test_input_plugin(rego_input, ScalingDown)
+    result = test_input_plugin(test_data_path, ScalingDown)
     # check that result has the needed keys
     details = result.details
     for key in needed_keys:
