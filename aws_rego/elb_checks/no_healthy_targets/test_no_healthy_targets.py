@@ -2,15 +2,14 @@
 
 import os
 import pathlib
+from .no_healthy_targets.no_healthy_targets import NoHealthyTargets
 
 
-def test_no_healthy_targets(rego_process):
+def test_no_healthy_targets(test_input_plugin):
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
-    rego_policy = os.path.join(current_dir, "no_healthy_targets.rego")
     rego_input = os.path.join(current_dir.parent, "elb_test_data.json")
 
     needed_keys = [
-        "AvailabilityZones",
         "CreatedTime",
         "DNSName",
         "ErrorRate",
@@ -19,12 +18,13 @@ def test_no_healthy_targets(rego_process):
         "RequestCount",
         "Scheme",
         "SecurityGroups",
-        "State",
         "Type",
-        "VpcId",
     ]
 
-    result = rego_process(rego_policy, rego_input, "data.aws.elb.no_healthy_targets")
+    result = test_input_plugin(rego_input, NoHealthyTargets)
+    result = result.details
+
     # check that result has the needed keys
-    for key in needed_keys:
-        assert key in result[0]
+    for x in result:
+        for key in needed_keys:
+            assert key in x

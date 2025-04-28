@@ -4,10 +4,49 @@ import yaml
 from loguru import logger
 from opsbox import Result
 from pydantic import BaseModel, Field
+import re
 
 # Define a hookimpl (implementation of the contract)
 hookimpl = HookimplMarker("opsbox")
 
+def split_words(key: str) -> list[str]:
+    """Splits a key into a list of lowercase words."""
+    if "_" in key:
+        return key.lower().split("_")
+    words = re.sub(r'(?<!^)(?=[A-Z])', ' ', key).split()
+    return [word.lower() for word in words]
+
+def convert_case(key: str, target: str) -> str:
+    """Convert a key string to the desired casing style."""
+    def to_snake_case(words: list[str]) -> str:
+        return "_".join(words)
+
+    def to_camel_case(words: list[str]) -> str:
+        return words[0] + "".join(word.capitalize() for word in words[1:])
+
+    def to_pascal_case(words: list[str]) -> str:
+        return "".join(word.capitalize() for word in words)
+
+    def to_upper_case(words: list[str]) -> str:
+        return "_".join(words).upper()
+
+    def to_lower_case(words: list[str]) -> str:
+        return "".join(words)
+    
+    words = split_words(key)
+    match target:
+        case "snake_case":
+            return to_snake_case(words)
+        case "camelCase":
+            return to_camel_case(words)
+        case "PascalCase":
+            return to_pascal_case(words)
+        case "UPPERCASE":
+            return to_upper_case(words)
+        case "lowercase":
+            return to_lower_case(words)
+        case _:
+            raise ValueError(f"Unknown target case: {target}")
 
 class HighELBErrorRateConfig(BaseModel):
     elb_error_rate_threshold: Annotated[
@@ -50,44 +89,16 @@ class HighErrorRate:
         load_balancers = []
 
         for lb in details["elbs"]:
+            lb_obj = {convert_case(k, "PascalCase"): v for k, v in lb.items()}
+            load_balancers.append(lb_obj)
+        
+        high_error_rate_load_balancers = []
+        for load_balancer in load_balancers:
             if (
-                isinstance(lb, dict)
-                and "name" in lb
-                and "type" in lb
-                and "error_rate" in lb
+                load_balancer.get("ErrorRate")
+                >= self.conf["elb_error_rate_threshold"]
             ):
-                lb_obj = {
-                    lb["name"]: {"type": lb["type"], "error_rate": lb["error_rate"]}
-                }
-                load_balancers.append(lb_obj)
-            elif (
-                isinstance(lb, dict)
-                and "Name" in lb
-                and "Type" in lb
-                and "ErrorRate" in lb
-            ):
-                lb_obj = {
-                    lb["Name"]: {"type": lb["Type"], "error_rate": lb["ErrorRate"]}
-                }
-                load_balancers.append(lb_obj)
-            else:
-                name: str
-                if lb.get("name") is not None:
-                    name = lb["name"]
-                    pass
-                elif lb.get("Name") is not None:
-                    name = lb["Name"]
-                    pass
-
-                logger.error(f"Invalid load balancer data for {name}", extra=lb)
-
-        print(load_balancers)
-        high_error_rate_load_balancers = [
-            {name: details}
-            for lb in load_balancers
-            for name, details in lb.items()
-            if details["error_rate"] > self.conf["elb_error_rate_threshold"]
-        ]
+                high_error_rate_load_balancers.append(load_balancer)
 
         details = high_error_rate_load_balancers
         return details

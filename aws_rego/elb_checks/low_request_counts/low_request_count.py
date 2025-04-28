@@ -49,7 +49,6 @@ class LowRequestCount:
             list: A list of ELBs with low request counts.
         """
         lbs = input.details.get("input").get("elbs", [])
-        print("lbs", lbs)
         low_request_count = []
 
         for load_balancer in lbs:
@@ -59,7 +58,6 @@ class LowRequestCount:
             ):
                 low_request_count.append(load_balancer)
 
-        print("low_request_count", low_request_count)
         return low_request_count
     
     @hookimpl

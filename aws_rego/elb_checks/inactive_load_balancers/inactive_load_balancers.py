@@ -1,6 +1,5 @@
 from pluggy import HookimplMarker
 import yaml
-from loguru import logger
 from opsbox import Result
 from pydantic import BaseModel, Field
 from typing import Annotated
@@ -51,6 +50,7 @@ class InactiveLoadBalancers:
         lbs = input.details.get("input").get("elbs", [])
         inactive = []
 
+
         for load_balancer in lbs:
             if load_balancer.get("State", load_balancer.get("state")) == "inactive":
                 inactive.append(load_balancer)
@@ -58,8 +58,8 @@ class InactiveLoadBalancers:
                 load_balancer.get("RequestCount", load_balancer.get("request_count", 0))
                 <= self.conf["elb_inactive_requests_threshold"]):
                 inactive.append(load_balancer)
-        print("inactive", inactive)
-        return {"inactive_load_balancers": inactive}
+
+        return inactive
 
     @hookimpl
     def report_findings(self, data: Result):
@@ -71,13 +71,12 @@ class InactiveLoadBalancers:
         Returns:
             Result: The formatted result with inactive ELBs.
         """
+        
         findings = self.format_data(data)
 
-        inactive_load_balancers = findings.get("inactive_load_balancers", [])
 
         # Check for findings and collect inactive load balancers
         if findings is not None:
-            inactive_load_balancers.extend(findings)
 
             # Template for displaying inactive load balancers
             template = """The following ELBs are inactive:
@@ -86,7 +85,7 @@ class InactiveLoadBalancers:
 
             # Format the output using the yaml dump for better display
             formatted_load_balancers = yaml.dump(
-                inactive_load_balancers, default_flow_style=False
+                findings, default_flow_style=False
             )
 
             # Create the result item with the formatted data

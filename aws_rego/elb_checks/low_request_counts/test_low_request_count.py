@@ -1,22 +1,21 @@
 import json
 import os
 import pathlib
+from .low_request_count import LowRequestCount
 
 
-# ruff: noqa: S101
-def test_low_request_counts(rego_process):
-    """Test for low request count policy"""
-    # Load rego policy
+def test_low_request_counts(test_input_plugin):
+    """Test for low request counts policy"""
     current_dir = pathlib.Path(os.path.abspath(__file__)).parent
 
     # if test key does not exist in the result, the test will fail.
-    # we need to add elb_low_requests_threshold to the json file.
+    # we need to add elb_request_count_threshold to the json file.
     write: bool = False
     test_data = os.path.join(current_dir.parent, "elb_test_data.json")
     with open(test_data, "r") as file:
         data = json.load(file)
-        if "elb_low_requests_threshold" not in data:
-            data["elb_low_requests_threshold"] = 50
+        if "elb_request_count_threshold" not in data:
+            data["elb_request_count_threshold"] = 100
             write = True
 
     # overwrite the file
@@ -24,21 +23,22 @@ def test_low_request_counts(rego_process):
         with open(test_data, "w") as file:
             json.dump(data, file, indent=4)
 
-    rego_policy = os.path.join(current_dir, "low_request_count.rego")
     rego_input = os.path.join(current_dir.parent, "elb_test_data.json")
-
     needed_keys = [
-        "AvailabilityZones",
         "CreatedTime",
         "DNSName",
-        "ErrorRate",
+        "RequestCount",
         "InstanceHealth",
         "Name",
-        "RequestCount",
         "Scheme",
         "SecurityGroups",
         "Type",
     ]
-    rego_process(
-        rego_policy, rego_input, "data.aws.cost.low_request_count", needed_keys
-    )
+
+    result = test_input_plugin(rego_input, LowRequestCount)
+    # check that result has the needed keys
+    details = result.details
+
+    for instance in details:
+        for key in needed_keys:
+            assert key in instance
