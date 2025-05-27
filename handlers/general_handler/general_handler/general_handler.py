@@ -71,11 +71,12 @@ class GeneralHandler:
         self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry"
     ) -> Any:
         """Process the plugin."""
-        logger.debug(f"GeneralHandler processing plugin {plugin.name}")
+        logger.debug(f"GeneralHandler processing plugin {plugin.name}, registry: {type(registry)}")
+        
         if plugin.type == "input":
             providers: list["PluginInfo"] = [
                 x
-                for x in registry.active_plugins
+                for x in registry
                 if (x.type == "provider") and (x.name in plugin.uses)
             ]
             data = []

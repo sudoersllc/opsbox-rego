@@ -106,7 +106,7 @@ class RegoHandler:
 
     @hookimpl
     def process_plugin(
-        self, plugin: "PluginInfo", prior_results: list["Result"], registry: "list[PluginInfo]"
+        self, plugin: "PluginInfo", prior_results: list["Result"], registry: "Registry"
     ) -> list["Result"]:
         """Process the rego plugin.
 
